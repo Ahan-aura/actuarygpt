@@ -35,12 +35,13 @@ class AgentQueryResponse(BaseModel):
 class LoginRequest(BaseModel):
     username: str
     password: str
+    passkey: Optional[str] = None
 
 class RegisterRequest(BaseModel):
     username: str
     password: str
     role: str
+    passkey: Optional[str] = None
 
 class DecisionRequest(BaseModel):
     decision: str
-

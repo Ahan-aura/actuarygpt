@@ -94,6 +94,10 @@ def home():
 
 @app.post("/auth/register")
 def register(req: RegisterRequest):
+    if req.role.strip() == 'officer':
+        if req.passkey != "ACTUARY_SECURE_2026":
+            raise HTTPException(status_code=400, detail="Invalid Officer Security Passkey. Registration denied.")
+            
     conn = get_db_connection()
     cursor = conn.cursor()
     try:
@@ -122,6 +126,10 @@ def login(req: LoginRequest):
     if not user or user["password"] != req.password:
         raise HTTPException(status_code=401, detail="Invalid username or password")
         
+    if user["role"] == 'officer':
+        if req.passkey != "ACTUARY_SECURE_2026":
+            raise HTTPException(status_code=401, detail="Invalid Officer Security Passkey. Login denied.")
+            
     return {
         "username": user["username"],
         "role": user["role"]

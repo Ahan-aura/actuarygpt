@@ -2346,6 +2346,7 @@ export default function AppWrapper() {
   const [usernameInput, setUsernameInput] = useState("");
   const [passwordInput, setPasswordInput] = useState("");
   const [roleInput, setRoleInput] = useState("customer");
+  const [passkeyInput, setPasskeyInput] = useState("");
   const [authError, setAuthError] = useState(null);
 
   const handleAuthSubmit = async (e) => {
@@ -2353,8 +2354,8 @@ export default function AppWrapper() {
     setAuthError(null);
     const endpoint = isRegisterMode ? "/auth/register" : "/auth/login";
     const payload = isRegisterMode 
-      ? { username: usernameInput, password: passwordInput, role: roleInput }
-      : { username: usernameInput, password: passwordInput };
+      ? { username: usernameInput, password: passwordInput, role: roleInput, passkey: passkeyInput }
+      : { username: usernameInput, password: passwordInput, passkey: passkeyInput };
 
     try {
       const response = await fetch(`${API_BASE}${endpoint}`, {
@@ -2374,7 +2375,7 @@ export default function AppWrapper() {
         const loginResponse = await fetch(`${API_BASE}/auth/login`, {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ username: usernameInput, password: passwordInput })
+          body: JSON.stringify({ username: usernameInput, password: passwordInput, passkey: passkeyInput })
         });
         const loginData = await loginResponse.json();
         saveLogin(loginData);
@@ -2420,7 +2421,7 @@ export default function AppWrapper() {
               <input 
                 type="text" 
                 className="form-input" 
-                placeholder="e.g. actuary1 or customer1..." 
+                placeholder="Enter your username..." 
                 value={usernameInput} 
                 onChange={(e) => setUsernameInput(e.target.value)} 
                 required 
@@ -2439,13 +2440,44 @@ export default function AppWrapper() {
               />
             </div>
 
+            {/* Officer Security Passkey for registration / logins */}
+            {isRegisterMode && roleInput === 'officer' && (
+              <div className="form-group animate-fade-in">
+                <label>Officer Security Passkey</label>
+                <input 
+                  type="password" 
+                  className="form-input" 
+                  placeholder="Required secure officer passkey..." 
+                  value={passkeyInput} 
+                  onChange={(e) => setPasskeyInput(e.target.value)} 
+                  required 
+                />
+              </div>
+            )}
+
+            {!isRegisterMode && (
+              <div className="form-group">
+                <label>Officer Passkey <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>(Only required for Actuary Officers)</span></label>
+                <input 
+                  type="password" 
+                  className="form-input" 
+                  placeholder="Enter passkey if logging in as Actuary..." 
+                  value={passkeyInput} 
+                  onChange={(e) => setPasskeyInput(e.target.value)} 
+                />
+              </div>
+            )}
+
             {isRegisterMode && (
               <div className="role-selector">
                 <label>Choose Account Type</label>
                 <div className="role-options">
                   <div 
                     className={`role-option-card ${roleInput === 'customer' ? 'active' : ''}`}
-                    onClick={() => setRoleInput('customer')}
+                    onClick={() => {
+                      setRoleInput('customer');
+                      setPasskeyInput("");
+                    }}
                   >
                     <Users size={20} style={{ color: roleInput === 'customer' ? 'var(--primary)' : 'var(--text-muted)' }} />
                     <span className="role-title">Customer</span>
@@ -2485,19 +2517,12 @@ export default function AppWrapper() {
                 onClick={() => {
                   setIsRegisterMode(!isRegisterMode);
                   setAuthError(null);
+                  setPasskeyInput("");
                 }}
               >
                 {isRegisterMode ? "Sign In instead" : "Register a new user"}
               </button>
             </div>
-            
-            {!isRegisterMode && (
-              <div style={{ borderTop: '1px solid var(--border)', paddingTop: '0.75rem', fontSize: '0.75rem', color: 'var(--text-muted)', textAlign: 'center', display: 'flex', flexDirection: 'column', gap: '0.25rem' }}>
-                <div><b>Demo Credentials Available (seeding enabled):</b></div>
-                <div>Actuary Login: <code>actuary1</code> / <code>password123</code></div>
-                <div>Customer Login: <code>customer1</code> / <code>password123</code></div>
-              </div>
-            )}
           </form>
         </div>
       </div>
