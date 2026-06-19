@@ -60,7 +60,11 @@ def predict_risk(user_data):
     
     prediction = model.predict(df)
     
-    return int(prediction[0]) + 1
+    pred_val = prediction[0]
+    if hasattr(pred_val, "__len__") or hasattr(pred_val, "shape"):
+        pred_val = pred_val[0]
+        
+    return int(pred_val) + 1
 
 def predict_risk_with_confidence(user_data):
     row = {}
@@ -76,16 +80,21 @@ def predict_risk_with_confidence(user_data):
     df = pd.DataFrame([row])
     prediction = model.predict(df)
     
+    pred_val = prediction[0]
+    if hasattr(pred_val, "__len__") or hasattr(pred_val, "shape"):
+        pred_val = pred_val[0]
+    pred_class = int(pred_val)
+    
     confidence = 90.0  # default fallback
     if hasattr(model, "predict_proba"):
         try:
             probs = model.predict_proba(df)[0]
-            pred_class = int(prediction[0])
             if pred_class < len(probs):
                 confidence = float(probs[pred_class]) * 100
         except Exception:
             pass
             
-    risk_class = int(prediction[0]) + 1
+    risk_class = pred_class + 1
     return risk_class, round(confidence, 1)
+
 
