@@ -49,7 +49,7 @@ import {
 } from 'recharts';
 import './App.css';
 
-const API_BASE = "http://127.0.0.1:8000";
+const API_BASE = "https://actuarygpt-backend.onrender.com";
 
 const DEFAULT_BLANK_FORM = {
   fullName: "",
