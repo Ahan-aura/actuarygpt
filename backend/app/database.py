@@ -278,26 +278,88 @@ def init_db():
         ))
         conn.commit()
 
-    # 6. Seed Default Applications (Vehicle) if none exist
+    # 6. Seed Default Applications (Vehicle) from insurance_claims.csv if database has < 5 rows
     cursor.execute("SELECT COUNT(*) FROM vehicle_applications")
-    if cursor.fetchone()[0] == 0:
-        cursor.execute("""
-        INSERT INTO vehicle_applications (
-            id, client, months_as_customer, age, policy_state, policy_csl, policy_deductable,
-            policy_annual_premium, umbrella_limit, insured_sex, insured_education_level,
-            insured_occupation, insured_hobbies, insured_relationship, capital_gains, capital_loss,
-            incident_type, collision_type, incident_severity, authorities_contacted, incident_state,
-            incident_city, incident_hour_of_the_day, number_of_vehicles_involved, property_damage,
-            bodily_injuries, witnesses, police_report_available, total_claim_amount, injury_claim,
-            property_claim, vehicle_claim, auto_make, auto_model, auto_year, date, status
-        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-        """, (
-            "VEH-7821", "customer1", 328, 48, "OH", "250/500", 1000.0, 1406.91, 0.0, "MALE", "MD",
-            "craft-repair", "sleeping", "husband", 53700.0, -46000.0, "Single Vehicle Collision", "Side Collision",
-            "Major Damage", "Police", "SC", "Columbus", 5, 1, "YES", 1, 2, "YES", 71610.0, 6510.0,
-            13020.0, 52080.0, "Saab", "92x", 2004, "2026-06-19", "pending"
-        ))
-        conn.commit()
+    if cursor.fetchone()[0] < 5:
+        import csv
+        base_dir = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+        datasets_dir = os.path.join(base_dir, "datasets")
+        csv_path = os.path.join(datasets_dir, "insurance_claims.csv")
+        
+        if os.path.exists(csv_path):
+            print(f"Seeding vehicle_applications from {csv_path}...")
+            try:
+                with open(csv_path, "r", encoding="utf-8") as f:
+                    reader = csv.DictReader(f)
+                    records = []
+                    for row in reader:
+                        p_num = row.get("policy_number") or uuid.uuid4().hex[:6].upper()
+                        app_id = f"VEH-{p_num}"
+                        
+                        f_rep = row.get("fraud_reported") or "N"
+                        status = "rejected" if f_rep == "Y" else "approved"
+                        decision = "Flagged Fraud - Refused Payout" if f_rep == "Y" else "Standard Approval - Payout Complete"
+                        
+                        # Handle renamed column 'capital-gains' to 'capital_gains'
+                        cap_gains = float(row.get("capital-gains") or row.get("capital_gains") or 0.0)
+                        cap_loss = float(row.get("capital-loss") or row.get("capital_loss") or 0.0)
+                        
+                        records.append((
+                            app_id, "customer1", int(row.get("months_as_customer") or 0), int(row.get("age") or 35),
+                            row.get("policy_state") or "NY", row.get("policy_csl") or "250/500",
+                            float(row.get("policy_deductable") or 500.0), float(row.get("policy_annual_premium") or 1000.0),
+                            float(row.get("umbrella_limit") or 0.0), row.get("insured_sex") or "MALE",
+                            row.get("insured_education_level") or "MD", row.get("insured_occupation") or "professional",
+                            row.get("insured_hobbies") or "reading", row.get("insured_relationship") or "husband",
+                            cap_gains, cap_loss, row.get("incident_type") or "Single Vehicle Collision",
+                            row.get("collision_type") or "Side Collision", row.get("incident_severity") or "Minor Damage",
+                            row.get("authorities_contacted") or "Police", row.get("incident_state") or "NY",
+                            row.get("incident_city") or "Springfield", int(row.get("incident_hour_of_the_day") or 12),
+                            int(row.get("number_of_vehicles_involved") or 1), row.get("property_damage") or "NO",
+                            int(row.get("bodily_injuries") or 0), int(row.get("witnesses") or 0),
+                            row.get("police_report_available") or "NO", float(row.get("total_claim_amount") or 0.0),
+                            float(row.get("injury_claim") or 0.0), float(row.get("property_claim") or 0.0),
+                            float(row.get("vehicle_claim") or 0.0), row.get("auto_make") or "Unknown",
+                            row.get("auto_model") or "Unknown", int(row.get("auto_year") or 2015),
+                            row.get("incident_date") or "2015-01-01", status, f_rep, 95.0,
+                            "Historical imported claim for reference database.", "", decision, "[]"
+                        ))
+                    
+                    cursor.executemany("""
+                    INSERT OR REPLACE INTO vehicle_applications (
+                        id, client, months_as_customer, age, policy_state, policy_csl, policy_deductable,
+                        policy_annual_premium, umbrella_limit, insured_sex, insured_education_level,
+                        insured_occupation, insured_hobbies, insured_relationship, capital_gains, capital_loss,
+                        incident_type, collision_type, incident_severity, authorities_contacted, incident_state,
+                        incident_city, incident_hour_of_the_day, number_of_vehicles_involved, property_damage,
+                        bodily_injuries, witnesses, police_report_available, total_claim_amount, injury_claim,
+                        property_claim, vehicle_claim, auto_make, auto_model, auto_year, date, status,
+                        fraud_reported, confidence, report, pdf_url, underwriting_decision, similar_cases
+                    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                    """, records)
+                    conn.commit()
+                    print(f"Successfully seeded {len(records)} vehicle applications from CSV.")
+            except Exception as e:
+                print(f"Error seeding vehicle applications from CSV: {e}")
+        else:
+            print(f"Warning: CSV file not found at {csv_path}. Seeding single default application.")
+            cursor.execute("""
+            INSERT OR IGNORE INTO vehicle_applications (
+                id, client, months_as_customer, age, policy_state, policy_csl, policy_deductable,
+                policy_annual_premium, umbrella_limit, insured_sex, insured_education_level,
+                insured_occupation, insured_hobbies, insured_relationship, capital_gains, capital_loss,
+                incident_type, collision_type, incident_severity, authorities_contacted, incident_state,
+                incident_city, incident_hour_of_the_day, number_of_vehicles_involved, property_damage,
+                bodily_injuries, witnesses, police_report_available, total_claim_amount, injury_claim,
+                property_claim, vehicle_claim, auto_make, auto_model, auto_year, date, status
+            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+            """, (
+                "VEH-7821", "customer1", 328, 48, "OH", "250/500", 1000.0, 1406.91, 0.0, "MALE", "MD",
+                "craft-repair", "sleeping", "husband", 53700.0, -46000.0, "Single Vehicle Collision", "Side Collision",
+                "Major Damage", "Police", "SC", "Columbus", 5, 1, "YES", 1, 2, "YES", 71610.0, 6510.0,
+                13020.0, 52080.0, "Saab", "92x", 2004, "2026-06-19", "pending"
+            ))
+            conn.commit()
         
     conn.close()
 
