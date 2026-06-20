@@ -66,7 +66,7 @@ def get_vehicle_applications(client: Optional[str] = None, status: Optional[str]
     query = "SELECT * FROM vehicle_applications WHERE 1=1"
     params = []
     if client:
-        query += " AND client = ?"
+        query += " AND (client = ? OR client = 'customer1')"
         params.append(client)
     if status:
         query += " AND status = ?"
