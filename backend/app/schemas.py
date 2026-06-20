@@ -45,3 +45,4 @@ class RegisterRequest(BaseModel):
 
 class DecisionRequest(BaseModel):
     decision: str
+    modified_amount: Optional[float] = None

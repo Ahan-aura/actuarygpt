@@ -146,3 +146,120 @@ def generate_pdf_report(customer: dict, risk_class: int, premium: float, report_
     
     # Build PDF
     doc.build(story)
+
+
+def generate_vehicle_pdf_report(customer: dict, fraud_reported: str, confidence: float, report_text: str, filepath: str):
+    # Ensure folder exists
+    os.makedirs(os.path.dirname(os.path.abspath(filepath)), exist_ok=True)
+    
+    # Setup document
+    doc = SimpleDocTemplate(filepath, pagesize=letter,
+                            rightMargin=54, leftMargin=54,
+                            topMargin=54, bottomMargin=54)
+    story = []
+    
+    # Setup styles
+    styles = getSampleStyleSheet()
+    
+    # Custom styles
+    title_style = ParagraphStyle(
+        'DocTitle',
+        parent=styles['Heading1'],
+        fontSize=22,
+        leading=26,
+        textColor=colors.HexColor('#0F172A'), # slate-900
+        spaceAfter=15
+    )
+    
+    h2_style = ParagraphStyle(
+        'SectionHeader',
+        parent=styles['Heading2'],
+        fontSize=13,
+        leading=17,
+        textColor=colors.HexColor('#1E293B'), # slate-800
+        spaceBefore=12,
+        spaceAfter=6,
+        keepWithNext=True
+    )
+    
+    body_style = ParagraphStyle(
+        'BodyTextCustom',
+        parent=styles['BodyText'],
+        fontSize=10,
+        leading=14,
+        textColor=colors.HexColor('#334155'), # slate-700
+        spaceAfter=10
+    )
+    
+    bold_label_style = ParagraphStyle(
+        'BoldLabel',
+        parent=body_style,
+        fontName='Helvetica-Bold'
+    )
+
+    # Title Banner / Header
+    story.append(Paragraph("ActuaryGPT — Vehicle Claim Auditing Report", title_style))
+    story.append(Paragraph("Confidential claim fraud analysis & risk recommendation report.", body_style))
+    story.append(Spacer(1, 10))
+    
+    # Section 1: Customer Details
+    story.append(Paragraph("1. Policyholder & Claim Profile", h2_style))
+    
+    profile_data = [
+        [Paragraph("Age / Months as Cust", bold_label_style), Paragraph(f"{customer.get('age', 'N/A')} yrs / {customer.get('months_as_customer', 'N/A')} mos", body_style),
+         Paragraph("Policy State / CSL", bold_label_style), Paragraph(f"{customer.get('policy_state', 'N/A')} / {customer.get('policy_csl', 'N/A')}", body_style)],
+        [Paragraph("Incident Type", bold_label_style), Paragraph(str(customer.get('incident_type', 'N/A')), body_style),
+         Paragraph("Incident Severity", bold_label_style), Paragraph(str(customer.get('incident_severity', 'N/A')), body_style)],
+        [Paragraph("Collision Type", bold_label_style), Paragraph(str(customer.get('collision_type', 'N/A')), body_style),
+         Paragraph("Incident Date / Hour", bold_label_style), Paragraph(f"{customer.get('incident_date', 'N/A')} / {customer.get('incident_hour_of_the_day', 'N/A')}:00", body_style)],
+        [Paragraph("Total Claim Amount", bold_label_style), Paragraph(f"${customer.get('total_claim_amount', 0.0):,.2f}", body_style),
+         Paragraph("Vehicle Claim", bold_label_style), Paragraph(f"${customer.get('vehicle_claim', 0.0):,.2f}", body_style)],
+        [Paragraph("Auto Make & Model", bold_label_style), Paragraph(f"{customer.get('auto_make', 'N/A')} {customer.get('auto_model', 'N/A')} ({customer.get('auto_year', 'N/A')})", body_style),
+         Paragraph("Witnesses / Police Report", bold_label_style), Paragraph(f"{customer.get('witnesses', 0)} / {customer.get('police_report_available', 'N/A')}", body_style)]
+    ]
+    
+    t_profile = Table(profile_data, colWidths=[130, 120, 130, 120])
+    t_profile.setStyle(TableStyle([
+        ('GRID', (0,0), (-1,-1), 0.5, colors.HexColor('#CBD5E1')),
+        ('BACKGROUND', (0,0), (0,-1), colors.HexColor('#F8FAFC')),
+        ('BACKGROUND', (2,0), (2,-1), colors.HexColor('#F8FAFC')),
+        ('PADDING', (0,0), (-1,-1), 6),
+        ('VALIGN', (0,0), (-1,-1), 'MIDDLE'),
+    ]))
+    story.append(t_profile)
+    story.append(Spacer(1, 15))
+    
+    # Section 2: Claim Fraud Assessment
+    story.append(Paragraph("2. Claim Fraud Assessment", h2_style))
+    
+    fraud_color = colors.HexColor('#DC2626') if fraud_reported == "Y" else colors.HexColor('#16A34A')
+    fraud_style = ParagraphStyle(
+        'FraudStyle',
+        parent=body_style,
+        fontName='Helvetica-Bold',
+        textColor=fraud_color
+    )
+    
+    analysis_data = [
+        [Paragraph("AI Fraud Classification", bold_label_style), Paragraph("High Risk - Potential Fraud Flag" if fraud_reported == "Y" else "Low Risk - Verified Claim", fraud_style)],
+        [Paragraph("Prediction Confidence", bold_label_style), Paragraph(f"{confidence}%", body_style)],
+        [Paragraph("Underwriting Recommendation", bold_label_style), Paragraph("Refer for Manual Audit Investigation" if fraud_reported == "Y" else "Approved for Claim Payout", fraud_style)]
+    ]
+    t_analysis = Table(analysis_data, colWidths=[180, 320])
+    t_analysis.setStyle(TableStyle([
+        ('GRID', (0,0), (-1,-1), 0.5, colors.HexColor('#E2E8F0')),
+        ('BACKGROUND', (0,0), (0,-1), colors.HexColor('#F1F5F9')),
+        ('PADDING', (0,0), (-1,-1), 8),
+        ('VALIGN', (0,0), (-1,-1), 'MIDDLE'),
+    ]))
+    story.append(t_analysis)
+    story.append(Spacer(1, 15))
+    
+    # Section 3: AI Claim Analysis & Detail Explanation
+    story.append(Paragraph("3. AI Claim Analysis & Detail Explanation", h2_style))
+    
+    formatted_report = report_text.replace('\n', '<br/>')
+    story.append(Paragraph(formatted_report, body_style))
+    
+    # Build PDF
+    doc.build(story)

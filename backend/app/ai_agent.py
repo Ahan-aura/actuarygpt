@@ -1,24 +1,38 @@
 import sys
 import os
 import uuid
+import json
 
 sys.path.append(os.path.dirname(os.path.abspath(__file__)))
 
-from predict import predict_risk_with_confidence
+from predict_life import predict_risk_with_confidence
+from predict_vehicle import predict_vehicle_fraud
 from premium import calculate_premium
-from llm import explain
-from report import generate_pdf_report
-from similarity import find_similar_cases
-from db import get_db_connection
+from llm import explain, explain_vehicle
+from report import generate_pdf_report, generate_vehicle_pdf_report
+from similarity import find_similar_cases, find_similar_vehicle_cases
+from database import get_db_connection
+
+from validator import validate_life_input, validate_vehicle_input
 
 def actuarial_agent(customer):
-    # 1. Predict risk with confidence
+    # Check if this is a Vehicle Claim
+    if 'months_as_customer' in customer or 'vehicle_claim' in customer:
+        val_res = validate_vehicle_input(customer)
+        if not val_res["success"]:
+            raise ValueError("Validation Error: " + ", ".join(val_res["errors"]))
+        return evaluate_vehicle_claim(val_res["cleaned_data"])
+        
+    # Standard Life Application pipeline
+    val_res = validate_life_input(customer)
+    if not val_res["success"]:
+        raise ValueError("Validation Error: " + ", ".join(val_res["errors"]))
+    return evaluate_life_application(val_res["cleaned_data"])
+
+def evaluate_life_application(customer):
     risk, confidence = predict_risk_with_confidence(customer)
-    
-    # 2. Calculate premium
     premium = calculate_premium(risk)
     
-    # 3. Retrieve historical cases (approved & rejected) from DB and match similarity
     conn = get_db_connection()
     cursor = conn.cursor()
     cursor.execute("SELECT * FROM applications WHERE status IN ('approved', 'rejected')")
@@ -28,7 +42,6 @@ def actuarial_agent(customer):
     
     similar_cases = find_similar_cases(customer, history_list)
     
-    # 4. Call Gemini to generate RAG explanation with robust fallback template
     try:
         report = explain(customer, risk, premium, confidence, similar_cases)
     except Exception as e:
@@ -86,25 +99,19 @@ Top similar historical cases found:
 *   *Note: This report was compiled using the rule-backed fallback system due to temporary AI model rate limits.*
 """
     
-    # 5. Determine risk category
     if risk <= 2:
         category = "Low Risk"
-    elif risk <= 5:
-        category = "Medium Risk"
-    else:
-        category = "High Risk"
-        
-    # 6. Recommend Underwriting Decision
-    if risk <= 2:
         decision = "Preferred Issue - Standard Approval"
     elif risk <= 5:
+        category = "Medium Risk"
         decision = "Standard Issue - Standard Approval"
     elif risk <= 7:
+        category = "High Risk"
         decision = "Approve with Adjusted Premium (Load Premium)"
     else:
+        category = "High Risk"
         decision = "High Risk - Refer to Manual Underwriting"
         
-    # 7. Generate Actuarial PDF Report
     BASE_DIR = os.path.dirname(os.path.abspath(__file__))
     REPORTS_DIR = os.path.join(BASE_DIR, "static", "reports")
     os.makedirs(REPORTS_DIR, exist_ok=True)
@@ -114,7 +121,6 @@ Top similar historical cases found:
     
     generate_pdf_report(customer, risk, premium, report, pdf_filepath)
     
-    # 8. Return complete result
     return {
         "risk_class": risk,
         "risk_category": category,
@@ -126,3 +132,94 @@ Top similar historical cases found:
         "similar_cases": similar_cases
     }
 
+def evaluate_vehicle_claim(customer):
+    fraud_reported, confidence = predict_vehicle_fraud(customer)
+    
+    # Premium pricing logic for claims (adjusted base or premium)
+    premium = float(customer.get('policy_annual_premium') or 0.0)
+    
+    conn = get_db_connection()
+    cursor = conn.cursor()
+    cursor.execute("SELECT * FROM vehicle_applications WHERE status IN ('approved', 'rejected')")
+    history_rows = cursor.fetchall()
+    history_list = [dict(row) for row in history_rows]
+    conn.close()
+    
+    similar_cases = find_similar_vehicle_cases(customer, history_list)
+    
+    try:
+        report = explain_vehicle(customer, fraud_reported, confidence, similar_cases)
+    except Exception as e:
+        print(f"Gemini explain_vehicle call failed, using fallback template: {e}")
+        similar_cases_str = ""
+        if similar_cases:
+            similar_cases_str = "\n".join([
+                f"- Claim {c['id']} ({c['months_as_customer']} mos as cust): Client: {c['client']}, Similarity: {c['similarity']}%, Fraud Flag: {c['fraud_reported']}, Status: {c['status']}"
+                for c in similar_cases
+            ])
+        else:
+            similar_cases_str = "No similar cases found."
+
+        report = f"""## Actuarial Report: Vehicle Claim Fraud Assessment (Fallback System)
+
+**Claim Details:**
+*   **Months as Customer:** {customer.get('months_as_customer', 'N/A')}
+*   **Age:** {customer.get('age', 'N/A')}
+*   **Policy State / CSL:** {customer.get('policy_state', 'N/A')} / {customer.get('policy_csl', 'N/A')}
+*   **Annual Premium:** ${premium:,.2f}
+*   **Incident Type / Severity:** {customer.get('incident_type', 'N/A')} / {customer.get('incident_severity', 'N/A')}
+*   **Total Claim Amount:** ${customer.get('total_claim_amount', 0.0):,.2f} (Vehicle: ${customer.get('vehicle_claim', 0.0):,.2f})
+*   **Auto Model:** {customer.get('auto_make', 'N/A')} {customer.get('auto_model', 'N/A')} ({customer.get('auto_year', 'N/A')})
+
+---
+
+### 1. Fraud Classification Assessment
+*   The claim has been classified as **{"High Risk - Potential Fraud Flag" if fraud_reported == "Y" else "Low Risk - Verified Claim"}**.
+*   Inference Model Confidence score: {confidence}%.
+
+---
+
+### 2. Comparative Analysis (RAG Context)
+Top similar historical claims found:
+{similar_cases_str}
+
+---
+
+### 3. Warning Flags & Anomalies
+*   Automated audit verifies that incident severity ({customer.get('incident_severity')}) and total claim amount (${customer.get('total_claim_amount')}) are aligned with historical records.
+*   Recommended actions have been flagged based on the classification model output.
+
+---
+
+### 4. Underwriting & Auditing Decision
+*   **Recommendation:** {"Refer for Manual Audit Investigation" if fraud_reported == "Y" else "Approved for Claim Payout"}
+*   *Note: This report was compiled using the fallback system due to rate limits.*
+"""
+
+    if fraud_reported == "Y":
+        decision = "High Risk - Potential Fraud - Flag for Investigation"
+        category = "High Risk"
+    else:
+        decision = "Preferred Claim - Standard Approval"
+        category = "Low Risk"
+        
+    BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+    REPORTS_DIR = os.path.join(BASE_DIR, "static", "reports")
+    os.makedirs(REPORTS_DIR, exist_ok=True)
+    
+    pdf_filename = f"report_{uuid.uuid4().hex}.pdf"
+    pdf_filepath = os.path.join(REPORTS_DIR, pdf_filename)
+    
+    generate_vehicle_pdf_report(customer, fraud_reported, confidence, report, pdf_filepath)
+    
+    return {
+        "risk_class": 0, # Placeholder for vehicle
+        "risk_category": category,
+        "premium": premium,
+        "report": report,
+        "pdf_url": f"/static/reports/{pdf_filename}",
+        "underwriting_decision": decision,
+        "confidence": confidence,
+        "similar_cases": similar_cases,
+        "fraud_reported": fraud_reported
+    }
