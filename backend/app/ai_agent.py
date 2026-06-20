@@ -28,8 +28,63 @@ def actuarial_agent(customer):
     
     similar_cases = find_similar_cases(customer, history_list)
     
-    # 4. Call Gemini to generate RAG explanation
-    report = explain(customer, risk, premium, confidence, similar_cases)
+    # 4. Call Gemini to generate RAG explanation with robust fallback template
+    try:
+        report = explain(customer, risk, premium, confidence, similar_cases)
+    except Exception as e:
+        print(f"Gemini explanation API call failed, using fallback template: {e}")
+        similar_cases_str = ""
+        if similar_cases:
+            similar_cases_str = "\n".join([
+                f"- Application {c['id']} ({c['insurance_type']}): Client: {c['client']}, Similarity: {c['similarity']}%, Risk Class: {c['risk_class']}, Premium: ${c['premium']:.2f}, Status: {c['status']}"
+                for c in similar_cases
+            ])
+        else:
+            similar_cases_str = "No similar cases found."
+
+        report = f"""## Actuarial Report: Insurance Application Evaluation (Fallback System)
+
+**Applicant Details:**
+*   **Age:** {customer.get('age', 'N/A')}
+*   **BMI:** {customer.get('bmi', 'N/A')} (Height: {customer.get('height', 'N/A')}cm, Weight: {customer.get('weight', 'N/A')}kg)
+*   **Occupation:** {customer.get('occupation', 'N/A')}
+*   **Annual Income:** ${customer.get('income', 0.0):,.2f}
+*   **Smoker:** {"Yes" if customer.get('smoker') else "No"}
+*   **Previous Claims:** {customer.get('previous_claims', 0)}
+*   **Family History:** {"High Risk" if customer.get('family_history') else "Standard"}
+*   **Insurance Type:** {customer.get('insurance_type', 'N/A').capitalize()}
+*   **Coverage Amount:** ${customer.get('coverage_amount', 0.0):,.2f}
+
+---
+
+### 1. Risk Assessment
+*   The applicant has been classified into **Risk Class {risk}** (out of 8, lower is better).
+*   Key parameters analyzed: Smoking status ({"Smoker" if customer.get('smoker') else "Non-smoker"}), BMI ({customer.get('bmi', 'N/A')}), and claims history ({customer.get('previous_claims', 0)}).
+
+---
+
+### 2. Comparative Analysis (RAG Context)
+Top similar historical cases found:
+{similar_cases_str}
+
+---
+
+### 3. Anomaly & Fraud Detection
+*   Automatic review of medical and financial parameters indicates a confidence rating of {confidence}%.
+*   Please verify the coverage amount relative to reported income and occupation records during final human review.
+
+---
+
+### 4. Premium Recommendation
+*   **Calculated Annual Premium:** ${premium:,.2f}
+*   This premium pricing is set according to standard underwriting tables for Risk Class {risk}.
+
+---
+
+### 5. Underwriting Decision Recommendation
+*   **Recommended Action:** Refer for Manual Review and Data Verification.
+*   *Note: This report was compiled using the rule-backed fallback system due to temporary AI model rate limits.*
+"""
     
     # 5. Determine risk category
     if risk <= 2:

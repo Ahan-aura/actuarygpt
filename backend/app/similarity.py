@@ -18,20 +18,63 @@ def find_similar_cases(new_customer: dict, history_list: list):
         'exercise', 'alcohol', 'coverage_amount'
     ]
 
-    # Helper function to extract numerical vector
+    import math
+
+    # Helper function to extract normalized numerical vector
     def get_vector(data_dict):
         vec = []
-        for f in features:
-            val = data_dict.get(f)
-            # Default missing/None to 0
-            if val is None or val == "":
-                val = 0.0
-            else:
-                try:
-                    val = float(val)
-                except ValueError:
-                    val = 0.0
-            vec.append(val)
+        
+        # 1. age: range [0, 1] (already normalized in database)
+        age = float(data_dict.get('age') or 0.0)
+        vec.append(age)
+        
+        # 2. height: typical range [120, 220]
+        height = float(data_dict.get('height') or 170.0)
+        height_norm = max(0.0, min(1.0, (height - 120.0) / 100.0))
+        vec.append(height_norm)
+        
+        # 3. weight: typical range [40, 160]
+        weight = float(data_dict.get('weight') or 70.0)
+        weight_norm = max(0.0, min(1.0, (weight - 40.0) / 120.0))
+        vec.append(weight_norm)
+        
+        # 4. bmi: typical range [15, 45]
+        bmi = float(data_dict.get('bmi') or 22.0)
+        bmi_norm = max(0.0, min(1.0, (bmi - 15.0) / 30.0))
+        vec.append(bmi_norm)
+        
+        # 5. income: range [0, 10,000,000] -> log10 scale (normalize up to log10(10M)=7)
+        income = float(data_dict.get('income') or 0.0)
+        income_log = math.log10(max(1.0, income))
+        income_norm = max(0.0, min(1.0, income_log / 7.0))
+        vec.append(income_norm)
+        
+        # 6. smoker: [0, 1]
+        smoker = float(data_dict.get('smoker') or 0.0)
+        vec.append(smoker)
+        
+        # 7. previous_claims: range [0, 3] -> normalize as claims / 3.0
+        prev_claims = float(data_dict.get('previous_claims') or 0.0)
+        vec.append(prev_claims / 3.0)
+        
+        # 8. family_history: [0, 1]
+        fam_hist = float(data_dict.get('family_history') or 0.0)
+        vec.append(fam_hist)
+        
+        # 9. exercise: range [0, 3] -> normalize as exercise / 3.0
+        exercise = float(data_dict.get('exercise') or 1.0)
+        vec.append(exercise / 3.0)
+        
+        # 10. alcohol: range [0, 3] -> normalize as alcohol / 3.0
+        alcohol = float(data_dict.get('alcohol') or 0.0)
+        vec.append(alcohol / 3.0)
+        
+        # 11. coverage_amount: range [0, 15,000,000] -> log10 scale (normalize up to log10(15M)=7.17)
+        coverage = float(data_dict.get('coverage_amount') or 0.0)
+        coverage_log = math.log10(max(1.0, coverage))
+        coverage_norm = max(0.0, min(1.0, coverage_log / 7.2))
+        vec.append(coverage_norm)
+        
         return vec
 
     # Build vectors
