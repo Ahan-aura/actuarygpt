@@ -15,7 +15,7 @@ def register(req: RegisterRequest):
     try:
         cursor.execute(
             "INSERT INTO users (username, password, role) VALUES (?, ?, ?)",
-            (req.username.strip(), req.password, req.role.strip())
+            (req.username.strip().lower(), req.password, req.role.strip())
         )
         conn.commit()
         return {"success": True, "message": "User registered successfully"}
@@ -32,7 +32,7 @@ def login(req: LoginRequest):
     cursor = conn.cursor()
     cursor.execute(
         "SELECT username, role, password FROM users WHERE username = ?",
-        (req.username.strip(),)
+        (req.username.strip().lower(),)
     )
     user = cursor.fetchone()
     conn.close()
