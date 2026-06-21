@@ -586,7 +586,7 @@ function App({ user, handleLogout }) {
       <Sidebar 
         user={user} 
         officerTab={officerTab} 
-        setOfficerTab={(tab) => { setOfficerTab(tab); setSelectedApp(null); setAgentResult(null); }} 
+        setOfficerTab={(tab) => { setOfficerTab(tab); setSelectedApp(null); setAgentResult(null); setWizardStep(1); }} 
         pendingAppsCount={pendingApps.length + pendingVehicleApps.length} 
         onLogoutClick={handleLogout} 
       />
@@ -685,8 +685,8 @@ function App({ user, handleLogout }) {
                   setOfficerTab('triage');
                 }
               }}
-              wizardStep={1}
-              setWizardStep={() => {}}
+              wizardStep={wizardStep}
+              setWizardStep={setWizardStep}
             />
           </div>
         )}
@@ -784,9 +784,12 @@ function App({ user, handleLogout }) {
                       <div className="detail-box"><span className="detail-label">Occupation</span><span className="detail-val">{selectedApp.insured_occupation}</span></div>
                       <div className="detail-box"><span className="detail-label">Policy State / CSL</span><span className="detail-val">{selectedApp.policy_state} / {selectedApp.policy_csl}</span></div>
                       <div className="detail-box"><span className="detail-label">Annual Premium</span><span className="detail-val">₹{selectedApp.policy_annual_premium?.toLocaleString()}</span></div>
-                      <div className="detail-box"><span className="detail-label">Deductible</span><span className="detail-val">₹{selectedApp.policy_deductable?.toLocaleString()}</span></div>
+                      <div className="detail-box"><span className="detail-label">Deductible</span><span className="detail-val">{selectedApp.policy_deductable ? `₹${selectedApp.policy_deductable.toLocaleString()}` : '₹0'}</span></div>
                       <div className="detail-box"><span className="detail-label">Incident Severity</span><span className="detail-val">{selectedApp.incident_severity}</span></div>
                       <div className="detail-box"><span className="detail-label">Collision Type</span><span className="detail-val">{selectedApp.collision_type}</span></div>
+                      <div className="detail-box"><span className="detail-label">Property Damage</span><span className="detail-val">{selectedApp.property_damage}</span></div>
+                      <div className="detail-box"><span className="detail-label">Police Report</span><span className="detail-val">{selectedApp.police_report_available}</span></div>
+                      <div className="detail-box"><span className="detail-label">Bodily Injuries</span><span className="detail-val">{selectedApp.bodily_injuries}</span></div>
                       <div className="detail-box"><span className="detail-label">Claim Payout</span><span className="detail-val" style={{ color: 'var(--primary)', fontWeight: 700 }}>₹{selectedApp.total_claim_amount?.toLocaleString()}</span></div>
                     </div>
                   )}

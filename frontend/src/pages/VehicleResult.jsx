@@ -87,12 +87,13 @@ export default function VehicleResult({
 
           <h4 style={{ fontSize: '0.95rem', fontWeight: 700, color: 'var(--text-title)', display: 'flex', alignItems: 'center', gap: '0.5rem', margin: '1rem 0 0 0', borderBottom: '1px solid var(--border)', paddingBottom: '0.5rem' }}>
             <Car size={16} />
-            Vehicle Details
+            Vehicle & Accident Details
           </h4>
           <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem', fontSize: '0.85rem', color: 'var(--text-main)' }}>
-            <p>Make: <b>{selectedApp?.auto_make}</b></p>
-            <p>Model: <b>{selectedApp?.auto_model}</b></p>
-            <p>Year: <b>{selectedApp?.auto_year}</b></p>
+            <p>Make/Model: <b>{selectedApp?.auto_make} {selectedApp?.auto_model} ({selectedApp?.auto_year})</b></p>
+            <p>Property Damage: <b>{selectedApp?.property_damage || 'N/A'}</b></p>
+            <p>Police Report: <b>{selectedApp?.police_report_available || 'N/A'}</b></p>
+            <p>Bodily Injuries: <b>{selectedApp?.bodily_injuries !== undefined ? selectedApp.bodily_injuries : 'N/A'}</b></p>
           </div>
         </div>
 
