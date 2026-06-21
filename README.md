@@ -1,237 +1,300 @@
-# ActuaryGPT — Agentic AI Underwriting & Claims Triage Assistant
-
-ActuaryGPT is an enterprise-grade AI-powered underwriting and claims triage system designed for insurance carriers. It features a complete multi-step applicant form portal, a machine learning risk classification engine, a Retrieval-Augmented Generation (RAG) database for case auditing, and a Gemini-powered conversational assistant to help underwriters make fast, accurate decisions.
+# ActuaryGPT: Agentic AI-Driven Insurance Underwriting & Claims Triage System
+**Internship Project Technical Documentation & Systems Report**  
+*Prepared by: Ahan Mullick*  
+*Date: June 21, 2026*  
 
 ---
 
-## 📌 Project Architecture Overview
+## 📖 Executive Summary
+In the modern insurance landscape, underwriting and claims processing represent significant bottlenecks characterized by manual document review, complex risk evaluation, and susceptibility to fraud. **ActuaryGPT** is a next-generation, web-based software suite that automates health risk profiling and vehicle claims triage. 
+
+By integrating **CatBoost Machine Learning models** for risk and fraud probability prediction, **Retrieval-Augmented Generation (RAG)** via cosine similarity indexing for historical case lookup, and the **Google Gemini Large Language Model (LLM)** for generating natural language actuarial justifications, ActuaryGPT accelerates underwriting timelines from days to seconds while improving decision auditability.
+
+---
+
+## 🎯 Problem Statement & Business Objectives
+Legacy core insurance platforms suffer from:
+1. **Inefficient Underwriting Triage:** Underwriters manually inspect health history records, medical reports, and applicant metrics to classify policy pricing, creating high operational overhead.
+2. **High Fraud Exposure:** Vehicle claims are often filed without rigorous verification of historical similarities, leading to duplicate payouts or unflagged fraudulent collusion.
+3. **Lack of Explainability:** Traditional ML predictions act as "black boxes," leaving underwriters without clear context on why an applicant was classified as high-risk.
+4. **Segmented Customer Communication:** Policyholders lack transparent tracking of their claims and secure chat channels to address underwriting queries.
+
+### ActuaryGPT Core Objectives
+* **Automation:** Complete risk profiling of life policy applications and vehicle claims automatically in under 5 seconds.
+* **Accuracy:** Use CatBoost models trained on actuarial data to classify health risk profiles and detect claim anomalies.
+* **Explainability:** Generate natural language reasoning summaries (Underwriter Briefs) matching regulatory compliance.
+* **Ledger Auditing:** Retrieve top similar cases from the historical reference database using vector similarity search to prevent duplicate claims.
+* **Secure Access Controls:** Segment operations into a public customer-facing self-service wizard and a secure, officer-restricted risk command dashboard.
+
+---
+
+## 🛠️ System Architecture & Data Flows
+
+The platform is designed around a decoupled, service-oriented architecture:
 
 ```mermaid
 graph TD
-    subgraph Client Portal [Frontend Portal - React/Vite]
-        A[Customer View] -->|File Claim/Apply| C[Smart Multi-step Wizard]
-        B[Officer View] -->|Audit Cases| D[Underwriter Dashboard]
-        B -->|Triage Queue| E[AI Profiler Dashboard]
-        B -->|Analytics| F[Interactive Charts]
-        B -->|Co-pilot Chat| G[AI Assistant]
+    subgraph Client Tier [React/Vite Application]
+        A[Client Web Browser] -->|Routes| B{Role Router}
+        B -->|Customer Role| C[Self-Service Portal]
+        B -->|Officer Role| D[Underwriter Command Center]
+        
+        C -->|Form Input / OCR Upload| E[Smart Multi-Step Wizard]
+        D -->|Triage Queue Grid| F[AI Profiler Dashboard]
+        D -->|Analytics Tab| G[Dynamic Recharts Suite]
+        D -->|Underwriter Co-Pilot| H[Actuarial Chatbox]
     end
 
-    subgraph API Service [FastAPI Backend]
-        H[API Router]
-        H -->|Auth| I[Database Connection]
-        H -->|Underwriting / Triage| J[AI Underwriting Pipeline]
-        H -->|Analytics Summary| K[Aggregations Engine]
-        H -->|Co-Pilot| L[LLM Controller]
+    subgraph Service Tier [FastAPI REST API Server]
+        I[FastAPI Application Instance]
+        I -->|Endpoints| J[Authentication Router]
+        I -->|Endpoints| K[Life Underwriting Router]
+        I -->|Endpoints| L[Vehicle Claims Router]
+        I -->|Endpoints| M[Analytics & Ledger Router]
+        I -->|Endpoints| N[Orchestrator Chatbot]
     end
 
-    subgraph Database [SQLite Reference Store]
-        M[(actuary_gpt.db)]
-        M -->|User accounts| N[users]
-        M -->|Life policies| O[applications]
-        M -->|Claims history| P[vehicle_applications]
+    subgraph Database Tier [SQLite Reference Store]
+        O[(actuary_gpt.db)]
+        O -->|Contains| P[users Table]
+        O -->|Contains| Q[applications Table]
+        O -->|Contains| R[vehicle_applications Table]
     end
 
     subgraph AI Pipeline [Automated Auditing Engine]
-        Q[OCR extraction] --> R[CatBoost Risk Model]
-        R --> S[Cosine Similarity RAG]
-        S --> T[Gemini Explanation Agent]
-        T --> U[PDF Report Generator]
+        S[Document Processing OCR] --> T[CatBoost Classification Model]
+        T --> U[Jaccard & Cosine RAG Matcher]
+        U --> V[Gemini Explanation Agent]
+        V --> W[ReportLab PDF Compiler]
     end
 
-    C -->|Requests| H
-    D -->|Requests| H
-    E -->|Analyze/Decide| H
-    G -->|Prompt| H
-    H -->|Query/Commit| M
-    J -->|Run| AI Pipeline
-    L -->|Contextual LLM Chat| T
+    E -->|JSON Payloads| I
+    F -->|Trigger Pipeline| I
+    G -->|Get Metrics| I
+    H -->|Query| I
+    I -->|Read/Write| O
+    K -->|Triggers| AI Pipeline
+    L -->|Triggers| AI Pipeline
+    W -->|Save Reports| X[Static File System]
+```
+
+### End-to-End Evaluation Pipeline Dataflow
+1. **Data Ingestion:** The applicant submits form metrics (such as age, BMI, family history) or files a claim document (OCR scans medical bills/vehicle repair sheets).
+2. **ML Classification:** The backend preprocesses the features and passes them to the CatBoost risk model:
+   * **Life Insurance:** Predicts a risk class from $1$ (lowest risk) to $8$ (highest risk).
+   * **Vehicle Insurance:** Predicts fraud risk probability ($0\%$ to $100\%$).
+3. **RAG Vector Search:** The database is queried for historical matches using a hybrid cosine-similarity algorithm.
+4. **Co-pilot Summarization:** The features, ML predictions, and top matching cases are structured into a prompt context and sent to Google Gemini (e.g., `gemini-2.5-flash`). The LLM returns a comprehensive Actuarial Brief detailing risk factors and recommendations.
+5. **Ledger Update:** The application state is saved to the SQLite database, and a PDF document is generated for download.
+
+---
+
+## 🧠 Core Algorithmic Details & ML Pipelines
+
+### 1. Life & Health Risk Predictor
+The Life model assesses health metrics to classify applicants into risk classes ($1-8$). 
+* **Input Features:** `Age`, `Height`, `Weight`, `BMI`, `Smoker` status, `Previous Claims`, `Family History`, `Occupation`, `Income`, `Exercise` frequency, and `Alcohol` usage.
+* **Pre-processing:** Categorical features (such as occupation or gender) are pre-mapped using integer encoders or standard labels:
+  ```python
+  # Category mapping dictionary example
+  "D2" = 12.0, "A1" = 1.0, "E1" = 18.0
+  ```
+* **ML Model:** CatBoost classifier outputting risk category probabilities. A lower class represents standard underwriting (lower premium rates), while classes $6-8$ are flagged as high risk (referred for manual review or declined standard rates).
+
+### 2. Vehicle Claims Fraud Classifier
+The Vehicle model evaluates the probability of fraud based on incident profiles.
+* **Input Features:** `months_as_customer`, `policy_annual_premium`, `policy_deductable`, `insured_sex`, `insured_occupation`, `insured_relationship`, `capital_gains`, `capital_loss`, `incident_type`, `collision_type`, `incident_severity`, `property_damage`, `total_claim_amount`, `auto_make`, `auto_model`, `auto_year`, and `witnesses`.
+* **Model:** CatBoost model mapping tabular variables to classify high-risk claims based on historical claims data.
+
+### 3. Cosine Similarity RAG Retrieval
+To prevent duplicate payout claims and identify systemic fraud rings, ActuaryGPT runs a vector-based search over historical databases using cosine similarity:
+
+$$\text{Similarity}(A, B) = \frac{A \cdot B}{\|A\| \|B\|} = \frac{\sum_{i=1}^{n} A_i B_i}{\sqrt{\sum_{i=1}^{n} A_i^2} \sqrt{\sum_{i=1}^{n} B_i^2}}$$
+
+#### Python Implementation (`similarity.py`):
+The search engine extracts numeric dimensions, normalizes the feature vectors, and computes similarities to retrieve matching histories:
+```python
+def calculate_life_similarity(app1, app2):
+    # Features compared: age, height, weight, bmi, income, coverage
+    v1 = [app1['age'], app1['height'], app1['weight'], app1['bmi'], app1['income'], app1['coverage_amount']]
+    v2 = [app2['age'], app2['height'], app2['weight'], app2['bmi'], app2['income'], app2['coverage_amount']]
+    
+    dot_product = sum(a * b for a, b in zip(v1, v2))
+    magnitude_1 = sum(a*a for a in v1) ** 0.5
+    magnitude_2 = sum(b*b for b in v2) ** 0.5
+    
+    if magnitude_1 == 0 or magnitude_2 == 0:
+        return 0.0
+    return dot_product / (magnitude_1 * magnitude_2)
 ```
 
 ---
 
-## 🌟 Key Features
+## 🗄️ Database Schema Specification
 
-### 👤 Role-Based Portals
+The application uses an SQLite database `actuary_gpt.db` structured with three core relational tables:
 
-#### 1. Policyholder / Client Portal
-* **Smart Form Wizard:** Dynamic steps to submit Life Policy Applications or Vehicle Claims.
-* **Document Auto-fill (OCR):** Upload medical invoices or vehicle photos/insurance documents to automatically parse data using Gemini.
-* **Case History Tracking:** View the current status (approved, rejected, pending review) of submitted transactions.
-* **Guardrailed AI Assistant:** Access customer support chatbot restricted from seeing internal ML metrics or risk classes.
+```text
+Table: users
++------------+---------+----------------------------------------------+
+| Column     | Type    | Constraints                                  |
++------------+---------+----------------------------------------------+
+| id         | INTEGER | PRIMARY KEY AUTOINCREMENT                    |
+| username   | TEXT    | UNIQUE, NOT NULL                             |
+| password   | TEXT    | NOT NULL                                     |
+| role       | TEXT    | NOT NULL, CHECK(role IN ('customer','officer')) |
++------------+---------+----------------------------------------------+
 
-#### 2. Underwriting Officer Portal
-* **Control Center Dashboard:** Real-time metrics showing total claims, approved rate, manual review queue, and average claim values.
-* **Claims Triage Queue:** An interactive list of all pending applications waiting for evaluation.
-* **Automated AI Profiler:** Performs verification, CatBoost prediction, similar claim lookups (RAG), and generates a PDF report.
-* **Manual Override Controls:** Direct options for underwriters to approve, reject, or adjust payout amounts.
-* **System Health Monitor:** Live tracking of backend services, SQLite connection, and ML model statuses.
-* **Dynamic Analytics Panel:** Custom dashboards displaying monthly trends, fraud rates, and distribution graphs.
-* **Co-Pilot AI Assistant:** Active chat interface with underwriting context integration.
+Table: applications (Life & Health Policies)
++-----------------------+---------+------------------------------------+
+| Column                | Type    | Constraints                        |
++-----------------------+---------+------------------------------------+
+| id                    | TEXT    | PRIMARY KEY                        |
+| client                | TEXT    | FOREIGN KEY REFERENCES users       |
+| age, height, weight   | REAL    | NOT NULL                           |
+| bmi                   | REAL    | NOT NULL                           |
+| product_info_2        | TEXT    | NOT NULL                           |
+| occupation, income    | REAL    | NOT NULL                           |
+| smoker, previous_claims| INTEGER | NOT NULL                           |
+| family_history        | INTEGER | NOT NULL                           |
+| insurance_type        | TEXT    | NOT NULL                           |
+| coverage_amount       | REAL    | NOT NULL                           |
+| exercise, alcohol     | INTEGER | NOT NULL                           |
+| gender, date          | TEXT    | NOT NULL                           |
+| status                | TEXT    | CHECK IN ('pending','approved','rejected') |
+| risk_class            | INTEGER | NULLABLE                           |
+| risk_category         | TEXT    | NULLABLE                           |
+| premium               | REAL    | NULLABLE                           |
+| report                | TEXT    | NULLABLE (LLM Actuarial Summary)   |
+| pdf_url               | TEXT    | NULLABLE                           |
++-----------------------+---------+------------------------------------+
 
----
-
-## 🛠️ Technology Stack
-
-### Frontend (Client Application)
-* **Framework:** React + Vite
-* **Styling:** Vanilla CSS with a responsive layout, dark mode colors, glassmorphism, and keyframe animations.
-* **Telemetry & Visualization:** Recharts (for charts), Lucide React (for icons)
-* **API Integration:** Fetch API with dynamic hostname routing to switch between localhost and Render production URLs.
-
-### Backend (API Service)
-* **Framework:** FastAPI (Python)
-* **Application Server:** Uvicorn
-* **Database:** SQLite 3 (with PostgreSQL fallback support)
-* **LLM Engine:** Google Gemini (using the modern `google.genai` or standard client)
-* **Machine Learning:** CatBoost + Scikit-Learn (for risk scoring and fraud classification)
-* **Report Generation:** ReportLab (for rendering pixel-perfect actuarial PDFs)
-
----
-
-## 🧬 AI Underwriting & Claims Audit Pipeline
-
-When an underwriter runs the **AI Profiler** on a claim, a 10-step auditing pipeline is executed in sequence:
-
-1. **Document Validation:** Verifies structural parameters and flags discrepancies (e.g., age bounds).
-2. **OCR Extraction:** Runs character recognition on attached files (medical bills, crash reports) using multimodal Gemini models.
-3. **Applicant/Vehicle Verification:** Validates the policyholder's demographic profile against reference records.
-4. **Policy Verification:** Cross-references the requested payout or coverage limits with policy guidelines.
-5. **Damage / Health Risk Analysis:** Evaluates medical history details (smoker, BMI) or collision parameters (impact severity, collision type).
-6. **CatBoost ML Inference:**
-   * **Life Model (`risk_model.pkl`):** Classifies the health risk profile into classes 1 to 8.
-   * **Vehicle Model (`vehicle_claim_model.pkl`):** Classifies fraud risk score and anomaly probabilities.
-7. **RAG Similar Case Retrieval (`similarity.py`):** Computes cosine similarity across historical records to retrieve the top 3 most similar resolved claims for context.
-8. **Premium / Claim Calculation:** Adjusts calculated premiums or recommends claim payouts.
-9. **Gemini Explanation Agent:** Synthesizes ML scores, similarity metrics, and OCR data to generate a human-readable case report.
-10. **PDF Report Generation (`report.py`):** Compiles the audit details into a formatted PDF document.
-
----
-
-## 🗄️ Database Schema & Seeding
-
-The database `actuary_gpt.db` contains three core tables:
-
-### 1. `users` Table
-Tracks accounts and limits permissions:
-* `username` (Text, Unique Primary Key)
-* `password` (Text)
-* `role` (Text - `'customer'` or `'officer'`)
-
-### 2. `applications` Table
-Stores Life & Health policy applications:
-* `id` (Text, Primary Key)
-* `client` (Text, Foreign Key)
-* `age`, `height`, `weight`, `bmi`
-* `occupation`, `income`
-* `smoker` (Integer), `previous_claims` (Integer), `family_history` (Integer)
-* `insurance_type` (`'Life'` or `'Health'`)
-* `coverage_amount`, `premium`
-* `status` (`'pending'`, `'approved'`, `'rejected'`)
-* `risk_class` (Integer), `risk_category` (Text)
-* `report` (Text), `pdf_url` (Text)
-
-### 3. `vehicle_applications` Table
-Stores vehicle claims and fraud audits:
-* `id` (Text, Primary Key)
-* `client` (Text, Foreign Key)
-* `months_as_customer`, `age`
-* `policy_state`, `policy_csl`, `policy_deductable`, `policy_annual_premium`, `umbrella_limit`
-* `insured_sex`, `insured_education_level`, `insured_occupation`, `insured_hobbies`, `insured_relationship`
-* `capital_gains`, `capital_loss`
-* `incident_type`, `collision_type`, `incident_severity`, `authorities_contacted`, `incident_state`, `incident_city`
-* `incident_hour_of_the_day`, `number_of_vehicles_involved`, `property_damage`, `bodily_injuries`, `witnesses`, `police_report_available`
-* `total_claim_amount`, `injury_claim`, `property_claim`, `vehicle_claim`
-* `auto_make`, `auto_model`, `auto_year`
-* `status` (`'pending'`, `'approved'`, `'rejected'`)
-* `fraud_reported` (`'Y'` or `'N'`)
-
-### Database Initial Seeding
-When initialized, `database.py` automatically:
-1. Seeds default credentials (`actuary1` and `customer1`).
-2. Populates `applications` with sample life data.
-3. Parses historical insurance claims data from the `datasets/insurance_claims.csv` dataset and inserts the records into `vehicle_applications`.
+Table: vehicle_applications (Vehicle Claims)
++-----------------------+---------+------------------------------------+
+| Column                | Type    | Constraints                        |
++-----------------------+---------+------------------------------------+
+| id                    | TEXT    | PRIMARY KEY                        |
+| client                | TEXT    | FOREIGN KEY REFERENCES users       |
+| policy_state, policy_csl| TEXT  | NOT NULL                           |
+| policy_deductable     | REAL    | NOT NULL                           |
+| policy_annual_premium | REAL    | NOT NULL                           |
+| insured_sex, occupation| TEXT   | NOT NULL                           |
+| incident_severity     | TEXT    | NOT NULL                           |
+| collision_type        | TEXT    | NOT NULL                           |
+| total_claim_amount    | REAL    | NOT NULL                           |
+| fraud_reported        | TEXT    | 'Y' or 'N'                         |
+| risk_class            | INTEGER | NULLABLE                           |
+| risk_category         | TEXT    | NULLABLE                           |
+| confidence            | REAL    | NULLABLE                           |
+| status                | TEXT    | CHECK IN ('pending','approved','rejected') |
++-----------------------+---------+------------------------------------+
+```
 
 ---
 
 ## 🔌 API Endpoints Reference
 
-| Category | Endpoint | Method | Description |
-| :--- | :--- | :--- | :--- |
-| **Auth** | `/auth/register` | `POST` | Registers a new customer |
-| | `/auth/login` | `POST` | Authenticates users (returns role & username) |
-| **Life** | `/applications` | `GET` | Fetches Life applications (can filter by status/client) |
-| | `/applications` | `POST` | Submits a new Life policy application |
-| | `/applications/{id}/evaluate` | `POST` | Runs the automated ML & Gemini auditing pipeline |
-| | `/applications/{id}/decide` | `POST` | Submits approval, rejection, or manual review decision |
-| **Vehicle** | `/applications/vehicle` | `GET` | Fetches Vehicle claims |
-| | `/applications/vehicle` | `POST` | Submits a new Vehicle claim |
-| | `/applications/vehicle/{id}/evaluate`| `POST`| Runs the claims fraud triage pipeline |
-| | `/applications/vehicle/{id}/decide` | `POST` | Registers payout decision or overrides payout |
-| **Analytics**| `/analytics/summary` | `GET` | Returns aggregated metrics, distribution data, and processed lists |
-| **Chatbot** | `/chatbot` | `POST` | Interface with Gemini underwriting/customer assistant |
+### 1. Authentication Router (`/auth`)
+* `POST /auth/register`
+  * **Payload:** `{"username": "ahan", "password": "securepassword", "role": "customer"}`
+  * **Response:** `{"message": "Registration successful"}`
+* `POST /auth/login`
+  * **Payload:** `{"username": "actuary1", "password": "password123"}`
+  * **Response:** `{"username": "actuary1", "role": "officer", "token": "..."}`
+
+### 2. Underwriting Engine Router (`/applications`)
+* `POST /applications`
+  * **Description:** Submits a life policy application.
+  * **Payload:** A complete JSON representation of applicant metrics.
+  * **Response:** `{"id": "APP-5261", "status": "pending"}`
+* `POST /applications/{id}/evaluate`
+  * **Description:** Executes the AI pipeline (CatBoost models, similarity comparisons, Gemini reasoning).
+  * **Response:** Returns risk class ($1-8$), similarity array, and Markdown summary text.
+* `POST /applications/{id}/decide`
+  * **Payload:** `{"decision": "approve" | "reject" | "manual_review", "modified_amount": 150000}`
+  * **Response:** Registers the state changes to the SQLite database.
+
+### 3. Analytics Summarizer (`/analytics`)
+* `GET /analytics/summary`
+  * **Description:** Returns dashboard stats (monthly claims, fraud distributions, premium totals).
+  * **Response:** 
+    ```json
+    {
+      "total_policies": 999,
+      "total_premiums": 6069411.61,
+      "avg_risk_class": 4.5,
+      "approval_rate": 99,
+      "risk_distribution": {"High Risk": 90, "Low Risk": 63, "Medium Risk": 91},
+      "processed_list": [...]
+    }
+    ```
 
 ---
 
-## 💻 Installation & Running Locally
+## 🎨 UI/UX Design System Specifications
 
-### Prerequisites
-* Python 3.10+
-* Node.js 18+
+ActuaryGPT uses a dark, professional user interface to reduce eye strain for underwriters.
 
-### Step 1: Clone and Set Up Backend
-1. Navigate to the backend directory:
-   ```bash
-   cd backend
-   ```
-2. Create a virtual environment and activate it:
-   ```bash
-   python -m venv venv
-   # On Windows:
-   venv\Scripts\activate
-   # On Linux/macOS:
-   source venv/bin/activate
-   ```
-3. Install the dependencies:
-   ```bash
-   pip install -r requirements.txt
-   ```
-4. Create a `.env` file in the `backend/app/` folder and add your Gemini API Key:
-   ```env
-   GEMINI_API_KEY=your_google_gemini_api_key_here
-   ```
-5. Run the server using Uvicorn:
-   ```bash
-   python -m uvicorn backend.app.main:app --host 127.0.0.1 --port 8000
-   ```
-
-### Step 2: Set Up Frontend
-1. Navigate to the frontend directory:
-   ```bash
-   cd ../frontend
-   ```
-2. Install dependencies:
-   ```bash
-   npm install
-   ```
-3. Start the Vite dev server:
-   ```bash
-   npm run dev
-   ```
-4. Open [http://localhost:5173/](http://localhost:5173/) in your web browser.
-
----
-
-## 🌐 Deployment Details
-
-The application is configured to deploy directly to the cloud via standard workflows:
-1. **Frontend Hosting:** Deployed on **Vercel** (`actuarygpt-5h5s.vercel.app`).
-2. **Backend API Hosting:** Deployed on **Render** (`actuarygpt-backend.onrender.com`).
-
-### Dynamic API Base Switching
-In [App.jsx](frontend/src/App.jsx), the frontend automatically switches the API connection parameters to avoid browser CORS/Mixed Content security blocks:
-```javascript
-const API_BASE = window.location.hostname === "localhost" || window.location.hostname === "127.0.0.1"
-  ? "http://127.0.0.1:8000"
-  : "https://actuarygpt-backend.onrender.com";
+### 1. Core Visual Variables
+```css
+:root {
+  --bg-main: #0b0f19;         /* Very dark slate */
+  --bg-card: rgba(17, 24, 39, 0.7); /* Translucent slate card */
+  --primary: #6366f1;         /* Indigo accent */
+  --secondary: #a855f7;       /* Violet accent */
+  --border: rgba(255, 255, 255, 0.08);
+  --text-title: #f3f4f6;      /* Off-white */
+  --text-muted: #9ca3af;      /* Grey */
+  --risk-low: #10b981;        /* Emerald green */
+  --risk-medium: #f59e0b;     /* Amber */
+  --risk-high: #ef4444;       /* Crimson */
+}
 ```
-This guarantees a clean local testing sandbox on port 5173 while remaining fully operational on the web!
+
+### 2. Design System Components
+* **Glassmorphism Cards:** Utilizes CSS `backdrop-filter: blur(12px)` and subtle borders to create deep layouts.
+* **Animations:** Subtle CSS transitions (`transition: all 0.2s ease`) and keyframe fade-ins (`animation: fadeIn 0.4s ease-out`) for interactive actions.
+* **Recharts Dashboards:** Custom tooltips and color maps display risk distribution and monthly volume trends.
+
+---
+
+## 💻 Setup, Running & Build Guide
+
+### Running locally
+To start the development environment locally:
+
+#### 1. Start backend server
+```bash
+cd backend
+python -m venv venv
+venv\Scripts\activate
+pip install -r requirements.txt
+python -m uvicorn backend.app.main:app --host 127.0.0.1 --port 8000
+```
+
+#### 2. Start frontend dev server
+```bash
+cd frontend
+npm install
+npm run dev
+```
+Open **`http://localhost:5173/`** to access the dashboard locally.
+
+### Cloud Deployment Strategy
+* **Frontend:** Hosted on **Vercel** (`actuarygpt-5h5s.vercel.app`).
+* **Backend:** Hosted on **Render** (`actuarygpt-backend.onrender.com`).
+* **Cross-Origin Configuration (CORS):** The FastAPI instance uses `CORSMiddleware` with `allow_origins=["*"]` to ensure the deployed frontend can securely communicate with either the local backend or the Render host.
+* **Secure Hybrid API Connection:** The application dynamically configures the target API host based on where it is loaded, preventing Mixed Content blocking by the browser:
+  ```javascript
+  const API_BASE = window.location.hostname === "localhost" || window.location.hostname === "127.0.0.1"
+    ? "http://127.0.0.1:8000"
+    : "https://actuarygpt-backend.onrender.com";
+  ```
+
+---
+
+## 🔮 Future Development Roadmap
+1. **Multi-Tenant Roles:** Expand permissions to include auditors, reinsurers, and field agents.
+2. **Blockchain Verification:** Anchor SHA-256 hashes of generated reports on a blockchain ledger for tamperproof records.
+3. **Advanced ML Pipeline:** Upgrade CatBoost models using deep feature engineering to support custom commercial policies.
+4. **Enhanced Chat Memory:** Add vector database storage (such as pinecone) to store co-pilot chat memories.
