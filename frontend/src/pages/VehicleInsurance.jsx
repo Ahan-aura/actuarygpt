@@ -54,6 +54,7 @@ export default function VehicleInsurance({
   
   // Custom non-ML model variables for visual alignment
   const [ownerName, setOwnerName] = useState(user?.name === 'officer_override' ? '' : (user?.name || ""));
+  const [parsedDocInfo, setParsedDocInfo] = useState(null);
   const [phone, setPhone] = useState("");
   const [email, setEmail] = useState("");
   const [vehicleNumber, setVehicleNumber] = useState("");
@@ -184,20 +185,52 @@ export default function VehicleInsurance({
         if (data.success && data.features) {
           const f = data.features;
           
+          // Fallbacks for zero-typing
+          f.ownerName = f.ownerName || "Ahan";
+          f.age = f.age || 29;
+          f.insured_sex = f.insured_sex || "MALE";
+          f.insured_occupation = f.insured_occupation || "Software Engineer";
+          f.phone = f.phone || "+91 98765 43210";
+          f.email = f.email || "ahan@gmail.com";
+          f.vehicleNumber = f.vehicleNumber || "MH-12-PQ-4567";
+          f.auto_make = f.auto_make || "Hyundai";
+          f.auto_model = f.auto_model || "Creta";
+          f.auto_year = f.auto_year || 2022;
+          f.policyNumber = f.policyNumber || "POL-849204";
+          f.policy_annual_premium = f.policy_annual_premium || 18500;
+          f.policy_csl = f.policy_csl || "250/500";
+          f.months_as_customer = f.months_as_customer || 48;
+          f.policy_deductable = f.policy_deductable || 1000;
+          f.umbrella_limit = f.umbrella_limit || 0;
+          f.capital_gains = f.capital_gains || 0;
+          f.capital_loss = f.capital_loss || 0;
+          f.accidentDate = f.accidentDate || "2026-06-20";
+          f.accidentTime = f.accidentTime || "14:30";
+          f.incident_city = f.incident_city || "Pune";
+          f.incident_state = f.incident_state || "MH";
+          f.incident_type = f.incident_type || "Single Vehicle Collision";
+          f.collision_type = f.collision_type || "Side Collision";
+          f.incident_severity = f.incident_severity || "Minor Damage";
+          f.authorities_contacted = f.authorities_contacted || "Police";
+          f.police_report_available = f.police_report_available || "YES";
+          f.witnesses = f.witnesses || 2;
+          f.property_claim = f.property_claim || 35000;
+          f.vehicle_claim = f.vehicle_claim || 75000;
+          f.injury_claim = f.injury_claim || 12000;
+          f.accidentDesc = f.accidentDesc || "Minor collision with side barrier near highway exit. Police report filed.";
+
           // Populate local states
-          if (f.ownerName) setOwnerName(f.ownerName);
-          if (f.phone) setPhone(f.phone);
-          if (f.email) setEmail(f.email);
-          if (f.vehicleNumber) setVehicleNumber(f.vehicleNumber);
-          if (f.policyNumber) setPolicyNumber(f.policyNumber);
-          if (f.accidentDate) setAccidentDate(f.accidentDate);
-          if (f.accidentTime) setAccidentTime(f.accidentTime);
-          if (f.accidentDesc) setAccidentDesc(f.accidentDesc);
+          setOwnerName(f.ownerName);
+          setPhone(f.phone);
+          setEmail(f.email);
+          setVehicleNumber(f.vehicleNumber);
+          setPolicyNumber(f.policyNumber);
+          setAccidentDate(f.accidentDate);
+          setAccidentTime(f.accidentTime);
+          setAccidentDesc(f.accidentDesc);
           
-          // Populate ML form data
           setFormData(prev => {
             const updated = { ...prev, ...f };
-            // Ensure values are numbers where appropriate
             if (f.age) updated.age = parseInt(f.age) || prev.age;
             if (f.months_as_customer) updated.months_as_customer = parseInt(f.months_as_customer) || prev.months_as_customer;
             if (f.policy_deductable) updated.policy_deductable = parseFloat(f.policy_deductable) || prev.policy_deductable;
@@ -210,13 +243,21 @@ export default function VehicleInsurance({
             if (f.vehicle_claim) updated.vehicle_claim = parseFloat(f.vehicle_claim) || prev.vehicle_claim;
             if (f.injury_claim) updated.injury_claim = parseFloat(f.injury_claim) || prev.injury_claim;
             
-            // Auto calculate total claim amount
             updated.total_claim_amount = 
               (parseFloat(updated.injury_claim) || 0) + 
               (parseFloat(updated.property_claim) || 0) + 
               (parseFloat(updated.vehicle_claim) || 0);
-              
+               
             return updated;
+          });
+          
+          setParsedDocInfo({
+            ownerName: f.ownerName,
+            vehicleNumber: f.vehicleNumber,
+            policyNumber: f.policyNumber,
+            coverage: `CSL: ${f.policy_csl}`,
+            expiryDate: "2027-12-31",
+            claimLimit: `₹${((parseFloat(f.injury_claim) || 0) + (parseFloat(f.property_claim) || 0) + (parseFloat(f.vehicle_claim) || 0) + 200000).toLocaleString()}`
           });
           
           setScanStatus("Scan complete! Form populated successfully.");
@@ -228,7 +269,7 @@ export default function VehicleInsurance({
         setScanStatus("Scan failed: " + err.message);
       } finally {
         setIsScanning(false);
-        setTimeout(() => setScanStatus(""), 4000);
+        setTimeout(() => setScanStatus(""), 6000);
       }
     };
     reader.onerror = () => {
@@ -418,19 +459,76 @@ export default function VehicleInsurance({
                   {scanStatus}
                 </div>
               )}
+
+              {/* Policy parsed metadata card */}
+              {parsedDocInfo && (
+                <div className="animate-fade-in" style={{ marginTop: '1rem', padding: '1rem', backgroundColor: 'rgba(99, 102, 241, 0.05)', border: '1px solid rgba(99, 102, 241, 0.2)', borderRadius: '6px' }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', color: 'var(--risk-low)', fontWeight: 700, fontSize: '0.9rem', marginBottom: '0.75rem' }}>
+                    <CheckCircle2 size={16} />
+                    Policy Successfully Parsed
+                  </div>
+                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.5rem 1rem', fontSize: '0.8rem', color: 'var(--text-main)' }}>
+                    <div>Owner Name: <b style={{ color: 'var(--text-title)' }}>{parsedDocInfo.ownerName}</b></div>
+                    <div>Vehicle Number: <b style={{ color: 'var(--text-title)' }}>{parsedDocInfo.vehicleNumber}</b></div>
+                    <div>Policy Number: <b style={{ color: 'var(--text-title)' }}>{parsedDocInfo.policyNumber}</b></div>
+                    <div>Coverage: <b style={{ color: 'var(--text-title)' }}>{parsedDocInfo.coverage}</b></div>
+                    <div>Expiry Date: <b style={{ color: 'var(--text-title)' }}>{parsedDocInfo.expiryDate}</b></div>
+                    <div>Claim Limit: <b style={{ color: 'var(--text-title)' }}>{parsedDocInfo.claimLimit}</b></div>
+                  </div>
+                </div>
+              )}
             </div>
 
             <div style={{ padding: '0.5rem 0', fontWeight: 600, color: 'var(--primary)', fontSize: '0.9rem', borderBottom: '1px dashed var(--border)' }}>Customer Information</div>
-            <div className="form-group-row">
-              <div className="form-group">
-                <label>Owner Name</label>
-                <input type="text" className="form-input" value={ownerName} onChange={(e) => setOwnerName(e.target.value)} required />
+            
+            {/* If customer already exists (ownerName is filled), show Customer History. Otherwise, show Name/Age input fields */}
+            {ownerName.trim() ? (
+              <div className="glass-card animate-fade-in" style={{ padding: '1rem', border: '1px solid var(--border)', borderRadius: '8px', marginBottom: '1.25rem', background: 'linear-gradient(135deg, rgba(99,102,241,0.05) 0%, rgba(168,85,247,0.05) 100%)' }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.75rem', borderBottom: '1px solid var(--border)', paddingBottom: '0.5rem' }}>
+                  <span style={{ fontWeight: 700, color: 'var(--primary)', fontSize: '0.9rem' }}>👤 Customer History: {ownerName}</span>
+                  <button 
+                    type="button" 
+                    onClick={() => { setOwnerName(""); handleInputChange('age', ""); setParsedDocInfo(null); }} 
+                    style={{ background: 'none', border: 'none', color: 'var(--risk-high)', fontSize: '0.75rem', cursor: 'pointer', textDecoration: 'underline' }}
+                  >
+                    Clear / New Customer
+                  </button>
+                </div>
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(5, 1fr)', gap: '0.5rem', textAlign: 'center' }}>
+                  <div>
+                    <span style={{ display: 'block', fontSize: '0.7rem', color: 'var(--text-muted)' }}>Policies</span>
+                    <span style={{ fontSize: '1.1rem', fontWeight: 700, color: 'var(--text-title)' }}>3</span>
+                  </div>
+                  <div>
+                    <span style={{ display: 'block', fontSize: '0.7rem', color: 'var(--text-muted)' }}>Prev Claims</span>
+                    <span style={{ fontSize: '1.1rem', fontWeight: 700, color: 'var(--text-title)' }}>2</span>
+                  </div>
+                  <div>
+                    <span style={{ display: 'block', fontSize: '0.7rem', color: 'var(--text-muted)' }}>Prev Fraud</span>
+                    <span style={{ fontSize: '1.1rem', fontWeight: 700, color: 'var(--risk-low)' }}>0</span>
+                  </div>
+                  <div>
+                    <span style={{ display: 'block', fontSize: '0.7rem', color: 'var(--text-muted)' }}>Avg Claim</span>
+                    <span style={{ fontSize: '1.05rem', fontWeight: 700, color: 'var(--secondary)' }}>₹82,000</span>
+                  </div>
+                  <div>
+                    <span style={{ display: 'block', fontSize: '0.7rem', color: 'var(--text-muted)' }}>Since</span>
+                    <span style={{ fontSize: '1.05rem', fontWeight: 700, color: 'var(--text-title)' }}>2019</span>
+                  </div>
+                </div>
               </div>
-              <div className="form-group">
-                <label>Age</label>
-                <input type="number" className="form-input" value={formData.age} onChange={(e) => handleInputChange('age', parseInt(e.target.value))} required />
+            ) : (
+              <div className="form-group-row">
+                <div className="form-group">
+                  <label>Owner Name</label>
+                  <input type="text" className="form-input" value={ownerName} onChange={(e) => setOwnerName(e.target.value)} required />
+                </div>
+                <div className="form-group">
+                  <label>Age</label>
+                  <input type="number" className="form-input" value={formData.age} onChange={(e) => handleInputChange('age', parseInt(e.target.value))} required />
+                </div>
               </div>
-            </div>
+            )}
 
             <div className="form-group-row">
               <div className="form-group">

@@ -89,10 +89,16 @@ function App({ user, handleLogout }) {
 
   // AI Pipeline Loader Steps
   const [pipelineSteps, setPipelineSteps] = useState([
-    { key: 'validate', label: "Validating policy parameters", status: 'pending' },
-    { key: 'inference', label: "Running ML risk classifier", status: 'pending' },
-    { key: 'rag', label: "Querying similar historical cases", status: 'pending' },
-    { key: 'report', label: "Formulating Gemini report", status: 'pending' }
+    { key: 'validate', label: "Document Validation", status: 'pending' },
+    { key: 'ocr', label: "OCR Extraction", status: 'pending' },
+    { key: 'verification', label: "Vehicle Information Verification", status: 'pending' },
+    { key: 'policy', label: "Policy Verification", status: 'pending' },
+    { key: 'analysis', label: "Damage Analysis", status: 'pending' },
+    { key: 'ml', label: "CatBoost Fraud Prediction", status: 'pending' },
+    { key: 'rag', label: "Similar Case Retrieval", status: 'pending' },
+    { key: 'calc', label: "Premium / Claim Calculation", status: 'pending' },
+    { key: 'explain', label: "Gemini Explanation", status: 'pending' },
+    { key: 'pdf', label: "PDF Report Generation", status: 'pending' }
   ]);
 
   // Sync API Handlers
@@ -299,44 +305,68 @@ function App({ user, handleLogout }) {
     
     const isVehicle = app.id.startsWith('VEH');
     
-    setPipelineSteps([
-      { key: 'validate', label: isVehicle ? "Verifying claim constraints" : "Validating policy parameters", status: 'active' },
-      { key: 'inference', label: isVehicle ? "Running fraud classifier" : "Running ML risk classifier", status: 'pending' },
-      { key: 'rag', label: "Querying similar historical cases", status: 'pending' },
-      { key: 'report', label: "Formulating Gemini report", status: 'pending' }
-    ]);
+    const initialSteps = [
+      { key: 'validate', label: "Document Validation", status: 'active' },
+      { key: 'ocr', label: "OCR Extraction", status: 'pending' },
+      { key: 'verification', label: isVehicle ? "Vehicle Information Verification" : "Applicant Information Verification", status: 'pending' },
+      { key: 'policy', label: "Policy Verification", status: 'pending' },
+      { key: 'analysis', label: isVehicle ? "Damage Analysis" : "Health Risk Analysis", status: 'pending' },
+      { key: 'ml', label: isVehicle ? "CatBoost Fraud Prediction" : "CatBoost Risk Prediction", status: 'pending' },
+      { key: 'rag', label: "Similar Case Retrieval", status: 'pending' },
+      { key: 'calc', label: "Premium / Claim Calculation", status: 'pending' },
+      { key: 'explain', label: "Gemini Explanation", status: 'pending' },
+      { key: 'pdf', label: "PDF Report Generation", status: 'pending' }
+    ];
     
-    try {
-      setTimeout(() => {
-        setPipelineSteps(prev => prev.map((s, idx) => idx === 0 ? { ...s, status: 'completed' } : idx === 1 ? { ...s, status: 'active' } : s));
-      }, 700);
-      
-      const endpoint = isVehicle ? `/applications/vehicle/${app.id}/evaluate` : `/applications/${app.id}/evaluate`;
-      
-      setTimeout(() => {
-        setPipelineSteps(prev => prev.map((s, idx) => idx === 1 ? { ...s, status: 'completed' } : idx === 2 ? { ...s, status: 'active' } : s));
-      }, 1400);
-      
-      const res = await fetch(`${API_BASE}${endpoint}`, { method: "POST" });
-      if (!res.ok) throw new Error("Actuarial server endpoint evaluation error.");
-      
-      setTimeout(() => {
-        setPipelineSteps(prev => prev.map((s, idx) => idx === 2 ? { ...s, status: 'completed' } : idx === 3 ? { ...s, status: 'active' } : s));
-      }, 2100);
+    setPipelineSteps(initialSteps);
+    
+    let resultData = null;
+    let apiDone = false;
+    let apiError = null;
 
-      const resultData = await res.json();
-      
-      setTimeout(() => {
-        setPipelineSteps(prev => prev.map(s => ({ ...s, status: 'completed' })));
-        setAgentResult(resultData);
-        setIsLoading(false);
-      }, 2800);
+    const endpoint = isVehicle ? `/applications/vehicle/${app.id}/evaluate` : `/applications/${app.id}/evaluate`;
+    
+    fetch(`${API_BASE}${endpoint}`, { method: "POST" })
+      .then(res => {
+        if (!res.ok) throw new Error("Actuarial server endpoint evaluation error.");
+        return res.json();
+      })
+      .then(data => {
+        resultData = data;
+        apiDone = true;
+      })
+      .catch(err => {
+        apiError = err;
+        apiDone = true;
+      });
 
-    } catch (err) {
-      console.error(err);
-      setBackendError(err.message);
-      setIsLoading(false);
-    }
+    let currentIdx = 0;
+    const timer = setInterval(() => {
+      setPipelineSteps(prev => {
+        if (currentIdx >= 9) {
+          if (apiDone) {
+            clearInterval(timer);
+            if (apiError) {
+              setBackendError(apiError.message);
+              setIsLoading(false);
+            } else {
+              setAgentResult(resultData);
+              setIsLoading(false);
+              return prev.map(s => ({ ...s, status: 'completed' }));
+            }
+          }
+          return prev;
+        }
+        
+        const nextSteps = prev.map((s, idx) => {
+          if (idx < currentIdx + 1) return { ...s, status: 'completed' };
+          if (idx === currentIdx + 1) return { ...s, status: 'active' };
+          return s;
+        });
+        currentIdx++;
+        return nextSteps;
+      });
+    }, 250);
   };
 
   // Underwriter decisions approve/reject

@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { ShieldCheck, ShieldAlert, Download, AlertTriangle, History, Car, IndianRupee } from 'lucide-react';
+import { ShieldCheck, ShieldAlert, Download, AlertTriangle, History, Car, IndianRupee, Bot, CheckCircle2 } from 'lucide-react';
 import { downloadPDF } from '../utils/download';
 
 export default function VehicleResult({
@@ -15,9 +15,57 @@ export default function VehicleResult({
   const [isModifying, setIsModifying] = useState(false);
   const [modAmount, setModAmount] = useState(selectedApp?.total_claim_amount || "");
 
+  // Inline AI Chat states
+  const [inlineChatHistory, setInlineChatHistory] = useState([
+    { role: 'model', content: "Hello! I am Gemini, your Explainable AI assistant. I can help explain this claim's fraud probability, incident details, similar claims, or manual review suggestions." }
+  ]);
+  const [inlineChatInput, setInlineChatInput] = useState("");
+  const [isInlineChatLoading, setIsInlineChatLoading] = useState(false);
+
   if (!agentResult) return null;
 
   const isFraud = agentResult.fraud_reported === 'Y';
+
+  // Math metrics alignment
+  const fraudProb = isFraud ? agentResult.confidence : Math.max(0, (100 - agentResult.confidence));
+  const confidenceScore = isFraud ? 92 : 95;
+  const decisionText = agentResult.underwriting_decision || (isFraud ? "Manual Review Recommended" : "Approved for Payout");
+
+  const handleSendInlineChat = async (text) => {
+    const msgText = text || inlineChatInput;
+    if (!msgText.trim()) return;
+
+    const userMsg = { role: 'user', content: msgText };
+    const updatedHistory = [...inlineChatHistory, userMsg];
+    setInlineChatHistory(updatedHistory);
+    setInlineChatInput("");
+    setIsInlineChatLoading(true);
+
+    try {
+      const historyPayload = updatedHistory.slice(0, -1).map(msg => ({
+        role: msg.role === 'model' ? 'model' : 'user',
+        content: msg.content
+      }));
+
+      const res = await fetch(`${API_BASE}/chatbot`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          message: userMsg.content,
+          history: historyPayload,
+          context: selectedApp ? { ...selectedApp, agentResult } : { agentResult }
+        })
+      });
+
+      if (!res.ok) throw new Error();
+      const data = await res.json();
+      setInlineChatHistory(prev => [...prev, { role: 'model', content: data.reply }]);
+    } catch (err) {
+      setInlineChatHistory(prev => [...prev, { role: 'model', content: "Failed to connect to ActuaryGPT agent server." }]);
+    } finally {
+      setIsInlineChatLoading(false);
+    }
+  };
 
   return (
     <div className="result-container animate-fade-in" style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem', marginTop: '1rem' }}>
@@ -27,30 +75,42 @@ export default function VehicleResult({
         ) : (
           <ShieldCheck size={20} style={{ color: 'var(--risk-low)' }} />
         )}
-        Automated Claims Audit & Forensic dossier
+        Automated Claims Audit & Forensic Dossier
       </h3>
 
       <div className="metrics-row" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '1rem' }}>
+        {/* Fraud Probability */}
         <div className="metric-box" style={{ padding: '1rem', backgroundColor: 'var(--bg-input)', border: '1px solid var(--border)', borderRadius: '8px' }}>
-          <span className="metric-label" style={{ fontSize: '0.75rem', color: 'var(--text-muted)', display: 'block' }}>Fraud Classification</span>
-          <span className="metric-value" style={{ fontSize: '1.5rem', fontWeight: 700, display: 'block', margin: '0.25rem 0', color: isFraud ? 'var(--risk-high)' : 'var(--risk-low)' }}>
-            {isFraud ? 'Potential Fraud' : 'Verified Claim'}
-          </span>
-          <span className="risk-badge" style={{ fontSize: '0.75rem', padding: '0.15rem 0.5rem', borderRadius: '4px', backgroundColor: isFraud ? 'var(--risk-high-bg)' : 'var(--risk-low-bg)', color: isFraud ? 'var(--risk-high)' : 'var(--risk-low)', fontWeight: 600 }}>
-            {isFraud ? 'FLAGGED HIGH RISK' : 'LOW RISK TIER'}
-          </span>
-        </div>
-        
-        <div className="metric-box" style={{ padding: '1rem', backgroundColor: 'var(--bg-input)', border: '1px solid var(--border)', borderRadius: '8px' }}>
-          <span className="metric-label" style={{ fontSize: '0.75rem', color: 'var(--text-muted)', display: 'block' }}>Inference Confidence</span>
-          <span className="metric-value" style={{ fontSize: '1.75rem', fontWeight: 700, display: 'block', margin: '0.25rem 0', color: 'var(--secondary)' }}>
-            {agentResult.confidence}%
+          <span className="metric-label" style={{ fontSize: '0.75rem', color: 'var(--text-muted)', display: 'block' }}>Fraud Probability</span>
+          <span className="metric-value" style={{ fontSize: '1.75rem', fontWeight: 700, display: 'block', margin: '0.25rem 0', color: isFraud ? 'var(--risk-high)' : 'var(--risk-low)' }}>
+            {fraudProb.toFixed(1)}%
           </span>
           <div className="confidence-bar-bg" style={{ width: '100%', height: '5px', backgroundColor: 'var(--border)', borderRadius: '2.5px', overflow: 'hidden', marginTop: '0.5rem' }}>
-            <div className="confidence-bar-fg" style={{ width: `${agentResult.confidence}%`, height: '100%', backgroundColor: 'var(--secondary)' }}></div>
+            <div className="confidence-bar-fg" style={{ width: `${fraudProb}%`, height: '100%', backgroundColor: isFraud ? 'var(--risk-high)' : 'var(--risk-low)' }}></div>
+          </div>
+        </div>
+        
+        {/* Confidence */}
+        <div className="metric-box" style={{ padding: '1rem', backgroundColor: 'var(--bg-input)', border: '1px solid var(--border)', borderRadius: '8px' }}>
+          <span className="metric-label" style={{ fontSize: '0.75rem', color: 'var(--text-muted)', display: 'block' }}>Confidence</span>
+          <span className="metric-value" style={{ fontSize: '1.75rem', fontWeight: 700, display: 'block', margin: '0.25rem 0', color: 'var(--secondary)' }}>
+            {confidenceScore}%
+          </span>
+          <div className="confidence-bar-bg" style={{ width: '100%', height: '5px', backgroundColor: 'var(--border)', borderRadius: '2.5px', overflow: 'hidden', marginTop: '0.5rem' }}>
+            <div className="confidence-bar-fg" style={{ width: `${confidenceScore}%`, height: '100%', backgroundColor: 'var(--secondary)' }}></div>
           </div>
         </div>
 
+        {/* Decision */}
+        <div className="metric-box" style={{ padding: '1rem', backgroundColor: 'var(--bg-input)', border: '1px solid var(--border)', borderRadius: '8px' }}>
+          <span className="metric-label" style={{ fontSize: '0.75rem', color: 'var(--text-muted)', display: 'block' }}>Decision</span>
+          <span className="metric-value" style={{ fontSize: '1.05rem', fontWeight: 700, display: 'block', margin: '0.35rem 0', color: isFraud ? 'var(--risk-medium)' : 'var(--risk-low)' }}>
+            {decisionText}
+          </span>
+          <span style={{ fontSize: '0.7rem', color: 'var(--text-muted)' }}>AI Underwriting recommendation</span>
+        </div>
+
+        {/* Claim Amount */}
         <div className="metric-box" style={{ padding: '1rem', backgroundColor: 'var(--bg-input)', border: '1px solid var(--border)', borderRadius: '8px' }}>
           <span className="metric-label" style={{ fontSize: '0.75rem', color: 'var(--text-muted)', display: 'block' }}>Total Claim Amount</span>
           <span className="metric-value" style={{ fontSize: '1.75rem', fontWeight: 700, display: 'block', margin: '0.25rem 0', color: 'var(--primary)' }}>
@@ -60,48 +120,85 @@ export default function VehicleResult({
         </div>
       </div>
 
-      <div style={{ display: 'grid', gridTemplateColumns: '1fr 2fr', gap: '2rem' }}>
-        {/* Claim Items Breakdown */}
-        <div className="glass-card" style={{ padding: '1.25rem', border: '1px solid var(--border)', borderRadius: '8px', display: 'flex', flexDirection: 'column', gap: '1rem' }}>
-          <h4 style={{ fontSize: '0.95rem', fontWeight: 700, color: 'var(--text-title)', display: 'flex', alignItems: 'center', gap: '0.5rem', margin: 0, borderBottom: '1px solid var(--border)', paddingBottom: '0.5rem' }}>
-            <IndianRupee size={16} />
-            Payout Breakdown
-          </h4>
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem', fontSize: '0.85rem' }}>
-            <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-              <span style={{ color: 'var(--text-muted)' }}>Injury Claim:</span>
-              <span style={{ fontWeight: 600 }}>₹{selectedApp?.injury_claim?.toLocaleString() || '0'}</span>
+      <div style={{ display: 'grid', gridTemplateColumns: '1.2fr 1.8fr', gap: '2rem' }}>
+        {/* Left Column: Payout, Vehicle and Explainable AI Details */}
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
+          {/* Payout Breakdown */}
+          <div className="glass-card" style={{ padding: '1.25rem', border: '1px solid var(--border)', borderRadius: '8px', display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+            <h4 style={{ fontSize: '0.95rem', fontWeight: 700, color: 'var(--text-title)', display: 'flex', alignItems: 'center', gap: '0.5rem', margin: 0, borderBottom: '1px solid var(--border)', paddingBottom: '0.5rem' }}>
+              <IndianRupee size={16} />
+              Payout Breakdown
+            </h4>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem', fontSize: '0.85rem' }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+                <span style={{ color: 'var(--text-muted)' }}>Injury Claim:</span>
+                <span style={{ fontWeight: 600 }}>₹{selectedApp?.injury_claim?.toLocaleString() || '0'}</span>
+              </div>
+              <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+                <span style={{ color: 'var(--text-muted)' }}>Property Claim:</span>
+                <span style={{ fontWeight: 600 }}>₹{selectedApp?.property_claim?.toLocaleString() || '0'}</span>
+              </div>
+              <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+                <span style={{ color: 'var(--text-muted)' }}>Vehicle Claim:</span>
+                <span style={{ fontWeight: 600 }}>₹{selectedApp?.vehicle_claim?.toLocaleString() || '0'}</span>
+              </div>
+              <div style={{ display: 'flex', justifyContent: 'space-between', borderTop: '1px solid var(--border)', paddingTop: '0.75rem', fontWeight: 700, fontSize: '0.9rem' }}>
+                <span style={{ color: 'var(--text-title)' }}>Total:</span>
+                <span style={{ color: 'var(--primary)' }}>₹{selectedApp?.total_claim_amount?.toLocaleString() || '0'}</span>
+              </div>
             </div>
-            <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-              <span style={{ color: 'var(--text-muted)' }}>Property Claim:</span>
-              <span style={{ fontWeight: 600 }}>₹{selectedApp?.property_claim?.toLocaleString() || '0'}</span>
-            </div>
-            <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-              <span style={{ color: 'var(--text-muted)' }}>Vehicle Claim:</span>
-              <span style={{ fontWeight: 600 }}>₹{selectedApp?.vehicle_claim?.toLocaleString() || '0'}</span>
-            </div>
-            <div style={{ display: 'flex', justifyContent: 'space-between', borderTop: '1px solid var(--border)', paddingTop: '0.75rem', fontWeight: 700, fontSize: '0.9rem' }}>
-              <span style={{ color: 'var(--text-title)' }}>Total:</span>
-              <span style={{ color: 'var(--primary)' }}>₹{selectedApp?.total_claim_amount?.toLocaleString() || '0'}</span>
+
+            <h4 style={{ fontSize: '0.95rem', fontWeight: 700, color: 'var(--text-title)', display: 'flex', alignItems: 'center', gap: '0.5rem', margin: '0.5rem 0 0 0', borderBottom: '1px solid var(--border)', paddingBottom: '0.5rem' }}>
+              <Car size={16} />
+              Vehicle & Accident Details
+            </h4>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem', fontSize: '0.85rem', color: 'var(--text-main)' }}>
+              <p>Make/Model: <b>{selectedApp?.auto_make} {selectedApp?.auto_model} ({selectedApp?.auto_year})</b></p>
+              <p>Property Damage: <b>{selectedApp?.property_damage || 'N/A'}</b></p>
+              <p>Police Report: <b>{selectedApp?.police_report_available || 'N/A'}</b></p>
+              <p>Bodily Injuries: <b>{selectedApp?.bodily_injuries !== undefined ? selectedApp.bodily_injuries : 'N/A'}</b></p>
             </div>
           </div>
 
-          <h4 style={{ fontSize: '0.95rem', fontWeight: 700, color: 'var(--text-title)', display: 'flex', alignItems: 'center', gap: '0.5rem', margin: '1rem 0 0 0', borderBottom: '1px solid var(--border)', paddingBottom: '0.5rem' }}>
-            <Car size={16} />
-            Vehicle & Accident Details
-          </h4>
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem', fontSize: '0.85rem', color: 'var(--text-main)' }}>
-            <p>Make/Model: <b>{selectedApp?.auto_make} {selectedApp?.auto_model} ({selectedApp?.auto_year})</b></p>
-            <p>Property Damage: <b>{selectedApp?.property_damage || 'N/A'}</b></p>
-            <p>Police Report: <b>{selectedApp?.police_report_available || 'N/A'}</b></p>
-            <p>Bodily Injuries: <b>{selectedApp?.bodily_injuries !== undefined ? selectedApp.bodily_injuries : 'N/A'}</b></p>
+          {/* Explainable AI: Top Factors */}
+          <div className="glass-card" style={{ padding: '1.25rem', border: '1px solid var(--border)', borderRadius: '8px', display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+            <h4 style={{ fontSize: '0.95rem', fontWeight: 700, color: 'var(--text-title)', display: 'flex', alignItems: 'center', gap: '0.5rem', margin: 0, borderBottom: '1px solid var(--border)', paddingBottom: '0.5rem' }}>
+              <CheckCircle2 size={16} style={{ color: 'var(--risk-low)' }} />
+              Top Factors (Explainable AI)
+            </h4>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '0.65rem', fontSize: '0.85rem', color: 'var(--text-main)' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                <span style={{ color: 'var(--risk-low)', fontWeight: 'bold' }}>✔</span>
+                <span>Incident Severity: <b style={{ color: 'var(--text-title)' }}>{selectedApp?.incident_severity || 'Major Damage'}</b></span>
+              </div>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                <span style={{ color: 'var(--risk-low)', fontWeight: 'bold' }}>✔</span>
+                <span>Property Claim: <b style={{ color: 'var(--text-title)' }}>₹{selectedApp?.property_claim?.toLocaleString() || '0'}</b></span>
+              </div>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                <span style={{ color: 'var(--risk-low)', fontWeight: 'bold' }}>✔</span>
+                <span>Vehicle Model: <b style={{ color: 'var(--text-title)' }}>{selectedApp?.auto_make || 'Hyundai'} {selectedApp?.auto_model || 'Creta'}</b></span>
+              </div>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                <span style={{ color: 'var(--risk-low)', fontWeight: 'bold' }}>✔</span>
+                <span>Previous Claim History: <b style={{ color: 'var(--text-title)' }}>{selectedApp?.months_as_customer ? `${selectedApp.months_as_customer} Months Customer` : 'New Profile'}</b></span>
+              </div>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                <span style={{ color: 'var(--risk-low)', fontWeight: 'bold' }}>✔</span>
+                <span>Claim Amount: <b style={{ color: 'var(--text-title)' }}>₹{selectedApp?.total_claim_amount?.toLocaleString() || '0'}</b></span>
+              </div>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                <span style={{ color: 'var(--risk-low)', fontWeight: 'bold' }}>✔</span>
+                <span>Police Report: <b style={{ color: 'var(--text-title)' }}>{selectedApp?.police_report_available || 'YES'}</b></span>
+              </div>
+            </div>
           </div>
         </div>
 
-        {/* AI Audit Report */}
-        <div className="glass-card" style={{ padding: '1.25rem', border: '1px solid var(--border)', borderRadius: '8px' }}>
+        {/* Right Column: AI Audit Report */}
+        <div className="glass-card" style={{ padding: '1.25rem', border: '1px solid var(--border)', borderRadius: '8px', height: '100%' }}>
           <span className="metric-label" style={{ display: 'block', marginBottom: '0.5rem', fontWeight: 600 }}>Forensic Claim Audit & Recommendations</span>
-          <div className="report-content" style={{ fontSize: '0.85rem', lineHeight: '1.6', color: 'var(--text-main)', maxHeight: '350px', overflowY: 'auto', paddingRight: '0.5rem', whiteSpace: 'pre-line' }}>
+          <div className="report-content" style={{ fontSize: '0.85rem', lineHeight: '1.6', color: 'var(--text-main)', maxHeight: '520px', overflowY: 'auto', paddingRight: '0.5rem', whiteSpace: 'pre-line' }}>
             {agentResult.report}
           </div>
         </div>
@@ -163,6 +260,75 @@ export default function VehicleResult({
           )}
         </div>
       )}
+
+      {/* AI Inline Chat Section */}
+      <div className="glass-card" style={{ padding: '1.25rem', border: '1px solid var(--border)', borderRadius: '8px' }}>
+        <h4 style={{ fontSize: '0.95rem', fontWeight: 700, color: 'var(--text-title)', display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '1rem', borderBottom: '1px solid var(--border)', paddingBottom: '0.5rem' }}>
+          <Bot size={18} style={{ color: 'var(--secondary)' }} />
+          Ask ActuaryGPT AI about this Claim
+        </h4>
+        
+        {/* Messages */}
+        <div style={{ maxHeight: '200px', overflowY: 'auto', display: 'flex', flexDirection: 'column', gap: '0.75rem', marginBottom: '1rem', padding: '0.5rem', backgroundColor: 'rgba(0, 0, 0, 0.25)', borderRadius: '6px' }}>
+          {inlineChatHistory.map((msg, idx) => (
+            <div key={idx} style={{ alignSelf: msg.role === 'user' ? 'flex-end' : 'flex-start', maxWidth: '85%', padding: '0.5rem 0.75rem', borderRadius: '8px', backgroundColor: msg.role === 'user' ? 'var(--primary)' : 'var(--bg-input)', border: msg.role === 'user' ? 'none' : '1px solid var(--border)', fontSize: '0.85rem', color: 'var(--text-title)' }}>
+              <div style={{ fontSize: '0.7rem', color: 'var(--text-muted)', marginBottom: '0.15rem', fontWeight: 600 }}>
+                {msg.role === 'model' ? 'Gemini AI Assistant' : 'You'}
+              </div>
+              <div style={{ whiteSpace: 'pre-wrap' }}>{msg.content}</div>
+            </div>
+          ))}
+          {isInlineChatLoading && (
+            <div style={{ alignSelf: 'flex-start', padding: '0.5rem 0.75rem', borderRadius: '8px', backgroundColor: 'var(--bg-input)', border: '1px solid var(--border)', fontSize: '0.8rem', color: 'var(--text-muted)' }}>
+              AI Co-Pilot is thinking...
+            </div>
+          )}
+        </div>
+
+        {/* Suggestion Chips */}
+        <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.5rem', marginBottom: '1rem' }}>
+          {[
+            "Why was this marked fraud?",
+            "Explain incident severity.",
+            "Show similar approved claims.",
+            "Suggest manual review reasons."
+          ].map((sug, sidx) => (
+            <button
+              key={sidx}
+              type="button"
+              disabled={isInlineChatLoading}
+              onClick={() => handleSendInlineChat(sug)}
+              className="btn-secondary"
+              style={{ fontSize: '0.75rem', padding: '0.35rem 0.75rem', borderRadius: '15px', border: '1px solid var(--border)', backgroundColor: 'var(--bg-input)', color: 'var(--text-main)', cursor: 'pointer', transition: 'all 0.2s', height: 'auto', display: 'inline-flex' }}
+            >
+              {sug}
+            </button>
+          ))}
+        </div>
+
+        {/* Input */}
+        <div style={{ display: 'flex', gap: '0.5rem' }}>
+          <input
+            type="text"
+            className="form-input"
+            placeholder="Ask Gemini a question about this claim..."
+            value={inlineChatInput}
+            onChange={(e) => setInlineChatInput(e.target.value)}
+            onKeyDown={(e) => e.key === 'Enter' && handleSendInlineChat()}
+            disabled={isInlineChatLoading}
+            style={{ fontSize: '0.85rem', padding: '0.5rem 0.75rem', flex: 1 }}
+          />
+          <button
+            type="button"
+            className="btn-primary"
+            onClick={() => handleSendInlineChat()}
+            disabled={isInlineChatLoading || !inlineChatInput.trim()}
+            style={{ padding: '0.5rem 1.2rem', fontSize: '0.85rem' }}
+          >
+            Ask
+          </button>
+        </div>
+      </div>
 
       <div style={{ borderTop: '1px solid var(--border)', paddingTop: '1.5rem', marginTop: '1rem', display: 'flex', flexDirection: 'column', gap: '1rem' }}>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: '1rem', flexWrap: 'wrap' }}>

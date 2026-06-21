@@ -1,5 +1,5 @@
-import React from 'react';
-import { ShieldCheck, Download, AlertTriangle, History } from 'lucide-react';
+import React, { useState } from 'react';
+import { ShieldCheck, Download, AlertTriangle, History, Bot, CheckCircle2 } from 'lucide-react';
 import SimilarCaseCard from '../components/SimilarCaseCard';
 import { downloadPDF } from '../utils/download';
 
@@ -16,7 +16,53 @@ export default function LifeResult({
 }) {
   const [isModifying, setIsModifying] = React.useState(false);
   const [modAmount, setModAmount] = React.useState(agentResult?.premium || "");
+
+  // Inline AI Chat states
+  const [inlineChatHistory, setInlineChatHistory] = useState([
+    { role: 'model', content: "Hello! I am Gemini, your Explainable AI assistant. I can help explain this policy's risk classification, medical profile analysis, similar profiles, or underwriting recommendations." }
+  ]);
+  const [inlineChatInput, setInlineChatInput] = useState("");
+  const [isInlineChatLoading, setIsInlineChatLoading] = useState(false);
+
   if (!agentResult) return null;
+
+  const decisionText = agentResult.underwriting_decision || "Refer for Manual Review";
+
+  const handleSendInlineChat = async (text) => {
+    const msgText = text || inlineChatInput;
+    if (!msgText.trim()) return;
+
+    const userMsg = { role: 'user', content: msgText };
+    const updatedHistory = [...inlineChatHistory, userMsg];
+    setInlineChatHistory(updatedHistory);
+    setInlineChatInput("");
+    setIsInlineChatLoading(true);
+
+    try {
+      const historyPayload = updatedHistory.slice(0, -1).map(msg => ({
+        role: msg.role === 'model' ? 'model' : 'user',
+        content: msg.content
+      }));
+
+      const res = await fetch(`${API_BASE}/chatbot`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          message: userMsg.content,
+          history: historyPayload,
+          context: selectedApp ? { ...selectedApp, agentResult } : { agentResult }
+        })
+      });
+
+      if (!res.ok) throw new Error();
+      const data = await res.json();
+      setInlineChatHistory(prev => [...prev, { role: 'model', content: data.reply }]);
+    } catch (err) {
+      setInlineChatHistory(prev => [...prev, { role: 'model', content: "Failed to connect to ActuaryGPT agent server." }]);
+    } finally {
+      setIsInlineChatLoading(false);
+    }
+  };
 
   return (
     <div className="result-container animate-fade-in" style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem', marginTop: '1rem' }}>
@@ -26,6 +72,7 @@ export default function LifeResult({
       </h3>
 
       <div className="metrics-row" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '1rem' }}>
+        {/* Predicted Risk Class */}
         <div className="metric-box" style={{ padding: '1rem', backgroundColor: 'var(--bg-input)', border: '1px solid var(--border)', borderRadius: '8px' }}>
           <span className="metric-label" style={{ fontSize: '0.75rem', color: 'var(--text-muted)', display: 'block' }}>Predicted Risk Class</span>
           <span className="metric-value" style={{ fontSize: '1.75rem', fontWeight: 700, display: 'block', margin: '0.25rem 0', color: 'var(--text-title)' }}>
@@ -36,6 +83,7 @@ export default function LifeResult({
           </span>
         </div>
         
+        {/* Inference Confidence */}
         <div className="metric-box" style={{ padding: '1rem', backgroundColor: 'var(--bg-input)', border: '1px solid var(--border)', borderRadius: '8px' }}>
           <span className="metric-label" style={{ fontSize: '0.75rem', color: 'var(--text-muted)', display: 'block' }}>Inference Confidence</span>
           <span className="metric-value" style={{ fontSize: '1.75rem', fontWeight: 700, display: 'block', margin: '0.25rem 0', color: 'var(--secondary)' }}>
@@ -46,6 +94,16 @@ export default function LifeResult({
           </div>
         </div>
 
+        {/* Decision */}
+        <div className="metric-box" style={{ padding: '1rem', backgroundColor: 'var(--bg-input)', border: '1px solid var(--border)', borderRadius: '8px' }}>
+          <span className="metric-label" style={{ fontSize: '0.75rem', color: 'var(--text-muted)', display: 'block' }}>Decision</span>
+          <span className="metric-value" style={{ fontSize: '1.05rem', fontWeight: 700, display: 'block', margin: '0.35rem 0', color: 'var(--primary)' }}>
+            {decisionText}
+          </span>
+          <span style={{ fontSize: '0.7rem', color: 'var(--text-muted)' }}>AI Underwriting recommendation</span>
+        </div>
+
+        {/* Annual Premium */}
         <div className="metric-box" style={{ padding: '1rem', backgroundColor: 'var(--bg-input)', border: '1px solid var(--border)', borderRadius: '8px' }}>
           <span className="metric-label" style={{ fontSize: '0.75rem', color: 'var(--text-muted)', display: 'block' }}>Recommended Annual Premium</span>
           <span className="metric-value" style={{ fontSize: '1.75rem', fontWeight: 700, display: 'block', margin: '0.25rem 0', color: 'var(--primary)' }}>
@@ -55,17 +113,60 @@ export default function LifeResult({
         </div>
       </div>
 
-      <div className="glass-card" style={{ padding: '1rem', backgroundColor: 'rgba(255, 255, 255, 0.01)', border: '1px solid var(--border)', borderRadius: '8px' }}>
-        <span style={{ fontSize: '0.8rem', color: 'var(--text-muted)', display: 'block', marginBottom: '0.25rem' }}>AI Underwriting Recommendation</span>
-        <p style={{ fontSize: '1.1rem', fontWeight: 700, color: 'var(--text-title)', margin: 0 }}>
-          {agentResult.underwriting_decision}
-        </p>
-      </div>
+      <div style={{ display: 'grid', gridTemplateColumns: '1.2fr 1.8fr', gap: '2rem' }}>
+        {/* Left Column: Top Factors and Medical Overview */}
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
+          {/* Explainable AI: Top Factors */}
+          <div className="glass-card" style={{ padding: '1.25rem', border: '1px solid var(--border)', borderRadius: '8px', display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+            <h4 style={{ fontSize: '0.95rem', fontWeight: 700, color: 'var(--text-title)', display: 'flex', alignItems: 'center', gap: '0.5rem', margin: 0, borderBottom: '1px solid var(--border)', paddingBottom: '0.5rem' }}>
+              <CheckCircle2 size={16} style={{ color: 'var(--risk-low)' }} />
+              Top Factors (Explainable AI)
+            </h4>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '0.65rem', fontSize: '0.85rem', color: 'var(--text-main)' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                <span style={{ color: 'var(--risk-low)', fontWeight: 'bold' }}>✔</span>
+                <span>Smoker Status: <b style={{ color: 'var(--text-title)' }}>{selectedApp?.smoker === 1 ? 'Smoker (High Risk)' : 'Non-Smoker'}</b></span>
+              </div>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                <span style={{ color: 'var(--risk-low)', fontWeight: 'bold' }}>✔</span>
+                <span>Medical History: <b style={{ color: 'var(--text-title)' }}>{selectedApp?.medicalConditions || 'No existing conditions'}</b></span>
+              </div>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                <span style={{ color: 'var(--risk-low)', fontWeight: 'bold' }}>✔</span>
+                <span>BMI Index: <b style={{ color: 'var(--text-title)' }}>{selectedApp?.weight && selectedApp?.height ? (selectedApp.weight / ((selectedApp.height / 100) ** 2)).toFixed(1) : '24.5'} (Normal)</b></span>
+              </div>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                <span style={{ color: 'var(--risk-low)', fontWeight: 'bold' }}>✔</span>
+                <span>Occupation Risk: <b style={{ color: 'var(--text-title)' }}>{selectedApp?.occupation || 'Professional'}</b></span>
+              </div>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                <span style={{ color: 'var(--risk-low)', fontWeight: 'bold' }}>✔</span>
+                <span>Coverage Amount: <b style={{ color: 'var(--text-title)' }}>₹{selectedApp?.coverage_amount?.toLocaleString() || '₹10,00,000'}</b></span>
+              </div>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                <span style={{ color: 'var(--risk-low)', fontWeight: 'bold' }}>✔</span>
+                <span>Age Factor: <b style={{ color: 'var(--text-title)' }}>{selectedApp?.age || '35'} years</b></span>
+              </div>
+            </div>
+          </div>
 
-      <div className="glass-card" style={{ padding: '1.25rem', border: '1px solid var(--border)', borderRadius: '8px' }}>
-        <span className="metric-label" style={{ display: 'block', marginBottom: '0.5rem', fontWeight: 600 }}>Actuarial Report & Risk Justification</span>
-        <div className="report-content" style={{ fontSize: '0.85rem', lineHeight: '1.6', color: 'var(--text-main)', maxHeight: '300px', overflowY: 'auto', paddingRight: '0.5rem', whiteSpace: 'pre-line' }}>
-          {agentResult.report}
+          <div className="glass-card" style={{ padding: '1.25rem', border: '1px solid var(--border)', borderRadius: '8px', display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+            <span className="metric-label" style={{ display: 'block', fontWeight: 600 }}>Application Overview</span>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem', fontSize: '0.85rem', color: 'var(--text-main)' }}>
+              <p>Applicant: <b>{selectedApp?.client || 'N/A'}</b></p>
+              <p>Policy Type: <b>{selectedApp?.insurance_type || 'Life'}</b></p>
+              <p>Income: <b>₹{selectedApp?.income?.toLocaleString() || 'N/A'}</b></p>
+              <p>Nominee Age: <b>{selectedApp?.nomineeAge || 'N/A'} years</b></p>
+            </div>
+          </div>
+        </div>
+
+        {/* Right Column: AI Risk Justification */}
+        <div className="glass-card" style={{ padding: '1.25rem', border: '1px solid var(--border)', borderRadius: '8px', height: '100%' }}>
+          <span className="metric-label" style={{ display: 'block', marginBottom: '0.5rem', fontWeight: 600 }}>Actuarial Report & Risk Justification</span>
+          <div className="report-content" style={{ fontSize: '0.85rem', lineHeight: '1.6', color: 'var(--text-main)', maxHeight: '420px', overflowY: 'auto', paddingRight: '0.5rem', whiteSpace: 'pre-line' }}>
+            {agentResult.report}
+          </div>
         </div>
       </div>
 
@@ -93,6 +194,75 @@ export default function LifeResult({
           )}
         </div>
       )}
+
+      {/* AI Inline Chat Section */}
+      <div className="glass-card" style={{ padding: '1.25rem', border: '1px solid var(--border)', borderRadius: '8px' }}>
+        <h4 style={{ fontSize: '0.95rem', fontWeight: 700, color: 'var(--text-title)', display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '1rem', borderBottom: '1px solid var(--border)', paddingBottom: '0.5rem' }}>
+          <Bot size={18} style={{ color: 'var(--secondary)' }} />
+          Ask ActuaryGPT AI about this Policy
+        </h4>
+        
+        {/* Messages */}
+        <div style={{ maxHeight: '200px', overflowY: 'auto', display: 'flex', flexDirection: 'column', gap: '0.75rem', marginBottom: '1rem', padding: '0.5rem', backgroundColor: 'rgba(0, 0, 0, 0.25)', borderRadius: '6px' }}>
+          {inlineChatHistory.map((msg, idx) => (
+            <div key={idx} style={{ alignSelf: msg.role === 'user' ? 'flex-end' : 'flex-start', maxWidth: '85%', padding: '0.5rem 0.75rem', borderRadius: '8px', backgroundColor: msg.role === 'user' ? 'var(--primary)' : 'var(--bg-input)', border: msg.role === 'user' ? 'none' : '1px solid var(--border)', fontSize: '0.85rem', color: 'var(--text-title)' }}>
+              <div style={{ fontSize: '0.7rem', color: 'var(--text-muted)', marginBottom: '0.15rem', fontWeight: 600 }}>
+                {msg.role === 'model' ? 'Gemini AI Assistant' : 'You'}
+              </div>
+              <div style={{ whiteSpace: 'pre-wrap' }}>{msg.content}</div>
+            </div>
+          ))}
+          {isInlineChatLoading && (
+            <div style={{ alignSelf: 'flex-start', padding: '0.5rem 0.75rem', borderRadius: '8px', backgroundColor: 'var(--bg-input)', border: '1px solid var(--border)', fontSize: '0.8rem', color: 'var(--text-muted)' }}>
+              AI Co-Pilot is thinking...
+            </div>
+          )}
+        </div>
+
+        {/* Suggestion Chips */}
+        <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.5rem', marginBottom: '1rem' }}>
+          {[
+            "Why was this risk class assigned?",
+            "Explain medical conditions impact.",
+            "Show similar approved profiles.",
+            "Suggest manual review reasons."
+          ].map((sug, sidx) => (
+            <button
+              key={sidx}
+              type="button"
+              disabled={isInlineChatLoading}
+              onClick={() => handleSendInlineChat(sug)}
+              className="btn-secondary"
+              style={{ fontSize: '0.75rem', padding: '0.35rem 0.75rem', borderRadius: '15px', border: '1px solid var(--border)', backgroundColor: 'var(--bg-input)', color: 'var(--text-main)', cursor: 'pointer', transition: 'all 0.2s', height: 'auto', display: 'inline-flex' }}
+            >
+              {sug}
+            </button>
+          ))}
+        </div>
+
+        {/* Input */}
+        <div style={{ display: 'flex', gap: '0.5rem' }}>
+          <input
+            type="text"
+            className="form-input"
+            placeholder="Ask Gemini a question about this profile..."
+            value={inlineChatInput}
+            onChange={(e) => setInlineChatInput(e.target.value)}
+            onKeyDown={(e) => e.key === 'Enter' && handleSendInlineChat()}
+            disabled={isInlineChatLoading}
+            style={{ fontSize: '0.85rem', padding: '0.5rem 0.75rem', flex: 1 }}
+          />
+          <button
+            type="button"
+            className="btn-primary"
+            onClick={() => handleSendInlineChat()}
+            disabled={isInlineChatLoading || !inlineChatInput.trim()}
+            style={{ padding: '0.5rem 1.2rem', fontSize: '0.85rem' }}
+          >
+            Ask
+          </button>
+        </div>
+      </div>
 
       <div style={{ borderTop: '1px solid var(--border)', paddingTop: '1.5rem', marginTop: '1rem', display: 'flex', flexDirection: 'column', gap: '1rem' }}>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: '1rem', flexWrap: 'wrap' }}>

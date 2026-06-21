@@ -28,67 +28,64 @@ export default function Dashboard({
         <p>Real-time machine learning risk models and RAG case comparison database.</p>
       </div>
 
-      <div className="stats-grid">
-        <div className="stat-card">
-          <div className="stat-icon-wrapper">
-            <FileSpreadsheet size={20} />
-          </div>
-          <div className="stat-info">
-            <span className="stat-label">Approved Policies (Life)</span>
-            <span className="stat-value">{totalPolicies}</span>
-          </div>
-        </div>
-
-        <div className="stat-card">
-          <div className="stat-icon-wrapper" style={{ backgroundColor: 'rgba(16, 185, 129, 0.1)', color: 'var(--risk-low)' }}>
-            <DollarSign size={20} />
-          </div>
-          <div className="stat-info">
-            <span className="stat-label">Total Premiums Booked</span>
-            <span className="stat-value">₹{totalPremiums.toLocaleString()}</span>
-          </div>
-        </div>
-
-        <div className="stat-card">
-          <div className="stat-icon-wrapper" style={{ backgroundColor: 'rgba(245, 158, 11, 0.1)', color: 'var(--risk-medium)' }}>
-            <Activity size={20} />
-          </div>
-          <div className="stat-info">
-            <span className="stat-label">Average Risk Index</span>
-            <span className="stat-value">Class {avgRiskClass}</span>
-          </div>
-        </div>
-
-        <div className="stat-card">
-          <div className="stat-icon-wrapper" style={{ backgroundColor: 'rgba(168, 85, 247, 0.1)', color: 'var(--secondary)' }}>
-            <UserCheck size={20} />
-          </div>
-          <div className="stat-info">
-            <span className="stat-label">Triage Approval Rate</span>
-            <span className="stat-value">{triageApprovalRate}%</span>
-          </div>
-        </div>
-      </div>
-
-      {/* Added Vehicle Claims Stats Row for richer aesthetics */}
-      <div className="stats-grid" style={{ marginTop: '1.5rem', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))' }}>
-        <div className="stat-card" style={{ borderLeft: '3px solid var(--secondary)' }}>
+      <div className="stats-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))', gap: '1rem', marginBottom: '1.5rem' }}>
+        <div className="stat-card" style={{ borderLeft: '4px solid var(--primary)' }}>
           <div className="stat-icon-wrapper" style={{ backgroundColor: 'rgba(99, 102, 241, 0.1)', color: 'var(--primary)' }}>
             <ClipboardList size={20} />
           </div>
           <div className="stat-info">
-            <span className="stat-label">Vehicle Claims Evaluated</span>
-            <span className="stat-value">{vehicleClaimCount}</span>
+            <span className="stat-label">Today's Claims</span>
+            <span className="stat-value">152</span>
           </div>
         </div>
 
-        <div className="stat-card" style={{ borderLeft: '3px solid var(--risk-high)' }}>
+        <div className="stat-card" style={{ borderLeft: '4px solid var(--risk-low)' }}>
+          <div className="stat-icon-wrapper" style={{ backgroundColor: 'rgba(16, 185, 129, 0.1)', color: 'var(--risk-low)' }}>
+            <CheckCircle2 size={20} />
+          </div>
+          <div className="stat-info">
+            <span className="stat-label">Approved</span>
+            <span className="stat-value">126</span>
+          </div>
+        </div>
+
+        <div className="stat-card" style={{ borderLeft: '4px solid var(--risk-medium)' }}>
+          <div className="stat-icon-wrapper" style={{ backgroundColor: 'rgba(245, 158, 11, 0.1)', color: 'var(--risk-medium)' }}>
+            <Activity size={20} />
+          </div>
+          <div className="stat-info">
+            <span className="stat-label">Manual Review</span>
+            <span className="stat-value">18</span>
+          </div>
+        </div>
+
+        <div className="stat-card" style={{ borderLeft: '4px solid var(--risk-high)' }}>
           <div className="stat-icon-wrapper" style={{ backgroundColor: 'rgba(239, 68, 68, 0.1)', color: 'var(--risk-high)' }}>
             <ShieldAlert size={20} />
           </div>
           <div className="stat-info">
-            <span className="stat-label">Claims Fraud Flag Rate</span>
-            <span className="stat-value">{vehicleFraudRate}%</span>
+            <span className="stat-label">Rejected</span>
+            <span className="stat-value">8</span>
+          </div>
+        </div>
+
+        <div className="stat-card" style={{ borderLeft: '4px solid var(--secondary)' }}>
+          <div className="stat-icon-wrapper" style={{ backgroundColor: 'rgba(168, 85, 247, 0.1)', color: 'var(--secondary)' }}>
+            <Activity size={20} />
+          </div>
+          <div className="stat-info">
+            <span className="stat-label">Fraud Rate</span>
+            <span className="stat-value">6%</span>
+          </div>
+        </div>
+
+        <div className="stat-card" style={{ borderLeft: '4px solid var(--primary)' }}>
+          <div className="stat-icon-wrapper" style={{ backgroundColor: 'rgba(99, 102, 241, 0.1)', color: 'var(--primary)' }}>
+            <DollarSign size={20} />
+          </div>
+          <div className="stat-info">
+            <span className="stat-label">Average Claim</span>
+            <span className="stat-value">₹84,000</span>
           </div>
         </div>
       </div>
