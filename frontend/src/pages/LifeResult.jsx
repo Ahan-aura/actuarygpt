@@ -35,16 +35,18 @@ export default function LifeResult({
       <div 
         className="glass-card animate-fade-in" 
         style={{ 
-          maxWidth: '600px', 
-          margin: '2rem auto', 
-          padding: '2.5rem', 
+          maxWidth: '550px', 
+          margin: '3rem auto', 
+          padding: '3rem 2rem', 
           textAlign: 'center', 
           display: 'flex', 
           flexDirection: 'column', 
           alignItems: 'center', 
           gap: '1.5rem',
           border: '1px solid var(--border)',
-          backgroundColor: 'var(--bg-card)'
+          backgroundColor: 'var(--bg-card)',
+          borderRadius: '12px',
+          boxShadow: 'var(--shadow-lg)'
         }}
       >
         <div 
@@ -52,73 +54,41 @@ export default function LifeResult({
             display: 'inline-flex', 
             alignItems: 'center', 
             justifyContent: 'center', 
-            width: '72px', 
-            height: '72px', 
+            width: '64px', 
+            height: '64px', 
             borderRadius: '50%', 
             backgroundColor: 'rgba(16, 185, 129, 0.1)', 
             color: 'var(--risk-low)',
             marginBottom: '0.5rem'
           }}
         >
-          <CheckCircle2 size={40} />
+          <CheckCircle2 size={36} />
         </div>
         
-        <h3 style={{ fontSize: '1.75rem', fontWeight: 800, color: 'var(--text-title)', margin: 0, letterSpacing: '-0.02em' }}>
+        <h3 style={{ fontSize: '1.5rem', fontWeight: 800, color: 'var(--text-title)', margin: 0 }}>
           Application Submitted Successfully
         </h3>
         
-        <p style={{ fontSize: '0.95rem', color: 'var(--text-muted)', lineHeight: 1.5, margin: 0, maxWidth: '460px' }}>
-          Your policy application has been registered and is currently under review by our underwriting board. We will notify you once evaluation is complete.
+        <p style={{ fontSize: '0.9rem', color: 'var(--text-muted)', lineHeight: 1.6, margin: 0, maxWidth: '420px' }}>
+          Your insurance application has been successfully submitted. It is now queued for underwriting review. Please wait for further review; we will update you as soon as the assessment is complete.
         </p>
 
         <div 
           style={{ 
             width: '100%', 
-            padding: '1.25rem', 
+            padding: '1rem', 
             backgroundColor: 'var(--bg-input)', 
-            borderRadius: '8px', 
+            borderRadius: '6px', 
             border: '1px solid var(--border)',
-            textAlign: 'left',
+            fontSize: '0.8rem',
+            color: 'var(--text-muted)',
             display: 'flex',
-            flexDirection: 'column',
-            gap: '0.50rem',
-            fontSize: '0.85rem'
+            justifyContent: 'center',
+            gap: '0.5rem'
           }}
         >
-          <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-            <span style={{ color: 'var(--text-muted)' }}>Application ID:</span>
-            <b style={{ color: 'var(--primary)' }}>{selectedApp?.id || 'APP-' + Math.random().toString(36).substr(2, 6).toUpperCase()}</b>
-          </div>
-          <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-            <span style={{ color: 'var(--text-muted)' }}>Policyholder Name:</span>
-            <b style={{ color: 'var(--text-title)' }}>{selectedApp?.fullName || selectedApp?.client || 'Ahan'}</b>
-          </div>
-          <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-            <span style={{ color: 'var(--text-muted)' }}>Policy Type:</span>
-            <b style={{ color: 'var(--text-title)' }}>{selectedApp?.insurance_type === 'Health' ? 'Comprehensive Health Cover' : selectedApp?.insurance_type === 'Property' ? 'Commercial Property Cover' : 'Term Life Insurance'}</b>
-          </div>
-          <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-            <span style={{ color: 'var(--text-muted)' }}>Coverage Amount (Sum Assured):</span>
-            <b style={{ color: 'var(--text-title)' }}>₹{selectedApp?.coverage_amount?.toLocaleString() || 'N/A'}</b>
-          </div>
-        </div>
-
-        <div style={{ width: '100%', display: 'flex', flexDirection: 'column', gap: '0.75rem', marginTop: '0.5rem', textAlign: 'left' }}>
-          <span style={{ fontSize: '0.8rem', fontWeight: 700, color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Timeline & Status</span>
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem', fontSize: '0.85rem' }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', color: 'var(--risk-low)' }}>
-              <span>✔</span>
-              <span>Form Parameters Validated</span>
-            </div>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', color: 'var(--risk-low)' }}>
-              <span>✔</span>
-              <span>AI Extraction & OCR Processing Completed</span>
-            </div>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', color: 'var(--text-muted)' }}>
-              <span className="animate-pulse" style={{ color: 'var(--primary)', marginRight: '2px' }}>●</span>
-              <span>Sent for Underwriting Review (Pending)</span>
-            </div>
-          </div>
+          <span>Application Reference ID:</span>
+          <b style={{ color: 'var(--primary)' }}>{selectedApp?.id || 'APP-' + Math.random().toString(36).substr(2, 6).toUpperCase()}</b>
         </div>
       </div>
     );
