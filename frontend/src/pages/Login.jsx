@@ -68,6 +68,12 @@ export default function Login({ API_BASE, onLoginSuccess }) {
           <p>Access the AI-powered Actuarial and Automated Underwriting Portal</p>
         </div>
 
+        <div style={{ padding: '0.75rem 1rem', backgroundColor: 'rgba(99, 102, 241, 0.04)', border: '1px dashed var(--primary)', borderRadius: '8px', fontSize: '0.8rem', color: 'var(--text-main)', marginBottom: '0.5rem', lineHeight: '1.4' }}>
+          <div style={{ fontWeight: 700, color: 'var(--text-title)', marginBottom: '0.25rem' }}>Demo Credentials:</div>
+          <p style={{ margin: '0.2rem 0' }}>• Customer: <b style={{ color: 'var(--primary)' }}>customer1</b> / <b>password123</b></p>
+          <p style={{ margin: '0.2rem 0' }}>• Officer: <b style={{ color: 'var(--secondary)' }}>actuary1</b> / <b>password123</b> <span style={{ opacity: 0.8 }}>(Passkey: <b style={{ color: 'var(--risk-medium)' }}>ACTUARY_SECURE_2026</b>)</span></p>
+        </div>
+
         <form onSubmit={handleAuthSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '1.25rem' }}>
           <div className="form-group">
             <label>Username</label>
@@ -95,11 +101,11 @@ export default function Login({ API_BASE, onLoginSuccess }) {
 
           {isRegisterMode && roleInput === 'officer' && (
             <div className="form-group animate-fade-in">
-              <label>Officer Security Passkey</label>
+              <label>Officer Security Passkey <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>(Use: ACTUARY_SECURE_2026)</span></label>
               <input 
                 type="password" 
                 className="form-input" 
-                placeholder="Required secure officer passkey..." 
+                placeholder="ACTUARY_SECURE_2026" 
                 value={passkeyInput} 
                 onChange={(e) => setPasskeyInput(e.target.value)} 
                 required 
@@ -109,7 +115,7 @@ export default function Login({ API_BASE, onLoginSuccess }) {
 
           {!isRegisterMode && (
             <div className="form-group">
-              <label>Officer Passkey <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>(Only required for Actuary Officers)</span></label>
+              <label>Officer Passkey <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>(Only required for Actuary Officers. Use: ACTUARY_SECURE_2026)</span></label>
               <input 
                 type="password" 
                 className="form-input" 

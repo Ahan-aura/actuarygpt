@@ -9,7 +9,10 @@ import {
   TrendingDown,
   Car,
   PieChart as PieIcon,
-  BarChart as BarIcon
+  BarChart as BarIcon,
+  CheckCircle2,
+  XCircle,
+  AlertTriangle
 } from 'lucide-react';
 import { 
   ResponsiveContainer, 
@@ -28,7 +31,7 @@ import {
   Line
 } from 'recharts';
 
-// Custom metrics data
+// Custom metrics data for Officer view
 const claimsByMonthData = [
   { month: 'Jan', Claims: 45 },
   { month: 'Feb', Claims: 52 },
@@ -63,68 +66,147 @@ const claimAmountDistributionData = [
   { range: 'Over ₹2L', 'Claims Count': 20 }
 ];
 
-const commonAccidentTypesData = [
-  { name: 'Single Collision', value: 55, color: '#6366f1' },
-  { name: 'Multi Collision', value: 35, color: '#a855f7' },
-  { name: 'Parked Car', value: 18, color: '#10b981' },
-  { name: 'Theft', value: 8, color: '#ef4444' }
+const incidentCitiesData = [
+  { name: 'Pune', value: 38, color: '#6366f1' },
+  { name: 'Mumbai', value: 27, color: '#a855f7' },
+  { name: 'Delhi', value: 20, color: '#10b981' },
+  { name: 'Bangalore', value: 15, color: '#f59e0b' },
+  { name: 'Hyderabad', value: 10, color: '#ef4444' }
 ];
 
 export default function Analytics({
   totalPolicies,
   totalPremiums,
   avgRiskClass,
-  triageApprovalRate
+  triageApprovalRate,
+  isCustomerView = false
 }) {
-  return (
-    <div className="officer-analytics-view animate-fade-in">
-      <div className="stats-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '1rem' }}>
-        <div className="stat-card">
-          <div className="stat-icon-wrapper">
-            <FileSpreadsheet size={20} />
+  // RENDER CUSTOMER-Appropriate Personal Dashboard
+  if (isCustomerView) {
+    return (
+      <div className="officer-analytics-view animate-fade-in" style={{ display: 'flex', flexDirection: 'column', gap: '2rem' }}>
+        <h3 style={{ fontSize: '1.25rem', fontWeight: 700, borderBottom: '1px solid var(--border)', paddingBottom: '0.5rem', color: 'var(--text-title)', margin: 0 }}>
+          My Portfolio Analytics & Summaries
+        </h3>
+        
+        <div className="stats-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: '1rem' }}>
+          
+          {/* Total Applications */}
+          <div className="stat-card" style={{ display: 'flex', gap: '1rem', padding: '1.25rem', backgroundColor: 'var(--bg-card)', border: '1px solid var(--border)', borderRadius: '8px', alignItems: 'center' }}>
+            <div className="stat-icon-wrapper" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', width: '40px', height: '40px', borderRadius: '50%', backgroundColor: 'rgba(99, 102, 241, 0.1)', color: 'var(--primary)' }}>
+              <FileSpreadsheet size={20} />
+            </div>
+            <div className="stat-info" style={{ display: 'flex', flexDirection: 'column' }}>
+              <span className="stat-label" style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>My Applications</span>
+              <span className="stat-value" style={{ fontSize: '1.4rem', fontWeight: 700, color: 'var(--text-title)' }}>{totalPolicies}</span>
+            </div>
           </div>
-          <div className="stat-info">
-            <span className="stat-label">Total Claims Processed</span>
-            <span className="stat-value">152</span>
+
+          {/* Annualized Premium */}
+          <div className="stat-card" style={{ display: 'flex', gap: '1rem', padding: '1.25rem', backgroundColor: 'var(--bg-card)', border: '1px solid var(--border)', borderRadius: '8px', alignItems: 'center' }}>
+            <div className="stat-icon-wrapper" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', width: '40px', height: '40px', borderRadius: '50%', backgroundColor: 'rgba(16, 185, 129, 0.1)', color: 'var(--risk-low)' }}>
+              <DollarSign size={20} />
+            </div>
+            <div className="stat-info" style={{ display: 'flex', flexDirection: 'column' }}>
+              <span className="stat-label" style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>Annualized Premium</span>
+              <span className="stat-value" style={{ fontSize: '1.4rem', fontWeight: 700, color: 'var(--text-title)' }}>₹{totalPremiums?.toLocaleString()}</span>
+            </div>
           </div>
+
         </div>
 
-        <div className="stat-card">
-          <div className="stat-icon-wrapper" style={{ backgroundColor: 'rgba(16, 185, 129, 0.1)', color: 'var(--risk-low)' }}>
-            <DollarSign size={20} />
-          </div>
-          <div className="stat-info">
-            <span className="stat-label">Total Claim Volume</span>
-            <span className="stat-value">₹1,27,68,000</span>
-          </div>
-        </div>
-
-        <div className="stat-card">
-          <div className="stat-icon-wrapper" style={{ backgroundColor: 'rgba(245, 158, 11, 0.1)', color: 'var(--risk-medium)' }}>
-            <Activity size={20} />
-          </div>
-          <div className="stat-info">
-            <span className="stat-label">Average Risk Index</span>
-            <span className="stat-value">Class 3.2</span>
-          </div>
-        </div>
-
-        <div className="stat-card">
-          <div className="stat-icon-wrapper" style={{ backgroundColor: 'rgba(168, 85, 247, 0.1)', color: 'var(--secondary)' }}>
-            <UserCheck size={20} />
-          </div>
-          <div className="stat-info">
-            <span className="stat-label">Underwriting Approval Rate</span>
-            <span className="stat-value">82.8%</span>
-          </div>
+        <div className="glass-card" style={{ padding: '2.5rem 1.5rem', textAlign: 'center', border: '1px solid var(--border)', borderRadius: '8px', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '0.75rem' }}>
+          <CheckCircle2 size={36} style={{ color: 'var(--risk-low)' }} />
+          <h4 style={{ fontSize: '1.1rem', fontWeight: 700, color: 'var(--text-title)', margin: 0 }}>Portfolio Security Overview</h4>
+          <p style={{ fontSize: '0.85rem', color: 'var(--text-muted)', maxWidth: '480px', margin: 0, lineHeight: 1.5 }}>
+            Your submitted insurance policies and claims are safely queued in the ActuaryGPT automated underwriting database. Standard risk dashboards and fraud metrics are restricted to underwriting officers.
+          </p>
         </div>
       </div>
+    );
+  }
 
-      <div className="analytics-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(400px, 1fr))', gap: '2rem', marginTop: '2rem' }}>
+  // RENDER OFFICER Global Analytics Dashboard
+  return (
+    <div className="officer-analytics-view animate-fade-in" style={{ display: 'flex', flexDirection: 'column', gap: '2rem' }}>
+      
+      {/* 6 METRICS CARDS */}
+      <div className="stats-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))', gap: '1rem' }}>
+        
+        {/* Total Claims */}
+        <div className="stat-card" style={{ display: 'flex', gap: '1rem', padding: '1.25rem', backgroundColor: 'var(--bg-card)', border: '1px solid var(--border)', borderRadius: '8px', alignItems: 'center' }}>
+          <div className="stat-icon-wrapper" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', width: '40px', height: '40px', borderRadius: '50%', backgroundColor: 'rgba(99, 102, 241, 0.1)', color: 'var(--primary)' }}>
+            <FileSpreadsheet size={20} />
+          </div>
+          <div className="stat-info" style={{ display: 'flex', flexDirection: 'column' }}>
+            <span className="stat-label" style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>Total Claims</span>
+            <span className="stat-value" style={{ fontSize: '1.4rem', fontWeight: 700, color: 'var(--text-title)' }}>152</span>
+          </div>
+        </div>
+
+        {/* Approved */}
+        <div className="stat-card" style={{ display: 'flex', gap: '1rem', padding: '1.25rem', backgroundColor: 'var(--bg-card)', border: '1px solid var(--border)', borderRadius: '8px', alignItems: 'center' }}>
+          <div className="stat-icon-wrapper" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', width: '40px', height: '40px', borderRadius: '50%', backgroundColor: 'rgba(16, 185, 129, 0.1)', color: 'var(--risk-low)' }}>
+            <CheckCircle2 size={20} />
+          </div>
+          <div className="stat-info" style={{ display: 'flex', flexDirection: 'column' }}>
+            <span className="stat-label" style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>Approved</span>
+            <span className="stat-value" style={{ fontSize: '1.4rem', fontWeight: 700, color: 'var(--text-title)' }}>96</span>
+          </div>
+        </div>
+
+        {/* Rejected */}
+        <div className="stat-card" style={{ display: 'flex', gap: '1rem', padding: '1.25rem', backgroundColor: 'var(--bg-card)', border: '1px solid var(--border)', borderRadius: '8px', alignItems: 'center' }}>
+          <div className="stat-icon-wrapper" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', width: '40px', height: '40px', borderRadius: '50%', backgroundColor: 'rgba(239, 68, 68, 0.1)', color: 'var(--risk-high)' }}>
+            <XCircle size={20} />
+          </div>
+          <div className="stat-info" style={{ display: 'flex', flexDirection: 'column' }}>
+            <span className="stat-label" style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>Rejected</span>
+            <span className="stat-value" style={{ fontSize: '1.4rem', fontWeight: 700, color: 'var(--text-title)' }}>34</span>
+          </div>
+        </div>
+
+        {/* Manual Review */}
+        <div className="stat-card" style={{ display: 'flex', gap: '1rem', padding: '1.25rem', backgroundColor: 'var(--bg-card)', border: '1px solid var(--border)', borderRadius: '8px', alignItems: 'center' }}>
+          <div className="stat-icon-wrapper" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', width: '40px', height: '40px', borderRadius: '50%', backgroundColor: 'rgba(245, 158, 11, 0.1)', color: 'var(--risk-medium)' }}>
+            <Activity size={20} />
+          </div>
+          <div className="stat-info" style={{ display: 'flex', flexDirection: 'column' }}>
+            <span className="stat-label" style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>Manual Review</span>
+            <span className="stat-value" style={{ fontSize: '1.4rem', fontWeight: 700, color: 'var(--text-title)' }}>22</span>
+          </div>
+        </div>
+
+        {/* Fraud Rate */}
+        <div className="stat-card" style={{ display: 'flex', gap: '1rem', padding: '1.25rem', backgroundColor: 'var(--bg-card)', border: '1px solid var(--border)', borderRadius: '8px', alignItems: 'center' }}>
+          <div className="stat-icon-wrapper" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', width: '40px', height: '40px', borderRadius: '50%', backgroundColor: 'rgba(239, 68, 68, 0.1)', color: 'var(--risk-high)' }}>
+            <TrendingUp size={20} />
+          </div>
+          <div className="stat-info" style={{ display: 'flex', flexDirection: 'column' }}>
+            <span className="stat-label" style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>Fraud Rate</span>
+            <span className="stat-value" style={{ fontSize: '1.4rem', fontWeight: 700, color: 'var(--text-title)' }}>5.9%</span>
+          </div>
+        </div>
+
+        {/* Average Claim */}
+        <div className="stat-card" style={{ display: 'flex', gap: '1rem', padding: '1.25rem', backgroundColor: 'var(--bg-card)', border: '1px solid var(--border)', borderRadius: '8px', alignItems: 'center' }}>
+          <div className="stat-icon-wrapper" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', width: '40px', height: '40px', borderRadius: '50%', backgroundColor: 'rgba(16, 185, 129, 0.1)', color: 'var(--risk-low)' }}>
+            <DollarSign size={20} />
+          </div>
+          <div className="stat-info" style={{ display: 'flex', flexDirection: 'column' }}>
+            <span className="stat-label" style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>Average Claim</span>
+            <span className="stat-value" style={{ fontSize: '1.4rem', fontWeight: 700, color: 'var(--text-title)' }}>₹84,500</span>
+          </div>
+        </div>
+
+      </div>
+
+      {/* CHARTS SECTION */}
+      <div className="analytics-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(400px, 1fr))', gap: '2rem' }}>
         
         {/* Claims by Month */}
-        <div className="glass-card">
-          <h3 className="card-title" style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', fontSize: '1rem', borderBottom: '1px solid var(--border)', paddingBottom: '0.5rem' }}>
+        <div className="glass-card" style={{ padding: '1.5rem', backgroundColor: 'var(--bg-card)', border: '1px solid var(--border)', borderRadius: '8px' }}>
+          <h3 className="card-title" style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', fontSize: '1rem', borderBottom: '1px solid var(--border)', paddingBottom: '0.5rem', margin: 0 }}>
             <TrendingUp size={18} style={{ color: 'var(--primary)' }} />
             Claims by Month
           </h3>
@@ -144,8 +226,8 @@ export default function Analytics({
         </div>
 
         {/* Fraud Trend */}
-        <div className="glass-card">
-          <h3 className="card-title" style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', fontSize: '1rem', borderBottom: '1px solid var(--border)', paddingBottom: '0.5rem' }}>
+        <div className="glass-card" style={{ padding: '1.5rem', backgroundColor: 'var(--bg-card)', border: '1px solid var(--border)', borderRadius: '8px' }}>
+          <h3 className="card-title" style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', fontSize: '1rem', borderBottom: '1px solid var(--border)', paddingBottom: '0.5rem', margin: 0 }}>
             <TrendingDown size={18} style={{ color: 'var(--risk-high)' }} />
             Fraud Trend
           </h3>
@@ -164,11 +246,11 @@ export default function Analytics({
           </div>
         </div>
 
-        {/* Top Vehicle Brands */}
-        <div className="glass-card">
-          <h3 className="card-title" style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', fontSize: '1rem', borderBottom: '1px solid var(--border)', paddingBottom: '0.5rem' }}>
+        {/* Vehicle Brands */}
+        <div className="glass-card" style={{ padding: '1.5rem', backgroundColor: 'var(--bg-card)', border: '1px solid var(--border)', borderRadius: '8px' }}>
+          <h3 className="card-title" style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', fontSize: '1rem', borderBottom: '1px solid var(--border)', paddingBottom: '0.5rem', margin: 0 }}>
             <Car size={18} style={{ color: 'var(--secondary)' }} />
-            Top Vehicle Brands Awaiting Claims
+            Vehicle Brands
           </h3>
           <div className="chart-container" style={{ minHeight: '260px', marginTop: '1rem' }}>
             <ResponsiveContainer width="100%" height={260}>
@@ -185,8 +267,8 @@ export default function Analytics({
         </div>
 
         {/* Claim Amount Distribution */}
-        <div className="glass-card">
-          <h3 className="card-title" style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', fontSize: '1rem', borderBottom: '1px solid var(--border)', paddingBottom: '0.5rem' }}>
+        <div className="glass-card" style={{ padding: '1.5rem', backgroundColor: 'var(--bg-card)', border: '1px solid var(--border)', borderRadius: '8px' }}>
+          <h3 className="card-title" style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', fontSize: '1rem', borderBottom: '1px solid var(--border)', paddingBottom: '0.5rem', margin: 0 }}>
             <BarIcon size={18} style={{ color: 'var(--primary)' }} />
             Claim Amount Distribution
           </h3>
@@ -204,18 +286,18 @@ export default function Analytics({
           </div>
         </div>
 
-        {/* Common Accident Types */}
-        <div className="glass-card" style={{ gridColumn: '1 / -1' }}>
-          <h3 className="card-title" style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', fontSize: '1rem', borderBottom: '1px solid var(--border)', paddingBottom: '0.5rem' }}>
+        {/* Incident Cities */}
+        <div className="glass-card" style={{ gridColumn: '1 / -1', padding: '1.5rem', backgroundColor: 'var(--bg-card)', border: '1px solid var(--border)', borderRadius: '8px' }}>
+          <h3 className="card-title" style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', fontSize: '1rem', borderBottom: '1px solid var(--border)', paddingBottom: '0.5rem', margin: 0 }}>
             <PieIcon size={18} style={{ color: 'var(--primary)' }} />
-            Most Common Accident Types
+            Incident Cities
           </h3>
-          <div style={{ display: 'grid', gridTemplateColumns: '1.2fr 1fr', gap: '2rem', alignItems: 'center', marginTop: '1rem' }}>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: '2rem', alignItems: 'center', marginTop: '1rem' }}>
             <div className="chart-container" style={{ minHeight: '240px' }}>
               <ResponsiveContainer width="100%" height={240}>
                 <PieChart>
                   <Pie
-                    data={commonAccidentTypesData}
+                    data={incidentCitiesData}
                     cx="50%"
                     cy="50%"
                     innerRadius={50}
@@ -223,7 +305,7 @@ export default function Analytics({
                     paddingAngle={5}
                     dataKey="value"
                   >
-                    {commonAccidentTypesData.map((entry, index) => (
+                    {incidentCitiesData.map((entry, index) => (
                       <Cell key={`cell-${index}`} fill={entry.color} />
                     ))}
                   </Pie>
@@ -234,7 +316,7 @@ export default function Analytics({
               </ResponsiveContainer>
             </div>
             <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
-              {commonAccidentTypesData.map((item, idx) => (
+              {incidentCitiesData.map((item, idx) => (
                 <div key={idx} style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', fontSize: '0.85rem' }}>
                   <div style={{ width: 12, height: 12, borderRadius: '3px', backgroundColor: item.color }} />
                   <span style={{ color: 'var(--text-main)', flex: 1 }}>{item.name}</span>

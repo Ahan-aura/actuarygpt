@@ -28,9 +28,7 @@ import {
 } from 'lucide-react';
 import './App.css';
 
-const API_BASE = window.location.hostname === "localhost" || window.location.hostname === "127.0.0.1"
-  ? "http://127.0.0.1:8000"
-  : "https://actuarygpt-backend.onrender.com";
+const API_BASE = "http://127.0.0.1:8000";
 
 const DEFAULT_BLANK_FORM = {
   fullName: "",
@@ -404,13 +402,16 @@ function App({ user, handleLogout }) {
   };
 
   // Co-Pilot Chat
-  const handleSendChatMessage = async (e) => {
-    e.preventDefault();
-    if (!chatInput.trim()) return;
+  const handleSendChatMessage = async (e, textOverride = null) => {
+    if (e && e.preventDefault) e.preventDefault();
+    const messageText = textOverride !== null ? textOverride : chatInput;
+    if (!messageText.trim()) return;
 
-    const userMsg = { role: 'user', content: chatInput };
+    const userMsg = { role: 'user', content: messageText };
     setChatMessages(prev => [...prev, userMsg]);
-    setChatInput("");
+    if (textOverride === null) {
+      setChatInput("");
+    }
     setIsChatLoading(true);
 
     const chatHistory = chatMessages.map(msg => ({
@@ -425,7 +426,8 @@ function App({ user, handleLogout }) {
         body: JSON.stringify({
           message: userMsg.content,
           history: chatHistory,
-          context: selectedApp || null
+          context: selectedApp || null,
+          role: user.role
         })
       });
       if (!res.ok) throw new Error();
@@ -512,12 +514,7 @@ function App({ user, handleLogout }) {
           >
             Vehicle Claim
           </button>
-          <button 
-            className={`btn-${customerFormTab === 'analytics' ? 'primary' : 'secondary'}`}
-            onClick={() => { setCustomerFormTab('analytics'); setWizardStep(1); setWizardResult(null); }}
-          >
-            Analytics
-          </button>
+
           <button 
             className={`btn-${customerFormTab === 'chatbot' ? 'primary' : 'secondary'}`}
             onClick={() => { setCustomerFormTab('chatbot'); setWizardStep(1); setWizardResult(null); }}
@@ -536,7 +533,7 @@ function App({ user, handleLogout }) {
           )}
 
           {wizardStep === 4 && customerFormTab === 'life' && (
-            <Loader message="Evaluating policy underwriting metrics..." />
+            <Loader message="Processing policy application..." />
           )}
 
           {wizardStep === 4 && customerFormTab === 'vehicle' && (
@@ -584,18 +581,7 @@ function App({ user, handleLogout }) {
             />
           )}
 
-          {customerFormTab === 'analytics' && (
-            <Analytics
-              totalPolicies={customerSubmissions.length + customerVehicleSubmissions.length}
-              totalPremiums={customerSubmissions.reduce((acc, curr) => acc + (curr.premium || 0), 0) + customerVehicleSubmissions.reduce((acc, curr) => acc + (curr.policy_annual_premium || 0), 0)}
-              avgRiskClass={0.0}
-              triageApprovalRate={100}
-              riskChartData={[]}
-              typeChartData={[]}
-              premiumTrendData={[]}
-              isCustomerView={true}
-            />
-          )}
+
 
           {customerFormTab === 'chatbot' && (
             <Chatbot
@@ -605,6 +591,7 @@ function App({ user, handleLogout }) {
               isChatLoading={isChatLoading}
               selectedApp={null}
               handleSendChatMessage={handleSendChatMessage}
+              isOfficer={false}
             />
           )}
         </main>
@@ -632,6 +619,7 @@ function App({ user, handleLogout }) {
             triageApprovalRate={triageApprovalRate}
             pendingApps={pendingApps}
             pendingVehicleApps={pendingVehicleApps}
+            processedApps={analyticsSummary?.processed_list || []}
             vehicleClaimCount={analyticsSummary?.vehicle_metrics?.total_claims || 0}
             vehicleFraudRate={analyticsSummary?.vehicle_metrics?.fraud_rate || 0.0}
             setOfficerTab={setOfficerTab}
@@ -882,6 +870,26 @@ function App({ user, handleLogout }) {
             processedApps={analyticsSummary?.processed_list?.filter(p => p.insurance_type !== 'Vehicle') || []} 
             processedVehicleApps={analyticsSummary?.processed_vehicle_list || []} 
             API_BASE={API_BASE} 
+            onViewApp={(app, runProfiler = false) => {
+              setSelectedApp(app);
+              setOfficerTab('triage');
+              if (app.report) {
+                setAgentResult({
+                  success: true,
+                  fraud_reported: app.fraud_reported || 'N',
+                  confidence: app.confidence || 92,
+                  underwriting_decision: app.underwriting_decision || app.status,
+                  report: app.report,
+                  pdf_url: app.pdf_url,
+                  similar_cases: app.similar_cases ? JSON.parse(app.similar_cases) : []
+                });
+              } else {
+                setAgentResult(null);
+              }
+              if (runProfiler) {
+                runActuarialAgent(app);
+              }
+            }}
           />
         )}
 
@@ -905,6 +913,7 @@ function App({ user, handleLogout }) {
             isChatLoading={isChatLoading}
             selectedApp={selectedApp}
             handleSendChatMessage={handleSendChatMessage}
+            isOfficer={true}
           />
         )}
 

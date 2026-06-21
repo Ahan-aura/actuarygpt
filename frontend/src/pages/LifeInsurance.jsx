@@ -251,32 +251,45 @@ export default function LifeInsurance({
                 </label>
               </div>
 
-              {scanStatus && (
+              {/* OCR Agent Panel during / after scan */}
+              {(isScanning || parsedDocInfo) && (
                 <div 
-                  className="animate-fade-in" 
+                  className="glass-card animate-fade-in" 
                   style={{ 
-                    fontSize: '0.85rem', 
-                    fontWeight: 600, 
-                    color: scanStatus.includes("failed") ? 'var(--risk-high)' : 'var(--primary)',
-                    marginTop: '0.25rem'
+                    marginTop: '1rem', 
+                    padding: '1.25rem', 
+                    width: '100%', 
+                    border: '1px solid var(--border)', 
+                    backgroundColor: 'var(--bg-input)',
+                    textAlign: 'left' 
                   }}
                 >
-                  {scanStatus}
-                </div>
-              )}
-
-              {/* Parsed Medical Bill or Policy details preview */}
-              {parsedDocInfo && (
-                <div className="animate-fade-in" style={{ marginTop: '1rem', padding: '1rem', width: '100%', backgroundColor: 'rgba(99, 102, 241, 0.05)', border: '1px solid rgba(99, 102, 241, 0.2)', borderRadius: '6px', textAlign: 'left' }}>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', color: 'var(--risk-low)', fontWeight: 700, fontSize: '0.9rem', marginBottom: '0.75rem' }}>
-                    <CheckCircle2 size={16} />
-                    {parsedDocInfo.isHealth ? "Medical Bill Successfully Parsed" : "Policy Successfully Parsed"}
+                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '0.75rem', borderBottom: '1px solid var(--border)', paddingBottom: '0.5rem' }}>
+                    <span style={{ fontWeight: 700, fontSize: '0.9rem', color: 'var(--primary)', display: 'flex', alignItems: 'center', gap: '0.25rem' }}>🤖 OCR Agent</span>
+                    <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>Status: <b style={{ color: isScanning ? 'var(--secondary)' : 'var(--risk-low)' }}>{isScanning ? "Reading document..." : "OCR Completed Successfully"}</b></span>
                   </div>
-                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.5rem 1rem', fontSize: '0.8rem', color: 'var(--text-main)' }}>
-                    <div>Patient/Owner: <b style={{ color: 'var(--text-title)' }}>{parsedDocInfo.fullName}</b></div>
-                    <div>{parsedDocInfo.isHealth ? "Bill Total Amount" : "Coverage Amount"}: <b style={{ color: 'var(--text-title)' }}>₹{parsedDocInfo.amount?.toLocaleString()}</b></div>
-                    <div>{parsedDocInfo.isHealth ? "Bill ID" : "Policy Number"}: <b style={{ color: 'var(--text-title)' }}>{parsedDocInfo.id}</b></div>
-                    <div>Diagnoses/Medical Profile: <b style={{ color: 'var(--text-title)' }}>{parsedDocInfo.conditions}</b></div>
+
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '0.4rem', fontSize: '0.8rem', color: 'var(--text-main)' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', color: isScanning ? 'var(--text-muted)' : 'var(--risk-low)' }}>
+                      <span style={{ fontWeight: 'bold' }}>✓</span>
+                      <span style={{ color: 'var(--text-main)' }}>Policy Number Extracted: <b style={{ color: 'var(--text-title)' }}>{parsedDocInfo?.id || (isScanning ? "Extracting..." : "N/A")}</b></span>
+                    </div>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', color: isScanning ? 'var(--text-muted)' : 'var(--risk-low)' }}>
+                      <span style={{ fontWeight: 'bold' }}>✓</span>
+                      <span style={{ color: 'var(--text-main)' }}>Customer Name Extracted: <b style={{ color: 'var(--text-title)' }}>{parsedDocInfo?.fullName || (isScanning ? "Extracting..." : "N/A")}</b></span>
+                    </div>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', color: isScanning ? 'var(--text-muted)' : 'var(--risk-low)' }}>
+                      <span style={{ fontWeight: 'bold' }}>✓</span>
+                      <span style={{ color: 'var(--text-main)' }}>Medical History Extracted: <b style={{ color: 'var(--text-title)' }}>{parsedDocInfo?.conditions || (isScanning ? "Extracting..." : "N/A")}</b></span>
+                    </div>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', color: isScanning ? 'var(--text-muted)' : 'var(--risk-low)' }}>
+                      <span style={{ fontWeight: 'bold' }}>✓</span>
+                      <span style={{ color: 'var(--text-main)' }}>Total Amount Extracted: <b style={{ color: 'var(--text-title)' }}>₹{parsedDocInfo?.amount?.toLocaleString() || (isScanning ? "Extracting..." : "N/A")}</b></span>
+                    </div>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', color: isScanning ? 'var(--text-muted)' : 'var(--risk-low)' }}>
+                      <span style={{ fontWeight: 'bold' }}>✓</span>
+                      <span style={{ color: 'var(--text-main)' }}>Expiry Date Extracted: <b style={{ color: 'var(--text-title)' }}>{parsedDocInfo?.expiryDate || (isScanning ? "Extracting..." : "N/A")}</b></span>
+                    </div>
                   </div>
                 </div>
               )}
@@ -779,31 +792,7 @@ export default function LifeInsurance({
                   <span>Date: <b>{app.date}</b></span>
                 </div>
 
-                {app.status === 'approved' && (
-                  <div style={{ borderTop: '1px solid var(--border)', paddingTop: '0.75rem', marginTop: '0.25rem', display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
-                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem', fontSize: '0.85rem' }}>
-                      <div>Risk Level: <span className="risk-badge low" style={{ padding: '0.1rem 0.5rem', fontSize: '0.7rem', backgroundColor: 'var(--risk-low-bg)', color: 'var(--risk-low)' }}>Class {app.risk_class} ({app.risk_category})</span></div>
-                      <div style={{ textAlign: 'right' }}>Calculated Premium: <b style={{ color: 'var(--primary)' }}>₹{app.premium?.toLocaleString()}/yr</b></div>
-                    </div>
-                    {app.pdf_url && (
-                      <button 
-                        onClick={() => downloadPDF(`${API_BASE}${app.pdf_url}`)}
-                        className="btn-secondary"
-                        style={{ padding: '0.4rem 0.8rem', fontSize: '0.8rem', display: 'inline-flex', width: 'fit-content', marginTop: '0.25rem', alignItems: 'center', gap: '0.25rem' }}
-                      >
-                        <Download size={12} />
-                        Download Actuarial PDF Report
-                      </button>
-                    )}
-                  </div>
-                )}
 
-                {app.status === 'rejected' && (
-                  <div style={{ borderTop: '1px solid var(--border)', paddingTop: '0.75rem', marginTop: '0.25rem', fontSize: '0.85rem', color: 'var(--risk-high)', display: 'flex', alignItems: 'center', gap: '0.25rem' }}>
-                    <AlertTriangle size={14} />
-                    <span>Underwriting declined standard rates. Manual review refer status.</span>
-                  </div>
-                )}
               </div>
             ))}
           </div>

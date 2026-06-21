@@ -1,12 +1,12 @@
 import React from 'react';
-import { Shield, Activity, Car, TrendingUp, Bot } from 'lucide-react';
+import { Shield, Activity, Car, Bot } from 'lucide-react';
 
 export default function Landing({ setTab, setWizardStep, setWizardResult }) {
   const cards = [
     {
       id: 'life',
       title: 'Life & Health Insurance',
-      desc: 'Assess applicant biometric profiles, calculate risk scores, and estimate actuarial premium recommendations.',
+      desc: 'Submit your health information, biometric profiles, and apply for life coverage policies.',
       icon: Activity,
       color: 'var(--primary)',
       bg: 'rgba(15, 118, 110, 0.1)',
@@ -14,26 +14,17 @@ export default function Landing({ setTab, setWizardStep, setWizardResult }) {
     },
     {
       id: 'vehicle',
-      title: 'Vehicle Insurance',
-      desc: 'File vehicle claims, process accident forensics, and run ML-based claim fraud detection.',
+      title: 'Vehicle Claim',
+      desc: 'Submit new vehicle claims, input details of incident, and upload required documents for claims review.',
       icon: Car,
       color: 'var(--secondary)',
       bg: 'rgba(56, 189, 248, 0.1)',
       border: 'rgba(56, 189, 248, 0.2)'
     },
     {
-      id: 'analytics',
-      title: 'Actuarial Analytics',
-      desc: 'Visualize risk distributions, premium pricing trends, and triage statistics across all policy covers.',
-      icon: TrendingUp,
-      color: 'var(--risk-low)',
-      bg: 'rgba(16, 185, 129, 0.1)',
-      border: 'rgba(16, 185, 129, 0.2)'
-    },
-    {
       id: 'chatbot',
-      title: 'AI Underwriting Assistant',
-      desc: 'Chat with the ActuaryGPT LLM co-pilot regarding policy guidelines, RAG cases, and audits.',
+      title: 'AI Support Assistant',
+      desc: 'Chat with our AI helper regarding general policy terms, document guidelines, and support details.',
       icon: Bot,
       color: 'var(--primary)',
       bg: 'rgba(99, 102, 241, 0.1)',
@@ -51,10 +42,10 @@ export default function Landing({ setTab, setWizardStep, setWizardResult }) {
           ACTUARYGPT
         </h1>
         <p style={{ fontSize: '1.25rem', fontWeight: 600, color: 'var(--primary)', marginBottom: '0.25rem' }}>
-          AI Powered Underwriting Assistant
+          Client Support Portal & Claims Center
         </p>
         <p style={{ fontSize: '1rem', color: 'var(--text-muted)' }}>
-          Helping Actuaries make better decisions
+          Helping you manage policies and file claims quickly
         </p>
       </div>
 

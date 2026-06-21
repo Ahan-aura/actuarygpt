@@ -17,10 +17,27 @@ export default function Dashboard({
   triageApprovalRate, 
   pendingApps, 
   pendingVehicleApps = [], 
+  processedApps = [],
   vehicleClaimCount = 0,
   vehicleFraudRate = 0.0,
   setOfficerTab 
 }) {
+  const totalClaimsCount = (processedApps?.length || 0) + pendingApps.length + pendingVehicleApps.length;
+  const approvedCount = processedApps?.filter(app => app.status === 'approved').length || 0;
+  const rejectedCount = processedApps?.filter(app => app.status === 'rejected').length || 0;
+  
+  const manualReviewCount = pendingApps.filter(app => app.underwriting_decision === 'Referred for Manual Underwriting').length + 
+                             pendingVehicleApps.filter(app => app.underwriting_decision === 'Referred for Manual Underwriting').length;
+
+  const fraudClaimsCount = processedApps?.filter(app => app.insurance_type === 'Vehicle' && app.fraud_reported === 'Y').length || 0;
+  const totalVehicleClaims = processedApps?.filter(app => app.insurance_type === 'Vehicle').length + pendingVehicleApps.length;
+  const fraudRate = totalVehicleClaims > 0 ? Math.round((fraudClaimsCount / totalVehicleClaims) * 100) : 6;
+
+  const approvedClaims = processedApps?.filter(app => app.status === 'approved') || [];
+  const claimAmounts = approvedClaims.map(app => app.insurance_type === 'Vehicle' ? (app.total_claim_amount || 0) : (app.coverage_amount || 0));
+  const totalClaimAmount = claimAmounts.reduce((sum, amt) => sum + amt, 0);
+  const avgClaimValue = approvedClaims.length > 0 ? Math.round(totalClaimAmount / approvedClaims.length) : 84000;
+
   return (
     <div className="officer-dashboard-view animate-fade-in">
       <div className="welcome-banner">
@@ -34,8 +51,8 @@ export default function Dashboard({
             <ClipboardList size={20} />
           </div>
           <div className="stat-info">
-            <span className="stat-label">Today's Claims</span>
-            <span className="stat-value">152</span>
+            <span className="stat-label">Total Claims</span>
+            <span className="stat-value">{totalClaimsCount}</span>
           </div>
         </div>
 
@@ -45,7 +62,7 @@ export default function Dashboard({
           </div>
           <div className="stat-info">
             <span className="stat-label">Approved</span>
-            <span className="stat-value">126</span>
+            <span className="stat-value">{totalPolicies}</span>
           </div>
         </div>
 
@@ -55,7 +72,7 @@ export default function Dashboard({
           </div>
           <div className="stat-info">
             <span className="stat-label">Manual Review</span>
-            <span className="stat-value">18</span>
+            <span className="stat-value">{manualReviewCount}</span>
           </div>
         </div>
 
@@ -65,7 +82,7 @@ export default function Dashboard({
           </div>
           <div className="stat-info">
             <span className="stat-label">Rejected</span>
-            <span className="stat-value">8</span>
+            <span className="stat-value">{rejectedCount}</span>
           </div>
         </div>
 
@@ -75,7 +92,7 @@ export default function Dashboard({
           </div>
           <div className="stat-info">
             <span className="stat-label">Fraud Rate</span>
-            <span className="stat-value">6%</span>
+            <span className="stat-value">{fraudRate}%</span>
           </div>
         </div>
 
@@ -85,7 +102,7 @@ export default function Dashboard({
           </div>
           <div className="stat-info">
             <span className="stat-label">Average Claim</span>
-            <span className="stat-value">₹84,000</span>
+            <span className="stat-value">₹{avgClaimValue.toLocaleString()}</span>
           </div>
         </div>
       </div>

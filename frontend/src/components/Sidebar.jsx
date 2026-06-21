@@ -31,10 +31,14 @@ export default function Sidebar({
 
   return (
     <aside className="officer-sidebar" style={{ width: '260px', backgroundColor: 'var(--bg-card)', borderRight: '1px solid var(--border)', display: 'flex', flexDirection: 'column', position: 'sticky', top: 0, height: '100vh', padding: '1.5rem 1rem' }}>
-      <div className="sidebar-brand" style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', marginBottom: '2rem' }}>
-        <Shield size={26} className="sidebar-brand-icon" style={{ color: 'var(--primary)' }} />
-        <h2 style={{ fontSize: '1.25rem', fontWeight: 800, color: 'var(--text-title)', letterSpacing: '-0.025em' }}>ActuaryGPT</h2>
-        <span style={{ fontSize: '0.65rem', backgroundColor: 'var(--primary-glow)', color: 'var(--primary)', padding: '0.15rem 0.4rem', borderRadius: '4px', fontWeight: 700 }}>HUB</span>
+      <div className="sidebar-brand" style={{ display: 'flex', flexDirection: 'column', gap: '0.25rem', marginBottom: '2rem' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
+          <Shield size={26} className="sidebar-brand-icon" style={{ color: 'var(--primary)' }} />
+          <h2 style={{ fontSize: '1.25rem', fontWeight: 800, color: 'var(--text-title)', letterSpacing: '-0.025em', margin: 0 }}>ActuaryGPT</h2>
+          <span style={{ fontSize: '0.65rem', backgroundColor: 'var(--primary-glow)', color: 'var(--primary)', padding: '0.15rem 0.4rem', borderRadius: '4px', fontWeight: 700 }}>HUB</span>
+        </div>
+        <p style={{ fontSize: '0.7rem', fontWeight: 600, color: 'var(--text-muted)', margin: '0.5rem 0 0.1rem 0', lineHeight: '1.2' }}>Agentic AI Underwriting & Claims Intelligence Platform</p>
+        <p style={{ fontSize: '0.65rem', color: 'var(--primary)', margin: 0, fontWeight: 500 }}>Analyze • Detect Fraud • Explain • Recommend</p>
       </div>
 
       <nav className="sidebar-nav" style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem', flex: 1 }}>

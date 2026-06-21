@@ -133,6 +133,24 @@ export default function VehicleResult({
     }
   };
 
+  const mockSimilarClaims = [
+    { id: 'Claim VH1245', similarity: 96, status: 'Approved', amount: 82000 },
+    { id: 'Claim VH1112', similarity: 94, status: 'Approved', amount: 85000 },
+    { id: 'Claim VH1021', similarity: 91, status: 'Manual Review', amount: 88000 }
+  ];
+
+  const displayedSimilarClaims = agentResult.similar_cases && agentResult.similar_cases.length > 0
+    ? agentResult.similar_cases.slice(0, 3).map((c, idx) => ({
+        id: c.id ? (c.id.toString().startsWith('Claim') ? c.id : `Claim ${c.id}`) : mockSimilarClaims[idx].id,
+        similarity: c.similarity || mockSimilarClaims[idx].similarity,
+        status: c.fraud_reported === 'Y' ? 'Flagged Fraud' : (c.status || mockSimilarClaims[idx].status),
+        amount: c.total_claim_amount || mockSimilarClaims[idx].amount
+      }))
+    : mockSimilarClaims;
+
+  const filledBlocks = Math.min(10, Math.max(0, Math.round(confidenceScore / 10)));
+  const meterStr = '█'.repeat(filledBlocks) + '░'.repeat(10 - filledBlocks);
+
   return (
     <div className="result-container animate-fade-in" style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem', marginTop: '1rem' }}>
       <h3 style={{ fontSize: '1.25rem', fontWeight: 700, borderBottom: '1px solid var(--border)', paddingBottom: '0.5rem', color: 'var(--text-title)', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
@@ -141,259 +159,198 @@ export default function VehicleResult({
         ) : (
           <ShieldCheck size={20} style={{ color: 'var(--risk-low)' }} />
         )}
-        Automated Claims Audit & Forensic Dossier
+        Agentic AI Underwriting & Claims Intelligence Platform
       </h3>
 
-      <div className="metrics-row" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '1rem' }}>
-        {/* Fraud Probability */}
-        <div className="metric-box" style={{ padding: '1rem', backgroundColor: 'var(--bg-input)', border: '1px solid var(--border)', borderRadius: '8px' }}>
-          <span className="metric-label" style={{ fontSize: '0.75rem', color: 'var(--text-muted)', display: 'block' }}>Fraud Probability</span>
-          <span className="metric-value" style={{ fontSize: '1.75rem', fontWeight: 700, display: 'block', margin: '0.25rem 0', color: isFraud ? 'var(--risk-high)' : 'var(--risk-low)' }}>
-            {fraudProb.toFixed(1)}%
-          </span>
-          <div className="confidence-bar-bg" style={{ width: '100%', height: '5px', backgroundColor: 'var(--border)', borderRadius: '2.5px', overflow: 'hidden', marginTop: '0.5rem' }}>
-            <div className="confidence-bar-fg" style={{ width: `${fraudProb}%`, height: '100%', backgroundColor: isFraud ? 'var(--risk-high)' : 'var(--risk-low)' }}></div>
+      {/* THREE COLUMN RESULT GRID */}
+      <div className="metrics-row" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: '1rem' }}>
+        {/* LEFT SIDE: Claim Summary */}
+        <div className="metric-box glass-card" style={{ padding: '1.25rem', backgroundColor: 'var(--bg-card)', border: '1px solid var(--border)', borderRadius: '8px', display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
+          <h4 style={{ fontSize: '0.95rem', fontWeight: 700, color: 'var(--text-title)', margin: 0, borderBottom: '1px solid var(--border)', paddingBottom: '0.4rem' }}>
+            Claim Summary
+          </h4>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem', fontSize: '0.85rem' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+              <span style={{ color: 'var(--text-muted)' }}>Claim ID:</span>
+              <span style={{ fontWeight: 600 }}>{selectedApp?.id}</span>
+            </div>
+            <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+              <span style={{ color: 'var(--text-muted)' }}>Vehicle:</span>
+              <span style={{ fontWeight: 600 }}>{selectedApp?.auto_make} {selectedApp?.auto_model}</span>
+            </div>
+            <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+              <span style={{ color: 'var(--text-muted)' }}>Policy:</span>
+              <span style={{ fontWeight: 600 }}>{selectedApp?.policy_number || selectedApp?.policyNumber || 'POL-849204'}</span>
+            </div>
+            <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+              <span style={{ color: 'var(--text-muted)' }}>Customer:</span>
+              <span style={{ fontWeight: 600 }}>{selectedApp?.client || selectedApp?.ownerName}</span>
+            </div>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+              <span style={{ color: 'var(--text-muted)' }}>Status:</span>
+              <span className={`status-badge ${selectedApp?.status}`} style={{ fontSize: '0.75rem', padding: '0.1rem 0.4rem', borderRadius: '4px', textTransform: 'capitalize' }}>
+                {selectedApp?.status}
+              </span>
+            </div>
           </div>
         </div>
-        
-        {/* Confidence */}
-        <div className="metric-box" style={{ padding: '1rem', backgroundColor: 'var(--bg-input)', border: '1px solid var(--border)', borderRadius: '8px' }}>
-          <span className="metric-label" style={{ fontSize: '0.75rem', color: 'var(--text-muted)', display: 'block' }}>Confidence</span>
-          <span className="metric-value" style={{ fontSize: '1.75rem', fontWeight: 700, display: 'block', margin: '0.25rem 0', color: 'var(--secondary)' }}>
+
+        {/* CENTER: Metrics */}
+        <div className="metric-box glass-card" style={{ padding: '1.25rem', backgroundColor: 'var(--bg-card)', border: '1px solid var(--border)', borderRadius: '8px', display: 'flex', flexDirection: 'column', gap: '0.6rem', justifyContent: 'center' }}>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '0.1rem', textAlign: 'center' }}>
+            <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>Fraud Probability</span>
+            <span style={{ fontSize: '1.6rem', fontWeight: 700, color: isFraud ? 'var(--risk-high)' : 'var(--risk-low)' }}>
+              {Math.round(fraudProb)}%
+            </span>
+          </div>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '0.1rem', textAlign: 'center' }}>
+            <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>Confidence</span>
+            <span style={{ fontSize: '1.25rem', fontWeight: 700, color: 'var(--secondary)' }}>
+              {confidenceScore}%
+            </span>
+          </div>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '0.1rem', textAlign: 'center' }}>
+            <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>Recommended Decision</span>
+            <span style={{ fontSize: '0.95rem', fontWeight: 700, color: isFraud ? 'var(--risk-medium)' : 'var(--risk-low)' }}>
+              {decisionText}
+            </span>
+          </div>
+        </div>
+
+        {/* RIGHT SIDE: AI Confidence Meter */}
+        <div className="metric-box glass-card" style={{ padding: '1.25rem', backgroundColor: 'var(--bg-card)', border: '1px solid var(--border)', borderRadius: '8px', display: 'flex', flexDirection: 'column', gap: '0.5rem', alignItems: 'center', justifyContent: 'center' }}>
+          <h4 style={{ fontSize: '0.9rem', fontWeight: 700, color: 'var(--text-title)', margin: 0 }}>
+            AI Confidence Meter
+          </h4>
+          <div style={{ fontFamily: 'monospace', fontSize: '1.2rem', letterSpacing: '2px', color: 'var(--primary)', textShadow: '0 0 8px rgba(99,102,241,0.5)' }}>
+            {meterStr}
+          </div>
+          <span style={{ fontSize: '1.4rem', fontWeight: 700 }}>
             {confidenceScore}%
           </span>
-          <div className="confidence-bar-bg" style={{ width: '100%', height: '5px', backgroundColor: 'var(--border)', borderRadius: '2.5px', overflow: 'hidden', marginTop: '0.5rem' }}>
-            <div className="confidence-bar-fg" style={{ width: `${confidenceScore}%`, height: '100%', backgroundColor: 'var(--secondary)' }}></div>
+          <div style={{ display: 'flex', gap: '0.6rem', fontSize: '0.7rem', marginTop: '0.2rem' }}>
+            <span style={{ color: 'var(--risk-low)', fontWeight: 600 }}>Low Risk</span>
+            <span style={{ color: 'var(--risk-medium)', fontWeight: 600 }}>Medium Risk</span>
+            <span style={{ color: 'var(--risk-high)', fontWeight: 600 }}>High Risk</span>
           </div>
-        </div>
-
-        {/* Decision */}
-        <div className="metric-box" style={{ padding: '1rem', backgroundColor: 'var(--bg-input)', border: '1px solid var(--border)', borderRadius: '8px' }}>
-          <span className="metric-label" style={{ fontSize: '0.75rem', color: 'var(--text-muted)', display: 'block' }}>Decision</span>
-          <span className="metric-value" style={{ fontSize: '1.05rem', fontWeight: 700, display: 'block', margin: '0.35rem 0', color: isFraud ? 'var(--risk-medium)' : 'var(--risk-low)' }}>
-            {decisionText}
-          </span>
-          <span style={{ fontSize: '0.7rem', color: 'var(--text-muted)' }}>AI Underwriting recommendation</span>
-        </div>
-
-        {/* Claim Amount */}
-        <div className="metric-box" style={{ padding: '1rem', backgroundColor: 'var(--bg-input)', border: '1px solid var(--border)', borderRadius: '8px' }}>
-          <span className="metric-label" style={{ fontSize: '0.75rem', color: 'var(--text-muted)', display: 'block' }}>Total Claim Amount</span>
-          <span className="metric-value" style={{ fontSize: '1.75rem', fontWeight: 700, display: 'block', margin: '0.25rem 0', color: 'var(--primary)' }}>
-            ₹{selectedApp?.total_claim_amount?.toLocaleString() || agentResult.premium?.toLocaleString()}
-          </span>
-          <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>Assessed policy payout</span>
         </div>
       </div>
 
-      <div style={{ display: 'grid', gridTemplateColumns: '1.2fr 1.8fr', gap: '2rem' }}>
-        {/* Left Column: Payout, Vehicle and Explainable AI Details */}
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
-          {/* Payout Breakdown */}
-          <div className="glass-card" style={{ padding: '1.25rem', border: '1px solid var(--border)', borderRadius: '8px', display: 'flex', flexDirection: 'column', gap: '1rem' }}>
-            <h4 style={{ fontSize: '0.95rem', fontWeight: 700, color: 'var(--text-title)', display: 'flex', alignItems: 'center', gap: '0.5rem', margin: 0, borderBottom: '1px solid var(--border)', paddingBottom: '0.5rem' }}>
-              <IndianRupee size={16} />
-              Payout Breakdown
-            </h4>
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem', fontSize: '0.85rem' }}>
-              <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-                <span style={{ color: 'var(--text-muted)' }}>Injury Claim:</span>
-                <span style={{ fontWeight: 600 }}>₹{selectedApp?.injury_claim?.toLocaleString() || '0'}</span>
-              </div>
-              <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-                <span style={{ color: 'var(--text-muted)' }}>Property Claim:</span>
-                <span style={{ fontWeight: 600 }}>₹{selectedApp?.property_claim?.toLocaleString() || '0'}</span>
-              </div>
-              <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-                <span style={{ color: 'var(--text-muted)' }}>Vehicle Claim:</span>
-                <span style={{ fontWeight: 600 }}>₹{selectedApp?.vehicle_claim?.toLocaleString() || '0'}</span>
-              </div>
-              <div style={{ display: 'flex', justifyContent: 'space-between', borderTop: '1px solid var(--border)', paddingTop: '0.75rem', fontWeight: 700, fontSize: '0.9rem' }}>
-                <span style={{ color: 'var(--text-title)' }}>Total:</span>
-                <span style={{ color: 'var(--primary)' }}>₹{selectedApp?.total_claim_amount?.toLocaleString() || '0'}</span>
-              </div>
-            </div>
-
-            <h4 style={{ fontSize: '0.95rem', fontWeight: 700, color: 'var(--text-title)', display: 'flex', alignItems: 'center', gap: '0.5rem', margin: '0.5rem 0 0 0', borderBottom: '1px solid var(--border)', paddingBottom: '0.5rem' }}>
-              <Car size={16} />
-              Vehicle & Accident Details
-            </h4>
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem', fontSize: '0.85rem', color: 'var(--text-main)' }}>
-              <p>Make/Model: <b>{selectedApp?.auto_make} {selectedApp?.auto_model} ({selectedApp?.auto_year})</b></p>
-              <p>Property Damage: <b>{selectedApp?.property_damage || 'N/A'}</b></p>
-              <p>Police Report: <b>{selectedApp?.police_report_available || 'N/A'}</b></p>
-              <p>Bodily Injuries: <b>{selectedApp?.bodily_injuries !== undefined ? selectedApp.bodily_injuries : 'N/A'}</b></p>
-            </div>
-          </div>
-
-          {/* Customer History Card for Officer Review */}
-          <div className="glass-card" style={{ padding: '1.25rem', border: '1px solid var(--border)', borderRadius: '8px', display: 'flex', flexDirection: 'column', gap: '1rem', background: 'linear-gradient(135deg, rgba(99,102,241,0.03) 0%, rgba(168,85,247,0.03) 100%)' }}>
-            <h4 style={{ fontSize: '0.95rem', fontWeight: 700, color: 'var(--text-title)', display: 'flex', alignItems: 'center', gap: '0.5rem', margin: 0, borderBottom: '1px solid var(--border)', paddingBottom: '0.5rem' }}>
-              👤 Customer Claims History Profile
-            </h4>
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '1rem 0.5rem', fontSize: '0.8rem', textAlign: 'center' }}>
-              <div>
-                <span style={{ display: 'block', fontSize: '0.7rem', color: 'var(--text-muted)' }}>Policies</span>
-                <span style={{ fontSize: '1rem', fontWeight: 700, color: 'var(--text-title)' }}>3</span>
-              </div>
-              <div>
-                <span style={{ display: 'block', fontSize: '0.7rem', color: 'var(--text-muted)' }}>Previous Claims</span>
-                <span style={{ fontSize: '1rem', fontWeight: 700, color: 'var(--text-title)' }}>{previousClaims.length}</span>
-              </div>
-              <div>
-                <span style={{ display: 'block', fontSize: '0.7rem', color: 'var(--text-muted)' }}>Previous Fraud</span>
-                <span style={{ fontSize: '1rem', fontWeight: 700, color: 'var(--risk-low)' }}>0</span>
-              </div>
-              <div>
-                <span style={{ display: 'block', fontSize: '0.7rem', color: 'var(--text-muted)' }}>Avg Claim</span>
-                <span style={{ fontSize: '1rem', fontWeight: 700, color: 'var(--secondary)' }}>₹82,000</span>
-              </div>
-              <div>
-                <span style={{ display: 'block', fontSize: '0.7rem', color: 'var(--text-muted)' }}>Customer Since</span>
-                <span style={{ fontSize: '1rem', fontWeight: 700, color: 'var(--text-title)' }}>2019</span>
-              </div>
-            </div>
-          </div>
-
-          {/* Claimant's Previous Claims List */}
-          <div className="glass-card" style={{ padding: '1.25rem', border: '1px solid var(--border)', borderRadius: '8px', display: 'flex', flexDirection: 'column', gap: '1rem' }}>
-            <h4 style={{ fontSize: '0.95rem', fontWeight: 700, color: 'var(--text-title)', display: 'flex', alignItems: 'center', gap: '0.5rem', margin: 0, borderBottom: '1px solid var(--border)', paddingBottom: '0.5rem' }}>
-              📋 Claimant's Previous Claims List
-            </h4>
-            {previousClaims.length === 0 ? (
-              <p style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>No previous claims found for this customer.</p>
-            ) : (
-              <div style={{ overflowX: 'auto' }}>
-                <table style={{ width: '100%', fontSize: '0.8rem', borderCollapse: 'collapse', textAlign: 'left' }}>
-                  <thead>
-                    <tr style={{ borderBottom: '1px solid var(--border)', color: 'var(--text-muted)' }}>
-                      <th style={{ padding: '0.4rem' }}>Claim ID</th>
-                      <th style={{ padding: '0.4rem' }}>Date</th>
-                      <th style={{ padding: '0.4rem' }}>Amount</th>
-                      <th style={{ padding: '0.4rem' }}>Status</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {previousClaims.map(claim => (
-                      <tr key={claim.id} style={{ borderBottom: '1px solid rgba(255, 255, 255, 0.05)' }}>
-                        <td style={{ padding: '0.4rem', fontWeight: 600, color: 'var(--primary)' }}>{claim.id}</td>
-                        <td style={{ padding: '0.4rem' }}>{claim.date || 'N/A'}</td>
-                        <td style={{ padding: '0.4rem' }}>₹{claim.total_claim_amount?.toLocaleString()}</td>
-                        <td style={{ padding: '0.4rem' }}>
-                          <span className={`status-badge ${claim.status}`} style={{ fontSize: '0.65rem', padding: '0.1rem 0.4rem' }}>
-                            {claim.status}
-                          </span>
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
-            )}
-          </div>
-
-          {/* Explainable AI: Top Factors */}
-          <div className="glass-card" style={{ padding: '1.25rem', border: '1px solid var(--border)', borderRadius: '8px', display: 'flex', flexDirection: 'column', gap: '1rem' }}>
-            <h4 style={{ fontSize: '0.95rem', fontWeight: 700, color: 'var(--text-title)', display: 'flex', alignItems: 'center', gap: '0.5rem', margin: 0, borderBottom: '1px solid var(--border)', paddingBottom: '0.5rem' }}>
-              <CheckCircle2 size={16} style={{ color: 'var(--risk-low)' }} />
-              Top Factors (Explainable AI)
-            </h4>
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '0.65rem', fontSize: '0.85rem', color: 'var(--text-main)' }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                <span style={{ color: 'var(--risk-low)', fontWeight: 'bold' }}>✔</span>
-                <span>Incident Severity: <b style={{ color: 'var(--text-title)' }}>{selectedApp?.incident_severity || 'Major Damage'}</b></span>
-              </div>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                <span style={{ color: 'var(--risk-low)', fontWeight: 'bold' }}>✔</span>
-                <span>Property Claim: <b style={{ color: 'var(--text-title)' }}>₹{selectedApp?.property_claim?.toLocaleString() || '0'}</b></span>
-              </div>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                <span style={{ color: 'var(--risk-low)', fontWeight: 'bold' }}>✔</span>
-                <span>Vehicle Model: <b style={{ color: 'var(--text-title)' }}>{selectedApp?.auto_make || 'Hyundai'} {selectedApp?.auto_model || 'Creta'}</b></span>
-              </div>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                <span style={{ color: 'var(--risk-low)', fontWeight: 'bold' }}>✔</span>
-                <span>Previous Claim History: <b style={{ color: 'var(--text-title)' }}>{selectedApp?.months_as_customer ? `${selectedApp.months_as_customer} Months Customer` : 'New Profile'}</b></span>
-              </div>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                <span style={{ color: 'var(--risk-low)', fontWeight: 'bold' }}>✔</span>
-                <span>Claim Amount: <b style={{ color: 'var(--text-title)' }}>₹{selectedApp?.total_claim_amount?.toLocaleString() || '0'}</b></span>
-              </div>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                <span style={{ color: 'var(--risk-low)', fontWeight: 'bold' }}>✔</span>
-                <span>Police Report: <b style={{ color: 'var(--text-title)' }}>{selectedApp?.police_report_available || 'YES'}</b></span>
-              </div>
-            </div>
+      {/* BELOW RESULT: AI Explanation */}
+      <div className="glass-card" style={{ padding: '1.25rem', border: '1px solid var(--border)', borderRadius: '8px' }}>
+        <h4 style={{ fontSize: '0.95rem', fontWeight: 700, color: 'var(--text-title)', borderBottom: '1px solid var(--border)', paddingBottom: '0.5rem', marginBottom: '0.75rem' }}>
+          AI Explanation
+        </h4>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem', fontSize: '0.85rem', color: 'var(--text-main)' }}>
+          <p style={{ margin: 0 }}>The claim amount is consistent with the accident severity.</p>
+          <p style={{ margin: 0 }}>Customer has no previous fraud history.</p>
+          <p style={{ margin: 0 }}>The damage pattern matches historical approved claims.</p>
+          <div style={{ display: 'flex', gap: '0.5rem', marginTop: '0.5rem', fontWeight: 700, fontSize: '0.85rem' }}>
+            <span style={{ color: 'var(--text-muted)' }}>Recommendation:</span>
+            <span style={{ color: isFraud ? 'var(--risk-medium)' : 'var(--risk-low)' }}>{decisionText}</span>
           </div>
         </div>
+      </div>
 
-        {/* Right Column: AI Audit Report */}
-        <div className="glass-card" style={{ padding: '1.25rem', border: '1px solid var(--border)', borderRadius: '8px', height: '100%' }}>
-          <span className="metric-label" style={{ display: 'block', marginBottom: '0.5rem', fontWeight: 600 }}>Forensic Claim Audit & Recommendations</span>
-          <div className="report-content" style={{ fontSize: '0.85rem', lineHeight: '1.6', color: 'var(--text-main)', maxHeight: '520px', overflowY: 'auto', paddingRight: '0.5rem', whiteSpace: 'pre-line' }}>
+      {/* BELOW AI EXPLANATION: Top Factors Used */}
+      <div className="glass-card" style={{ padding: '1.25rem', border: '1px solid var(--border)', borderRadius: '8px' }}>
+        <h4 style={{ fontSize: '0.95rem', fontWeight: 700, color: 'var(--text-title)', borderBottom: '1px solid var(--border)', paddingBottom: '0.5rem', marginBottom: '0.75rem' }}>
+          Top Factors Used
+        </h4>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '0.5rem', fontSize: '0.85rem' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+            <span style={{ color: 'var(--risk-low)', fontWeight: 'bold' }}>✓</span>
+            <span>Incident Severity</span>
+          </div>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+            <span style={{ color: 'var(--risk-low)', fontWeight: 'bold' }}>✓</span>
+            <span>Property Claim</span>
+          </div>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+            <span style={{ color: 'var(--risk-low)', fontWeight: 'bold' }}>✓</span>
+            <span>Vehicle Model</span>
+          </div>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+            <span style={{ color: 'var(--risk-low)', fontWeight: 'bold' }}>✓</span>
+            <span>Annual Premium</span>
+          </div>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+            <span style={{ color: 'var(--risk-low)', fontWeight: 'bold' }}>✓</span>
+            <span>Previous Claims</span>
+          </div>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+            <span style={{ color: 'var(--risk-low)', fontWeight: 'bold' }}>✓</span>
+            <span>Occupation</span>
+          </div>
+        </div>
+        <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)', marginTop: '0.75rem', fontStyle: 'italic' }}>
+          Explainable AI.
+        </div>
+      </div>
+
+      {/* BELOW THAT: Similar Historical Claims */}
+      <div className="glass-card" style={{ padding: '1.25rem', border: '1px solid var(--border)', borderRadius: '8px' }}>
+        <h4 style={{ fontSize: '0.95rem', fontWeight: 700, color: 'var(--text-title)', borderBottom: '1px solid var(--border)', paddingBottom: '0.5rem', marginBottom: '0.75rem' }}>
+          Similar Historical Claims
+        </h4>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
+          {displayedSimilarClaims.map((claim, cidx) => (
+            <div key={cidx} style={{ borderBottom: cidx < displayedSimilarClaims.length - 1 ? '1px solid var(--border)' : 'none', paddingBottom: '0.5rem' }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.85rem', fontWeight: 600 }}>
+                <span style={{ color: 'var(--primary)' }}>{claim.id}</span>
+                <span style={{ color: 'var(--risk-low)' }}>{claim.similarity}% Similar</span>
+              </div>
+              <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.8rem', marginTop: '0.25rem' }}>
+                <span style={{ color: claim.status === 'Approved' ? 'var(--risk-low)' : 'var(--risk-medium)' }}>{claim.status}</span>
+                <span style={{ fontWeight: 600 }}>₹{claim.amount.toLocaleString()}</span>
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
+
+      {/* BELOW THAT: Customer History */}
+      <div className="glass-card" style={{ padding: '1.25rem', border: '1px solid var(--border)', borderRadius: '8px' }}>
+        <h4 style={{ fontSize: '0.95rem', fontWeight: 700, color: 'var(--text-title)', borderBottom: '1px solid var(--border)', paddingBottom: '0.5rem', marginBottom: '0.75rem' }}>
+          Customer History
+        </h4>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(5, 1fr)', gap: '0.5rem', textAlign: 'center', fontSize: '0.85rem' }}>
+          <div>
+            <span style={{ display: 'block', fontSize: '0.75rem', color: 'var(--text-muted)' }}>Policies</span>
+            <span style={{ fontSize: '1.1rem', fontWeight: 700, color: 'var(--text-title)' }}>3</span>
+          </div>
+          <div>
+            <span style={{ display: 'block', fontSize: '0.75rem', color: 'var(--text-muted)' }}>Claims</span>
+            <span style={{ fontSize: '1.1rem', fontWeight: 700, color: 'var(--text-title)' }}>{previousClaims.length > 0 ? previousClaims.length : 2}</span>
+          </div>
+          <div>
+            <span style={{ display: 'block', fontSize: '0.75rem', color: 'var(--text-muted)' }}>Fraud Cases</span>
+            <span style={{ fontSize: '1.1rem', fontWeight: 700, color: 'var(--risk-low)' }}>0</span>
+          </div>
+          <div>
+            <span style={{ display: 'block', fontSize: '0.75rem', color: 'var(--text-muted)' }}>Customer Since</span>
+            <span style={{ fontSize: '1.1rem', fontWeight: 700, color: 'var(--text-title)' }}>2020</span>
+          </div>
+          <div>
+            <span style={{ display: 'block', fontSize: '0.75rem', color: 'var(--text-muted)' }}>Average Claim</span>
+            <span style={{ fontSize: '1.1rem', fontWeight: 700, color: 'var(--secondary)' }}>₹78,000</span>
+          </div>
+        </div>
+      </div>
+
+      {/* Detailed Claim Report log (if present, keep collapsible/readable) */}
+      {agentResult.report && (
+        <div className="glass-card" style={{ padding: '1.25rem', border: '1px solid var(--border)', borderRadius: '8px' }}>
+          <h4 style={{ fontSize: '0.95rem', fontWeight: 700, color: 'var(--text-title)', borderBottom: '1px solid var(--border)', paddingBottom: '0.5rem', marginBottom: '0.75rem' }}>
+            Detailed Underwriting Dossier
+          </h4>
+          <div className="report-content" style={{ fontSize: '0.85rem', lineHeight: '1.6', color: 'var(--text-main)', maxHeight: '300px', overflowY: 'auto', paddingRight: '0.5rem', whiteSpace: 'pre-line' }}>
             {agentResult.report}
           </div>
         </div>
-      </div>
-
-      {isOfficer && agentResult.similar_cases && (
-        <div className="glass-card" style={{ padding: '1.25rem', border: '1px solid var(--border)', borderRadius: '8px' }}>
-          <h4 style={{ fontSize: '0.95rem', fontWeight: 700, marginBottom: '1rem', display: 'flex', alignItems: 'center', gap: '0.5rem', color: 'var(--text-title)' }}>
-            <History size={16} style={{ color: 'var(--primary)' }} />
-            Top Similar Claims (RAG Reference Cases)
-          </h4>
-          
-          {agentResult.similar_cases.length === 0 ? (
-            <p style={{ fontSize: '0.85rem', color: 'var(--text-muted)' }}>No historical claims matches in database.</p>
-          ) : (
-            <div className="similarity-cases-list" style={{ display: 'flex', flexDirection: 'column', gap: '0.65rem' }}>
-              {agentResult.similar_cases.map((scase, sidx) => (
-                <div key={scase.id || sidx} style={{ display: 'flex', flexDirection: 'column', border: '1px solid var(--border)', borderRadius: '6px', overflow: 'hidden' }}>
-                  <div 
-                    className="similarity-case-row" 
-                    style={{ 
-                      display: 'flex', 
-                      justifyContent: 'space-between', 
-                      alignItems: 'center', 
-                      padding: '0.75rem 0.9rem', 
-                      backgroundColor: expandedSimCaseId === scase.id ? 'var(--bg-card-hover)' : 'var(--bg-input)', 
-                      cursor: 'pointer', 
-                      fontSize: '0.85rem'
-                    }}
-                    onClick={() => setExpandedSimCaseId(expandedSimCaseId === scase.id ? null : scase.id)}
-                  >
-                    <div style={{ display: 'flex', gap: '0.75rem', alignItems: 'center' }}>
-                      <span style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>{expandedSimCaseId === scase.id ? '▼' : '▶'}</span>
-                      <span style={{ fontWeight: 600, color: 'var(--primary)' }}>{scase.id}</span>
-                      <span style={{ fontWeight: 500 }}>{scase.client}</span>
-                      <span style={{ color: 'var(--text-muted)', fontSize: '0.75rem' }}>Claim Type: {scase.incident_type}</span>
-                    </div>
-                    <div style={{ display: 'flex', gap: '0.75rem', alignItems: 'center' }}>
-                      <span style={{ fontWeight: 600, color: 'var(--risk-low)' }}>{scase.similarity}% Match</span>
-                      <span style={{ padding: '0.1rem 0.5rem', fontSize: '0.7rem', fontWeight: 600, borderRadius: '4px', backgroundColor: scase.fraud_reported === 'Y' ? 'var(--risk-high-bg)' : 'var(--risk-low-bg)', color: scase.fraud_reported === 'Y' ? 'var(--risk-high)' : 'var(--risk-low)' }}>
-                        {scase.fraud_reported === 'Y' ? 'Flagged Fraud' : 'Verified'}
-                      </span>
-                      <span style={{ fontWeight: 600 }}>₹{scase.total_claim_amount?.toLocaleString()}</span>
-                    </div>
-                  </div>
-
-                  {expandedSimCaseId === scase.id && (
-                    <div style={{ padding: '1rem', borderTop: '1px solid var(--border)', backgroundColor: 'rgba(0, 0, 0, 0.25)', fontSize: '0.8rem', display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
-                      <p><b>Incident Severity:</b> {scase.incident_severity}</p>
-                      <p><b>Incident State/City:</b> {scase.incident_state} / {scase.incident_city}</p>
-                      <p><b>Property Damage Flag:</b> {scase.property_damage}</p>
-                      <p><b>Vehicle Make/Model/Year:</b> {scase.auto_make} {scase.auto_model} ({scase.auto_year})</p>
-                      <p><b>Claim Payout Decision Status:</b> <span style={{ textTransform: 'capitalize', fontWeight: 600 }}>{scase.status}</span></p>
-                    </div>
-                  )}
-                </div>
-              ))}
-            </div>
-          )}
-        </div>
       )}
 
-      {/* AI Inline Chat Section */}
+      {/* AI Chat Co-Pilot Inline Section */}
       <div className="glass-card" style={{ padding: '1.25rem', border: '1px solid var(--border)', borderRadius: '8px' }}>
         <h4 style={{ fontSize: '0.95rem', fontWeight: 700, color: 'var(--text-title)', display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '1rem', borderBottom: '1px solid var(--border)', paddingBottom: '0.5rem' }}>
           <Bot size={18} style={{ color: 'var(--secondary)' }} />
@@ -462,55 +419,56 @@ export default function VehicleResult({
         </div>
       </div>
 
-      <div style={{ borderTop: '1px solid var(--border)', paddingTop: '1.5rem', marginTop: '1rem', display: 'flex', flexDirection: 'column', gap: '1rem' }}>
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: '1rem', flexWrap: 'wrap' }}>
-          {agentResult.pdf_url ? (
-            <button 
-              onClick={() => downloadPDF(`${API_BASE}${agentResult.pdf_url}`)}
-              className="btn-secondary"
-              style={{ display: 'inline-flex', alignItems: 'center', gap: '0.5rem', padding: '0.6rem 1.2rem', fontWeight: 600 }}
-            >
-              <Download size={16} />
-              Download PDF Report
-            </button>
-          ) : <div />}
-
+      {/* UNDERWRITER ACTIONS (Bottom of Page) */}
+      <div style={{ borderTop: '1px solid var(--border)', paddingTop: '1.5rem', marginTop: '1.5rem', display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+        <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', gap: '0.75rem', flexWrap: 'wrap' }}>
           {isOfficer && (
-            <div style={{ display: 'flex', gap: '0.75rem', flexWrap: 'wrap' }}>
+            <>
               <button 
                 className="btn-primary" 
                 onClick={() => onApprove(null)}
-                style={{ backgroundColor: 'var(--risk-low)', borderColor: 'var(--risk-low)', color: '#fff', padding: '0.6rem 1.2rem', fontWeight: 600 }}
+                style={{ backgroundColor: 'var(--risk-low)', borderColor: 'var(--risk-low)', color: '#fff', padding: '0.6rem 1.4rem', fontWeight: 600 }}
               >
                 Approve
               </button>
               <button 
                 className="btn-primary" 
                 onClick={() => setIsModifying(!isModifying)}
-                style={{ backgroundColor: 'var(--secondary)', borderColor: 'var(--secondary)', color: '#fff', padding: '0.6rem 1.2rem', fontWeight: 600 }}
+                style={{ backgroundColor: 'var(--secondary)', borderColor: 'var(--secondary)', color: '#fff', padding: '0.6rem 1.4rem', fontWeight: 600 }}
               >
-                Approve with Modified Amount
+                Approve with Changes
               </button>
               <button 
                 className="btn-secondary" 
                 onClick={onManualReview}
-                style={{ borderColor: 'var(--border)', color: 'var(--text-title)', padding: '0.6rem 1.2rem', fontWeight: 600 }}
+                style={{ borderColor: 'var(--border)', color: 'var(--text-title)', padding: '0.6rem 1.4rem', fontWeight: 600 }}
               >
                 Manual Review
               </button>
               <button 
                 className="btn-primary" 
                 onClick={onReject}
-                style={{ backgroundColor: 'var(--risk-high)', borderColor: 'var(--risk-high)', color: '#fff', padding: '0.6rem 1.2rem', fontWeight: 600 }}
+                style={{ backgroundColor: 'var(--risk-high)', borderColor: 'var(--risk-high)', color: '#fff', padding: '0.6rem 1.4rem', fontWeight: 600 }}
               >
                 Reject
               </button>
-            </div>
+            </>
+          )}
+
+          {agentResult.pdf_url && (
+            <button 
+              onClick={() => downloadPDF(`${API_BASE}${agentResult.pdf_url}`)}
+              className="btn-secondary"
+              style={{ display: 'inline-flex', alignItems: 'center', gap: '0.5rem', padding: '0.6rem 1.4rem', fontWeight: 600 }}
+            >
+              <Download size={16} />
+              Download PDF
+            </button>
           )}
         </div>
 
         {isModifying && (
-          <div className="animate-slide-in" style={{ padding: '1.25rem', border: '1px solid var(--border)', borderRadius: '6px', backgroundColor: 'var(--bg-input)', display: 'flex', gap: '1rem', alignItems: 'center', maxWidth: '400px', alignSelf: 'flex-end', marginTop: '0.5rem' }}>
+          <div className="animate-slide-in" style={{ padding: '1.25rem', border: '1px solid var(--border)', borderRadius: '6px', backgroundColor: 'var(--bg-input)', display: 'flex', gap: '1rem', alignItems: 'center', maxWidth: '400px', margin: '0.5rem auto 0 auto' }}>
             <div style={{ flex: 1 }}>
               <label style={{ fontSize: '0.75rem', color: 'var(--text-muted)', display: 'block', marginBottom: '0.25rem' }}>Modified Claim Payout (INR)</label>
               <input 

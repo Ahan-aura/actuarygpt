@@ -446,34 +446,45 @@ export default function VehicleInsurance({
                 </label>
               </div>
 
-              {scanStatus && (
+              {/* OCR Agent Panel during / after scan */}
+              {(isScanning || parsedDocInfo) && (
                 <div 
-                  className="animate-fade-in" 
+                  className="glass-card animate-fade-in" 
                   style={{ 
-                    fontSize: '0.85rem', 
-                    fontWeight: 600, 
-                    color: scanStatus.includes("failed") ? 'var(--risk-high)' : 'var(--primary)',
-                    marginTop: '0.25rem'
+                    marginTop: '1rem', 
+                    padding: '1.25rem', 
+                    width: '100%', 
+                    border: '1px solid var(--border)', 
+                    backgroundColor: 'var(--bg-input)',
+                    textAlign: 'left' 
                   }}
                 >
-                  {scanStatus}
-                </div>
-              )}
-
-              {/* Policy parsed metadata card */}
-              {parsedDocInfo && (
-                <div className="animate-fade-in" style={{ marginTop: '1rem', padding: '1rem', backgroundColor: 'rgba(99, 102, 241, 0.05)', border: '1px solid rgba(99, 102, 241, 0.2)', borderRadius: '6px' }}>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', color: 'var(--risk-low)', fontWeight: 700, fontSize: '0.9rem', marginBottom: '0.75rem' }}>
-                    <CheckCircle2 size={16} />
-                    Policy Successfully Parsed
+                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '0.75rem', borderBottom: '1px solid var(--border)', paddingBottom: '0.5rem' }}>
+                    <span style={{ fontWeight: 700, fontSize: '0.9rem', color: 'var(--primary)', display: 'flex', alignItems: 'center', gap: '0.25rem' }}>🤖 OCR Agent</span>
+                    <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>Status: <b style={{ color: isScanning ? 'var(--secondary)' : 'var(--risk-low)' }}>{isScanning ? "Reading document..." : "OCR Completed Successfully"}</b></span>
                   </div>
-                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.5rem 1rem', fontSize: '0.8rem', color: 'var(--text-main)' }}>
-                    <div>Owner Name: <b style={{ color: 'var(--text-title)' }}>{parsedDocInfo.ownerName}</b></div>
-                    <div>Vehicle Number: <b style={{ color: 'var(--text-title)' }}>{parsedDocInfo.vehicleNumber}</b></div>
-                    <div>Policy Number: <b style={{ color: 'var(--text-title)' }}>{parsedDocInfo.policyNumber}</b></div>
-                    <div>Coverage: <b style={{ color: 'var(--text-title)' }}>{parsedDocInfo.coverage}</b></div>
-                    <div>Expiry Date: <b style={{ color: 'var(--text-title)' }}>{parsedDocInfo.expiryDate}</b></div>
-                    <div>Claim Limit: <b style={{ color: 'var(--text-title)' }}>{parsedDocInfo.claimLimit}</b></div>
+
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '0.4rem', fontSize: '0.8rem', color: 'var(--text-main)' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', color: isScanning ? 'var(--text-muted)' : 'var(--risk-low)' }}>
+                      <span style={{ fontWeight: 'bold' }}>✓</span>
+                      <span style={{ color: 'var(--text-main)' }}>Policy Number Extracted: <b style={{ color: 'var(--text-title)' }}>{parsedDocInfo?.policyNumber || (isScanning ? "Extracting..." : "N/A")}</b></span>
+                    </div>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', color: isScanning ? 'var(--text-muted)' : 'var(--risk-low)' }}>
+                      <span style={{ fontWeight: 'bold' }}>✓</span>
+                      <span style={{ color: 'var(--text-main)' }}>Customer Name Extracted: <b style={{ color: 'var(--text-title)' }}>{parsedDocInfo?.ownerName || (isScanning ? "Extracting..." : "N/A")}</b></span>
+                    </div>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', color: isScanning ? 'var(--text-muted)' : 'var(--risk-low)' }}>
+                      <span style={{ fontWeight: 'bold' }}>✓</span>
+                      <span style={{ color: 'var(--text-main)' }}>Vehicle Number Extracted: <b style={{ color: 'var(--text-title)' }}>{parsedDocInfo?.vehicleNumber || (isScanning ? "Extracting..." : "N/A")}</b></span>
+                    </div>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', color: isScanning ? 'var(--text-muted)' : 'var(--risk-low)' }}>
+                      <span style={{ fontWeight: 'bold' }}>✓</span>
+                      <span style={{ color: 'var(--text-main)' }}>Coverage Amount Extracted: <b style={{ color: 'var(--text-title)' }}>{parsedDocInfo?.coverage || (isScanning ? "Extracting..." : "N/A")}</b></span>
+                    </div>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', color: isScanning ? 'var(--text-muted)' : 'var(--risk-low)' }}>
+                      <span style={{ fontWeight: 'bold' }}>✓</span>
+                      <span style={{ color: 'var(--text-main)' }}>Expiry Date Extracted: <b style={{ color: 'var(--text-title)' }}>{parsedDocInfo?.expiryDate || (isScanning ? "Extracting..." : "N/A")}</b></span>
+                    </div>
                   </div>
                 </div>
               )}
@@ -840,7 +851,7 @@ export default function VehicleInsurance({
 
             <div className="form-group">
               <label>Accident Description</label>
-              <textarea className="form-input" rows={3} style={{ resize: 'none' }} value={accidentDesc} onChange={(e) => setAccidentDesc(e.target.value)} required />
+              <textarea className="form-input" rows={3} style={{ resize: 'none' }} value={accidentDesc} onChange={(e) => setAccidentDesc(e.target.value)} required></textarea>
             </div>
 
             <div style={{ padding: '0.5rem 0', fontWeight: 600, color: 'var(--primary)', fontSize: '0.9rem', borderBottom: '1px dashed var(--border)' }}>Attachments (Forensics)</div>
@@ -881,9 +892,42 @@ export default function VehicleInsurance({
           </form>
         )}
       </div>
+      <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+        {/* Supported Documents Checklist Card */}
+        <div className="glass-card" style={{ padding: '1.25rem', border: '1px solid var(--border)', borderRadius: '8px', background: 'linear-gradient(135deg, rgba(99,102,241,0.02) 0%, rgba(168,85,247,0.02) 100%)' }}>
+          <h4 style={{ fontSize: '0.95rem', fontWeight: 700, color: 'var(--text-title)', display: 'flex', alignItems: 'center', gap: '0.5rem', margin: 0, borderBottom: '1px solid var(--border)', paddingBottom: '0.5rem', marginBottom: '0.75rem' }}>
+            Supported Documents
+          </h4>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem', fontSize: '0.85rem', color: 'var(--text-main)' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', color: 'var(--risk-low)' }}>
+              <span style={{ fontWeight: 'bold' }}>✓</span>
+              <span style={{ color: 'var(--text-main)' }}>Insurance Policy</span>
+            </div>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', color: 'var(--risk-low)' }}>
+              <span style={{ fontWeight: 'bold' }}>✓</span>
+              <span style={{ color: 'var(--text-main)' }}>Claim Form</span>
+            </div>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', color: 'var(--risk-low)' }}>
+              <span style={{ fontWeight: 'bold' }}>✓</span>
+              <span style={{ color: 'var(--text-main)' }}>RC Book</span>
+            </div>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', color: 'var(--risk-low)' }}>
+              <span style={{ fontWeight: 'bold' }}>✓</span>
+              <span style={{ color: 'var(--text-main)' }}>Driving License</span>
+            </div>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', color: 'var(--risk-low)' }}>
+              <span style={{ fontWeight: 'bold' }}>✓</span>
+              <span style={{ color: 'var(--text-main)' }}>FIR Copy</span>
+            </div>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', color: 'var(--risk-low)' }}>
+              <span style={{ fontWeight: 'bold' }}>✓</span>
+              <span style={{ color: 'var(--text-main)' }}>Vehicle Images</span>
+            </div>
+          </div>
+        </div>
 
-      {/* Claims submissions history ledger */}
-      <div className="glass-card">
+        {/* Claims submissions history ledger */}
+        <div className="glass-card">
         <h3 className="card-title" style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
           <History size={18} style={{ color: 'var(--primary)' }} />
           Claim History List
@@ -916,6 +960,7 @@ export default function VehicleInsurance({
             ))}
           </div>
         )}
+      </div>
       </div>
     </div>
   );

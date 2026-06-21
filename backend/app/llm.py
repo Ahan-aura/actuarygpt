@@ -84,15 +84,24 @@ Keep the tone professional, concise, and structured. Use Markdown formatting.
     response = model.generate_content(prompt)
     return response.text
 
-def chat_with_agent(message: str, history: list, context: dict = None):
-    system_instruction = (
-        "You are an expert actuarial AI assistant for an Indian insurance portal. All policies, claims, and values "
-        "are strictly in Indian Rupees (INR / Rs.) and based in India. You help insurance underwriters analyze policy applications, "
-        "evaluate risk, check historical similarities, and make underwriting decisions. Be professional, concise, and helpful."
-    )
+def chat_with_agent(message: str, history: list, context: dict = None, role: str = "customer"):
+    if role == "officer":
+        system_instruction = (
+            "You are an expert actuarial AI assistant for an Indian insurance portal. All policies, claims, and values "
+            "are strictly in Indian Rupees (INR / Rs.) and based in India. You help insurance underwriters analyze policy applications, "
+            "evaluate risk, check historical similarities, and make underwriting decisions. Be professional, concise, and helpful."
+        )
+    else:
+        system_instruction = (
+            "You are a helpful customer support AI assistant for policyholders on an Indian insurance portal. "
+            "All policies, claims, and values are strictly in Indian Rupees (INR / Rs.) and based in India. "
+            "Help the customer with generic questions regarding insurance terms, claim processes, support information, "
+            "or document submission checklists. You must NEVER reveal, discuss, or estimate internal underwriting risk calculations, "
+            "risk classifications, fraud probabilities, internal actuarial risk scores, similar historical claims, or private underwriting dossiers."
+        )
     
     prompt = f"{system_instruction}\n\n"
-    if context:
+    if context and role == "officer":
         prompt += f"Context of the application currently under review:\n{context}\n\n"
         
     prompt += "Conversation history:\n"
