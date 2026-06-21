@@ -145,7 +145,7 @@ export default function LifeResult({
         {isModifying && (
           <div className="animate-slide-in" style={{ padding: '1.25rem', border: '1px solid var(--border)', borderRadius: '6px', backgroundColor: 'var(--bg-input)', display: 'flex', gap: '1rem', alignItems: 'center', maxWidth: '400px', alignSelf: 'flex-end', marginTop: '0.5rem' }}>
             <div style={{ flex: 1 }}>
-              <label style={{ fontSize: '0.75rem', color: 'var(--text-muted)', display: 'block', marginBottom: '0.25rem' }}>Modified Annual Premium (INR/USD)</label>
+              <label style={{ fontSize: '0.75rem', color: 'var(--text-muted)', display: 'block', marginBottom: '0.25rem' }}>Modified Annual Premium (INR)</label>
               <input 
                 type="number" 
                 className="form-input" 

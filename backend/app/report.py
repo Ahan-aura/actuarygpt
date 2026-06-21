@@ -77,9 +77,9 @@ def generate_pdf_report(customer: dict, risk_class: int, premium: float, report_
         [Paragraph("BMI", bold_label_style), Paragraph(str(customer.get('bmi', 'N/A')), body_style),
          Paragraph("Product Info 2", bold_label_style), Paragraph(str(customer.get('product_info_2', 'N/A')), body_style)],
         [Paragraph("Occupation", bold_label_style), Paragraph(str(customer.get('occupation', 'N/A')), body_style),
-         Paragraph("Annual Income", bold_label_style), Paragraph(f"${customer.get('income', 0.0):,.2f}", body_style)],
+         Paragraph("Annual Income", bold_label_style), Paragraph(f"Rs. {customer.get('income', 0.0):,.2f}", body_style)],
         [Paragraph("Insurance Type", bold_label_style), Paragraph(str(customer.get('insurance_type', 'N/A')).capitalize(), body_style),
-         Paragraph("Coverage Amount", bold_label_style), Paragraph(f"${customer.get('coverage_amount', 0.0):,.2f}", body_style)]
+         Paragraph("Coverage Amount", bold_label_style), Paragraph(f"Rs. {customer.get('coverage_amount', 0.0):,.2f}", body_style)]
     ]
     
     t_profile = Table(profile_data, colWidths=[110, 140, 110, 140])
@@ -116,7 +116,7 @@ def generate_pdf_report(customer: dict, risk_class: int, premium: float, report_
     analysis_data = [
         [Paragraph("Predicted Risk Class", bold_label_style), Paragraph(f"Class {risk_class} of 8", body_style)],
         [Paragraph("Risk Category", bold_label_style), Paragraph(risk_category, risk_style)],
-        [Paragraph("Recommended Annual Premium", bold_label_style), Paragraph(f"${premium:,.2f}", risk_style)]
+        [Paragraph("Recommended Annual Premium", bold_label_style), Paragraph(f"Rs. {premium:,.2f}", risk_style)]
     ]
     t_analysis = Table(analysis_data, colWidths=[180, 320])
     t_analysis.setStyle(TableStyle([
@@ -139,7 +139,7 @@ def generate_pdf_report(customer: dict, risk_class: int, premium: float, report_
     story.append(Paragraph("4. Sign-off & Recommendation", h2_style))
     rec_text = (
         "Based on the predictive model output and AI underwriting guidelines, the premium recommendation is "
-        f"formally calculated at <b>${premium:,.2f}</b> per annum. "
+        f"formally calculated at <b>Rs. {premium:,.2f}</b> per annum. "
         "The underwriting team should perform secondary manual verification if the risk class exceeds Class 5."
     )
     story.append(Paragraph(rec_text, body_style))
@@ -212,8 +212,8 @@ def generate_vehicle_pdf_report(customer: dict, fraud_reported: str, confidence:
          Paragraph("Incident Severity", bold_label_style), Paragraph(str(customer.get('incident_severity', 'N/A')), body_style)],
         [Paragraph("Collision Type", bold_label_style), Paragraph(str(customer.get('collision_type', 'N/A')), body_style),
          Paragraph("Incident Date / Hour", bold_label_style), Paragraph(f"{customer.get('incident_date', 'N/A')} / {customer.get('incident_hour_of_the_day', 'N/A')}:00", body_style)],
-        [Paragraph("Total Claim Amount", bold_label_style), Paragraph(f"${customer.get('total_claim_amount', 0.0):,.2f}", body_style),
-         Paragraph("Vehicle Claim", bold_label_style), Paragraph(f"${customer.get('vehicle_claim', 0.0):,.2f}", body_style)],
+        [Paragraph("Total Claim Amount", bold_label_style), Paragraph(f"Rs. {customer.get('total_claim_amount', 0.0):,.2f}", body_style),
+         Paragraph("Vehicle Claim", bold_label_style), Paragraph(f"Rs. {customer.get('vehicle_claim', 0.0):,.2f}", body_style)],
         [Paragraph("Auto Make & Model", bold_label_style), Paragraph(f"{customer.get('auto_make', 'N/A')} {customer.get('auto_model', 'N/A')} ({customer.get('auto_year', 'N/A')})", body_style),
          Paragraph("Witnesses / Police Report", bold_label_style), Paragraph(f"{customer.get('witnesses', 0)} / {customer.get('police_report_available', 'N/A')}", body_style)]
     ]

@@ -49,7 +49,7 @@ def evaluate_life_application(customer):
         similar_cases_str = ""
         if similar_cases:
             similar_cases_str = "\n".join([
-                f"- Application {c['id']} ({c['insurance_type']}): Client: {c['client']}, Similarity: {c['similarity']}%, Risk Class: {c['risk_class']}, Premium: ${c['premium']:.2f}, Status: {c['status']}"
+                f"- Application {c['id']} ({c['insurance_type']}): Client: {c['client']}, Similarity: {c['similarity']}%, Risk Class: {c['risk_class']}, Premium: Rs. {c['premium']:.2f}, Status: {c['status']}"
                 for c in similar_cases
             ])
         else:
@@ -61,12 +61,12 @@ def evaluate_life_application(customer):
 *   **Age:** {customer.get('age', 'N/A')}
 *   **BMI:** {customer.get('bmi', 'N/A')} (Height: {customer.get('height', 'N/A')}cm, Weight: {customer.get('weight', 'N/A')}kg)
 *   **Occupation:** {customer.get('occupation', 'N/A')}
-*   **Annual Income:** ${customer.get('income', 0.0):,.2f}
+*   **Annual Income:** Rs. {customer.get('income', 0.0):,.2f}
 *   **Smoker:** {"Yes" if customer.get('smoker') else "No"}
 *   **Previous Claims:** {customer.get('previous_claims', 0)}
 *   **Family History:** {"High Risk" if customer.get('family_history') else "Standard"}
 *   **Insurance Type:** {customer.get('insurance_type', 'N/A').capitalize()}
-*   **Coverage Amount:** ${customer.get('coverage_amount', 0.0):,.2f}
+*   **Coverage Amount:** Rs. {customer.get('coverage_amount', 0.0):,.2f}
 
 ---
 
@@ -89,7 +89,7 @@ Top similar historical cases found:
 ---
 
 ### 4. Premium Recommendation
-*   **Calculated Annual Premium:** ${premium:,.2f}
+*   **Calculated Annual Premium:** Rs. {premium:,.2f}
 *   This premium pricing is set according to standard underwriting tables for Risk Class {risk}.
 
 ---
@@ -166,9 +166,9 @@ def evaluate_vehicle_claim(customer):
 *   **Months as Customer:** {customer.get('months_as_customer', 'N/A')}
 *   **Age:** {customer.get('age', 'N/A')}
 *   **Policy State / CSL:** {customer.get('policy_state', 'N/A')} / {customer.get('policy_csl', 'N/A')}
-*   **Annual Premium:** ${premium:,.2f}
+*   **Annual Premium:** Rs. {premium:,.2f}
 *   **Incident Type / Severity:** {customer.get('incident_type', 'N/A')} / {customer.get('incident_severity', 'N/A')}
-*   **Total Claim Amount:** ${customer.get('total_claim_amount', 0.0):,.2f} (Vehicle: ${customer.get('vehicle_claim', 0.0):,.2f})
+*   **Total Claim Amount:** Rs. {customer.get('total_claim_amount', 0.0):,.2f} (Vehicle: Rs. {customer.get('vehicle_claim', 0.0):,.2f})
 *   **Auto Model:** {customer.get('auto_make', 'N/A')} {customer.get('auto_model', 'N/A')} ({customer.get('auto_year', 'N/A')})
 
 ---

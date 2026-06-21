@@ -271,7 +271,7 @@ export default function VehicleInsurance({
       client: ownerName || formData.client || (user?.name || ""),
       months_as_customer: parseInt(formData.months_as_customer) || 24,
       age: parseInt(formData.age) || 35,
-      policy_state: formData.policy_state || "NY",
+      policy_state: formData.policy_state || "MH",
       policy_csl: formData.policy_csl || "250/500",
       policy_deductable: parseFloat(formData.policy_deductable) || 500.0,
       policy_annual_premium: parseFloat(formData.policy_annual_premium) || 1000.0,
@@ -287,8 +287,8 @@ export default function VehicleInsurance({
       collision_type: formData.collision_type || "Side Collision",
       incident_severity: formData.incident_severity || "Minor Damage",
       authorities_contacted: formData.authorities_contacted || "Police",
-      incident_state: formData.incident_state || "NY",
-      incident_city: formData.incident_city || "Springfield",
+      incident_state: formData.incident_state || "MH",
+      incident_city: formData.incident_city || "Mumbai",
       incident_hour_of_the_day: hour,
       number_of_vehicles_involved: parseInt(formData.number_of_vehicles_involved) || 1,
       property_damage: formData.property_damage || "NO",
@@ -486,7 +486,7 @@ export default function VehicleInsurance({
                 <input type="text" className="form-input" value={policyNumber} onChange={(e) => setPolicyNumber(e.target.value)} required />
               </div>
               <div className="form-group">
-                <label>Annual Premium (INR/USD)</label>
+                <label>Annual Premium (INR)</label>
                 <input type="number" className="form-input" value={formData.policy_annual_premium} onChange={(e) => handleInputChange('policy_annual_premium', parseFloat(e.target.value))} required />
               </div>
             </div>
@@ -556,12 +556,27 @@ export default function VehicleInsurance({
                 </select>
               </div>
               <div className="form-group">
-                <label>Police Report Available</label>
-                <select className="form-select" value={formData.police_report_available} onChange={(e) => handleInputChange('police_report_available', e.target.value)}>
-                  <option value="NO">No</option>
-                  <option value="YES">Yes</option>
+                <label>Property Damage (Y/N)</label>
+                <select className="form-select" value={formData.property_damage} onChange={(e) => handleInputChange('property_damage', e.target.value)}>
+                  <option value="NO">No (N)</option>
+                  <option value="YES">Yes (Y)</option>
                   <option value="?">Unknown (?)</option>
                 </select>
+              </div>
+            </div>
+
+            <div className="form-group-row">
+              <div className="form-group">
+                <label>Police Report Available (Y/N)</label>
+                <select className="form-select" value={formData.police_report_available} onChange={(e) => handleInputChange('police_report_available', e.target.value)}>
+                  <option value="NO">No (N)</option>
+                  <option value="YES">Yes (Y)</option>
+                  <option value="?">Unknown (?)</option>
+                </select>
+              </div>
+              <div className="form-group">
+                <label>Bodily Injuries (Count)</label>
+                <input type="number" className="form-input" value={formData.bodily_injuries} onChange={(e) => handleInputChange('bodily_injuries', parseInt(e.target.value) || 0)} required />
               </div>
             </div>
 
@@ -744,18 +759,18 @@ export default function VehicleInsurance({
             
             <div className="form-group-row">
               <div className="form-group">
-                <label>Property Claim Amount (INR/USD)</label>
+                <label>Property Claim Amount (INR)</label>
                 <input type="number" className="form-input" value={formData.property_claim} onChange={(e) => handleInputChange('property_claim', parseFloat(e.target.value))} required />
               </div>
               <div className="form-group">
-                <label>Vehicle Claim Amount (INR/USD)</label>
+                <label>Vehicle Claim Amount (INR)</label>
                 <input type="number" className="form-input" value={formData.vehicle_claim} onChange={(e) => handleInputChange('vehicle_claim', parseFloat(e.target.value))} required />
               </div>
             </div>
 
             <div className="form-group-row">
               <div className="form-group">
-                <label>Injury Claim Amount (INR/USD)</label>
+                <label>Injury Claim Amount (INR)</label>
                 <input type="number" className="form-input" value={formData.injury_claim} onChange={(e) => handleInputChange('injury_claim', parseFloat(e.target.value))} required />
               </div>
               <div className="form-group">

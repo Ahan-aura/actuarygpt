@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { ShieldCheck, ShieldAlert, Download, AlertTriangle, History, Car, DollarSign } from 'lucide-react';
+import { ShieldCheck, ShieldAlert, Download, AlertTriangle, History, Car, IndianRupee } from 'lucide-react';
 
 export default function VehicleResult({
   agentResult,
@@ -63,7 +63,7 @@ export default function VehicleResult({
         {/* Claim Items Breakdown */}
         <div className="glass-card" style={{ padding: '1.25rem', border: '1px solid var(--border)', borderRadius: '8px', display: 'flex', flexDirection: 'column', gap: '1rem' }}>
           <h4 style={{ fontSize: '0.95rem', fontWeight: 700, color: 'var(--text-title)', display: 'flex', alignItems: 'center', gap: '0.5rem', margin: 0, borderBottom: '1px solid var(--border)', paddingBottom: '0.5rem' }}>
-            <DollarSign size={16} />
+            <IndianRupee size={16} />
             Payout Breakdown
           </h4>
           <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem', fontSize: '0.85rem' }}>
@@ -214,7 +214,7 @@ export default function VehicleResult({
         {isModifying && (
           <div className="animate-slide-in" style={{ padding: '1.25rem', border: '1px solid var(--border)', borderRadius: '6px', backgroundColor: 'var(--bg-input)', display: 'flex', gap: '1rem', alignItems: 'center', maxWidth: '400px', alignSelf: 'flex-end', marginTop: '0.5rem' }}>
             <div style={{ flex: 1 }}>
-              <label style={{ fontSize: '0.75rem', color: 'var(--text-muted)', display: 'block', marginBottom: '0.25rem' }}>Modified Claim Payout (INR/USD)</label>
+              <label style={{ fontSize: '0.75rem', color: 'var(--text-muted)', display: 'block', marginBottom: '0.25rem' }}>Modified Claim Payout (INR)</label>
               <input 
                 type="number" 
                 className="form-input" 

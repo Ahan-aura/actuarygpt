@@ -287,7 +287,7 @@ export default function LifeInsurance({
                   />
                 </div>
                 <div className="form-group">
-                  <label>Annual Income (INR/USD)</label>
+                  <label>Annual Income (INR)</label>
                   <input 
                     type="number" 
                     className="form-input" 
@@ -538,7 +538,7 @@ export default function LifeInsurance({
 
               <div className="form-group-row">
                 <div className="form-group">
-                  <label>Requested Coverage Amount (Sum Assured INR/USD)</label>
+                  <label>Requested Coverage Amount (Sum Assured INR)</label>
                   <input 
                     type="number" 
                     className="form-input" 
