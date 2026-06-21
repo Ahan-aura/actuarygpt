@@ -168,11 +168,19 @@ def parse_document_to_features(file_bytes: bytes, mime_type: str, insurance_type
 
     prompt = f"""
     You are an expert AI document scanner for an insurance underwriting portal.
-    Analyze the attached document (which is an insurance claim form, accident report, driver profile, or policy document).
+    Analyze the attached document (which is an insurance claim form, medical bill, hospital invoice, accident report, driver profile, or policy document).
     
     Extract all the key features that match the following target JSON schema:
     {schema_desc}
     
+    SPECIAL INSTRUCTIONS FOR MEDICAL BILLS AND HOSPITAL INVOICES:
+    - If the document is a medical bill, hospital invoice, receipt, or diagnosis report:
+      1. Default "insurance_type" to "Health".
+      2. Extract the patient or policyholder name into "fullName".
+      3. Extract the total billing or invoice amount (as a raw numeric float, without symbols) into "coverage_amount".
+      4. Extract any diagnosed conditions, treatments, symptoms, or hospital admission reasons into "medicalConditions".
+      5. Extract any other details (such as age, gender, contact details) if they are visible in the document.
+      
     If the document contains information for the fields, extract them accurately. If a field is not found or cannot be inferred, return an empty string "" for text fields or null for numeric fields. Do not guess values that are completely absent.
     
     Return ONLY a valid JSON object. Do not include markdown code block syntax (like ```json ... ```). Output raw JSON string starting with '{{' and ending with '}}'.

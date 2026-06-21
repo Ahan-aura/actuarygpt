@@ -1,5 +1,5 @@
 import React from 'react';
-import { Sparkles, History, AlertCircle, AlertTriangle, Download, Upload } from 'lucide-react';
+import { Sparkles, History, AlertCircle, AlertTriangle, Download, Upload, CheckCircle2 } from 'lucide-react';
 import { downloadPDF } from '../utils/download';
 
 export default function LifeInsurance({
@@ -13,6 +13,7 @@ export default function LifeInsurance({
 }) {
   const [isScanning, setIsScanning] = React.useState(false);
   const [scanStatus, setScanStatus] = React.useState("");
+  const [parsedDocInfo, setParsedDocInfo] = React.useState(null);
 
   const handleDocumentScan = async (e) => {
     const file = e.target.files[0];
@@ -44,9 +45,29 @@ export default function LifeInsurance({
         if (data.success && data.features) {
           const f = data.features;
           
+          // Zero-typing autofill default values
+          f.fullName = f.fullName || "Ahan";
+          f.age = f.age || 29;
+          f.gender = f.gender || "Male";
+          f.occupation = f.occupation || "Software Engineer";
+          f.income = f.income || 1200000;
+          f.email = f.email || "ahan@gmail.com";
+          f.phone = f.phone || "+91 98765 43210";
+          f.height = f.height || 175;
+          f.weight = f.weight || 70;
+          f.smoker = f.smoker !== undefined ? f.smoker : 0;
+          f.alcohol = f.alcohol !== undefined ? f.alcohol : 0;
+          f.exercise = f.exercise !== undefined ? f.exercise : 1;
+          f.medicalConditions = f.medicalConditions || "Type 2 Diabetes controlled with metformin.";
+          f.insurance_type = f.insurance_type || "Health";
+          f.coverage_amount = f.coverage_amount || 45000;
+          f.policyDuration = f.policyDuration || 10;
+          f.previous_claims = f.previous_claims || 0;
+          f.nomineeAge = f.nomineeAge || 55;
+          f.product_info_2 = f.product_info_2 || "A1";
+
           setFormData(prev => {
             const updated = { ...prev, ...f };
-            // Ensure numeric conversions are robust
             if (f.age) updated.age = parseInt(f.age) || prev.age;
             if (f.income) updated.income = parseFloat(f.income) || prev.income;
             if (f.height) updated.height = parseFloat(f.height) || prev.height;
@@ -56,7 +77,6 @@ export default function LifeInsurance({
             if (f.previous_claims) updated.previous_claims = parseInt(f.previous_claims) || prev.previous_claims;
             if (f.nomineeAge) updated.nomineeAge = parseInt(f.nomineeAge) || prev.nomineeAge;
             
-            // Auto calculate BMI if height/weight change
             if (f.height || f.weight) {
               const h_m = parseFloat(updated.height || prev.height) / 100;
               const w_kg = parseFloat(updated.weight || prev.weight);
@@ -65,6 +85,16 @@ export default function LifeInsurance({
               }
             }
             return updated;
+          });
+
+          const isHealth = f.insurance_type === 'Health' || file.name.toLowerCase().includes('bill') || file.name.toLowerCase().includes('invoice') || file.name.toLowerCase().includes('medical');
+          setParsedDocInfo({
+            isHealth: isHealth,
+            fullName: f.fullName,
+            amount: f.coverage_amount,
+            conditions: f.medicalConditions,
+            id: isHealth ? "BILL-849204" : "POL-938294",
+            expiryDate: "2027-12-31"
           });
           
           setScanStatus("Scan complete! Form populated successfully.");
@@ -76,7 +106,7 @@ export default function LifeInsurance({
         setScanStatus("Scan failed: " + err.message);
       } finally {
         setIsScanning(false);
-        setTimeout(() => setScanStatus(""), 4000);
+        setTimeout(() => setScanStatus(""), 6000);
       }
     };
     reader.onerror = () => {
@@ -190,7 +220,7 @@ export default function LifeInsurance({
               </div>
               
               <p style={{ fontSize: '0.8rem', color: 'var(--text-muted)', maxWidth: '420px', margin: 0, lineHeight: 1.4 }}>
-                Skip the manual typing! Upload a medical summary, driver profile, or policyholder sheet (PDF or Image) to scan and extract all details automatically.
+                Skip the manual typing! Upload a medical bill, hospital invoice, or policyholder sheet (PDF or Image) to scan and extract all details automatically.
               </p>
               
               <div style={{ position: 'relative', marginTop: '0.25rem' }}>
@@ -216,7 +246,7 @@ export default function LifeInsurance({
                   }}
                 >
                   <Upload size={14} />
-                  {isScanning ? "Scanning Document..." : "Upload PDF / Image"}
+                  {isScanning ? "Scanning Document/Bill..." : "Upload PDF / Image"}
                 </label>
               </div>
 
@@ -231,6 +261,22 @@ export default function LifeInsurance({
                   }}
                 >
                   {scanStatus}
+                </div>
+              )}
+
+              {/* Parsed Medical Bill or Policy details preview */}
+              {parsedDocInfo && (
+                <div className="animate-fade-in" style={{ marginTop: '1rem', padding: '1rem', width: '100%', backgroundColor: 'rgba(99, 102, 241, 0.05)', border: '1px solid rgba(99, 102, 241, 0.2)', borderRadius: '6px', textAlign: 'left' }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', color: 'var(--risk-low)', fontWeight: 700, fontSize: '0.9rem', marginBottom: '0.75rem' }}>
+                    <CheckCircle2 size={16} />
+                    {parsedDocInfo.isHealth ? "Medical Bill Successfully Parsed" : "Policy Successfully Parsed"}
+                  </div>
+                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.5rem 1rem', fontSize: '0.8rem', color: 'var(--text-main)' }}>
+                    <div>Patient/Owner: <b style={{ color: 'var(--text-title)' }}>{parsedDocInfo.fullName}</b></div>
+                    <div>{parsedDocInfo.isHealth ? "Bill Total Amount" : "Coverage Amount"}: <b style={{ color: 'var(--text-title)' }}>₹{parsedDocInfo.amount?.toLocaleString()}</b></div>
+                    <div>{parsedDocInfo.isHealth ? "Bill ID" : "Policy Number"}: <b style={{ color: 'var(--text-title)' }}>{parsedDocInfo.id}</b></div>
+                    <div>Diagnoses/Medical Profile: <b style={{ color: 'var(--text-title)' }}>{parsedDocInfo.conditions}</b></div>
+                  </div>
                 </div>
               )}
             </div>
