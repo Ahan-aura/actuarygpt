@@ -33,6 +33,7 @@ class ApplicationCreate(BaseModel):
     medical_conditions: Optional[str] = None
     policy_duration: Optional[int] = None
     nominee_age: Optional[int] = None
+    medical_bill: Optional[str] = None
 
 def parse_application_row(row):
     if not row:
@@ -76,14 +77,14 @@ def create_application(req: ApplicationCreate):
         INSERT INTO applications (
             id, client, age, height, weight, bmi, product_info_2, occupation, income, smoker,
             previous_claims, family_history, insurance_type, coverage_amount, exercise, alcohol, gender,
-            date, status, full_name, email, phone, medical_conditions, policy_duration, nominee_age
-        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+            date, status, full_name, email, phone, medical_conditions, policy_duration, nominee_age, medical_bill
+        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
         """, (
             app_id, req.client, req.age, req.height, req.weight, req.bmi, req.product_info_2,
             req.occupation, req.income, req.smoker, req.previous_claims, req.family_history,
             req.insurance_type, req.coverage_amount, req.exercise, req.alcohol, req.gender,
             date_str, 'pending', req.full_name, req.email, req.phone, req.medical_conditions,
-            req.policy_duration, req.nominee_age
+            req.policy_duration, req.nominee_age, req.medical_bill
         ))
         conn.commit()
         cursor.execute("SELECT * FROM applications WHERE id = ?", (app_id,))

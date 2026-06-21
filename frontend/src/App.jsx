@@ -53,7 +53,8 @@ const DEFAULT_BLANK_FORM = {
   previous_claims: 0, 
   family_history: 0,
   nomineeAge: "",
-  product_info_2: "A1"
+  product_info_2: "A1",
+  medicalBill: ""
 };
 
 function App({ user, handleLogout }) {
@@ -199,7 +200,8 @@ function App({ user, handleLogout }) {
       phone: formData.phone,
       medical_conditions: formData.medicalConditions,
       policy_duration: parseInt(formData.policyDuration),
-      nominee_age: parseInt(formData.nomineeAge)
+      nominee_age: parseInt(formData.nomineeAge),
+      medical_bill: formData.medicalBill || null
     };
 
     try {
@@ -805,6 +807,12 @@ function App({ user, handleLogout }) {
                       <div className="detail-box"><span className="detail-label">Smoker</span><span className="detail-val">{selectedApp.smoker ? 'Yes' : 'No'}</span></div>
                       <div className="detail-box"><span className="detail-label">Claims History</span><span className="detail-val">{selectedApp.previous_claims} claims</span></div>
                       <div className="detail-box"><span className="detail-label">Type / Sum Assured</span><span className="detail-val">{selectedApp.insurance_type} / ₹{selectedApp.coverage_amount?.toLocaleString()}</span></div>
+                      {selectedApp.medical_bill && (
+                        <div className="detail-box" style={{ gridColumn: 'span 3', display: 'flex', alignItems: 'center', gap: '0.5rem', backgroundColor: 'rgba(99, 102, 241, 0.04)', border: '1px dashed var(--primary)' }}>
+                          <span className="detail-label" style={{ margin: 0 }}>Attached Medical Bill:</span>
+                          <span className="detail-val" style={{ fontWeight: 700, color: 'var(--primary)', fontSize: '0.85rem' }}>📄 {selectedApp.medical_bill}</span>
+                        </div>
+                      )}
                     </div>
                   ) : (
                     /* Vehicle workstation details */

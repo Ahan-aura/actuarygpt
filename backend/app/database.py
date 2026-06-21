@@ -195,9 +195,16 @@ def init_db():
         medical_conditions TEXT,
         policy_duration INTEGER,
         nominee_age INTEGER,
+        medical_bill TEXT,
         FOREIGN KEY(client) REFERENCES users(username)
     )
     """)
+    
+    try:
+        cursor.execute("ALTER TABLE applications ADD COLUMN medical_bill TEXT")
+        conn.commit()
+    except Exception:
+        pass
     
     # 3. Create Vehicle Applications Table
     cursor.execute("""

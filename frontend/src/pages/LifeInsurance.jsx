@@ -68,6 +68,7 @@ export default function LifeInsurance({
 
           setFormData(prev => {
             const updated = { ...prev, ...f };
+            updated.medicalBill = file.name;
             if (f.age) updated.age = parseInt(f.age) || prev.age;
             if (f.income) updated.income = parseFloat(f.income) || prev.income;
             if (f.height) updated.height = parseFloat(f.height) || prev.height;
@@ -518,6 +519,61 @@ export default function LifeInsurance({
 
               <div className="form-group">
                 <label>Existing Medical Conditions / History</label>
+                
+                {/* Dedicated Medical Bill Upload option in health info step */}
+                <div 
+                  style={{
+                    padding: '1rem',
+                    border: '1px dashed var(--primary)',
+                    borderRadius: '8px',
+                    backgroundColor: 'rgba(99, 102, 241, 0.02)',
+                    display: 'flex',
+                    flexDirection: 'column',
+                    gap: '0.5rem',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    marginBottom: '0.75rem',
+                    textAlign: 'center',
+                    marginTop: '0.5rem'
+                  }}
+                >
+                  <div style={{ fontSize: '0.8rem', fontWeight: 700, color: 'var(--primary)', display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
+                    <Sparkles size={14} />
+                    <span>Upload Medical Bill / Invoice to Auto-Fill Health History & Cost</span>
+                  </div>
+                  <p style={{ fontSize: '0.75rem', color: 'var(--text-muted)', margin: 0, maxWidth: '400px' }}>
+                    Have a digital hospital invoice or bill? Upload it to auto-extract diagnosed conditions, medications, patient details, and total billing costs.
+                  </p>
+                  <input 
+                    type="file" 
+                    accept="image/*,application/pdf" 
+                    onChange={handleDocumentScan} 
+                    id="step2MedicalBillUpload"
+                    style={{ display: 'none' }}
+                  />
+                  <label 
+                    htmlFor="step2MedicalBillUpload" 
+                    className="btn-secondary" 
+                    style={{ 
+                      cursor: isScanning ? 'not-allowed' : 'pointer', 
+                      display: 'inline-flex', 
+                      alignItems: 'center', 
+                      gap: '0.4rem', 
+                      padding: '0.4rem 0.8rem', 
+                      fontSize: '0.8rem' 
+                    }}
+                  >
+                    <Upload size={12} />
+                    {isScanning ? "Scanning Bill..." : "Upload Medical Bill"}
+                  </label>
+                  {formData.medicalBill && (
+                    <div style={{ fontSize: '0.75rem', color: 'var(--risk-low)', fontWeight: 600, display: 'flex', alignItems: 'center', gap: '0.25rem' }}>
+                      <CheckCircle2 size={12} />
+                      Attached: {formData.medicalBill}
+                    </div>
+                  )}
+                </div>
+
                 <textarea 
                   className="form-input" 
                   style={{ minHeight: '80px', resize: 'vertical', fontFamily: 'inherit' }}
