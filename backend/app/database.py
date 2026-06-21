@@ -139,6 +139,25 @@ def init_db():
         role TEXT NOT NULL CHECK(role IN ('customer', 'officer'))
     )
     """)
+    conn.commit()
+    
+    # Run casing consistency migration for existing usernames
+    try:
+        cursor.execute("SELECT id, username FROM users")
+        existing_users = cursor.fetchall()
+        for u in existing_users:
+            u_id = u[0] if isinstance(u, (tuple, list)) else u['id']
+            u_name = u[1] if isinstance(u, (tuple, list)) else u['username']
+            if u_name and u_name != u_name.lower():
+                try:
+                    cursor.execute("UPDATE users SET username = ? WHERE id = ?", (u_name.lower(), u_id))
+                except Exception:
+                    # Handle duplicate constraint violation by deleting the duplicate uppercase user
+                    cursor.execute("DELETE FROM users WHERE id = ?", (u_id,))
+        conn.commit()
+    except Exception as migration_err:
+        print(f"Username migration failed or skipped: {migration_err}")
+
     
     # 2. Create Applications Table (Life & Health)
     cursor.execute("""
