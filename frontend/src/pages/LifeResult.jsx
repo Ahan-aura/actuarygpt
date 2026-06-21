@@ -12,8 +12,10 @@ export default function LifeResult({
   onReject,
   onManualReview,
   expandedSimCaseId,
-  setExpandedSimCaseId
+  setExpandedSimCaseId,
+  processedApps = []
 }) {
+  const previousPolicies = processedApps ? processedApps.filter(app => app.client === selectedApp.client && app.id !== selectedApp.id) : [];
   const [isModifying, setIsModifying] = React.useState(false);
   const [modAmount, setModAmount] = React.useState(agentResult?.premium || "");
 
@@ -158,7 +160,7 @@ export default function LifeResult({
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '1rem 0.5rem', fontSize: '0.8rem', textAlign: 'center' }}>
               <div>
                 <span style={{ display: 'block', fontSize: '0.7rem', color: 'var(--text-muted)' }}>Policies</span>
-                <span style={{ fontSize: '1rem', fontWeight: 700, color: 'var(--text-title)' }}>3</span>
+                <span style={{ fontSize: '1rem', fontWeight: 700, color: 'var(--text-title)' }}>{previousPolicies.length + 1}</span>
               </div>
               <div>
                 <span style={{ display: 'block', fontSize: '0.7rem', color: 'var(--text-muted)' }}>Previous Claims</span>
@@ -177,6 +179,43 @@ export default function LifeResult({
                 <span style={{ fontSize: '1rem', fontWeight: 700, color: 'var(--text-title)' }}>2019</span>
               </div>
             </div>
+          </div>
+
+          {/* Claimant's Previous Policies List */}
+          <div className="glass-card" style={{ padding: '1.25rem', border: '1px solid var(--border)', borderRadius: '8px', display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+            <h4 style={{ fontSize: '0.95rem', fontWeight: 700, color: 'var(--text-title)', display: 'flex', alignItems: 'center', gap: '0.5rem', margin: 0, borderBottom: '1px solid var(--border)', paddingBottom: '0.5rem' }}>
+              📋 Claimant's Previous Policies List
+            </h4>
+            {previousPolicies.length === 0 ? (
+              <p style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>No previous policies found for this customer.</p>
+            ) : (
+              <div style={{ overflowX: 'auto' }}>
+                <table style={{ width: '100%', fontSize: '0.8rem', borderCollapse: 'collapse', textAlign: 'left' }}>
+                  <thead>
+                    <tr style={{ borderBottom: '1px solid var(--border)', color: 'var(--text-muted)' }}>
+                      <th style={{ padding: '0.4rem' }}>ID</th>
+                      <th style={{ padding: '0.4rem' }}>Type</th>
+                      <th style={{ padding: '0.4rem' }}>Coverage</th>
+                      <th style={{ padding: '0.4rem' }}>Status</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {previousPolicies.map(policy => (
+                      <tr key={policy.id} style={{ borderBottom: '1px solid rgba(255, 255, 255, 0.05)' }}>
+                        <td style={{ padding: '0.4rem', fontWeight: 600, color: 'var(--primary)' }}>{policy.id}</td>
+                        <td style={{ padding: '0.4rem' }}>{policy.insurance_type || 'Life'}</td>
+                        <td style={{ padding: '0.4rem' }}>₹{policy.coverage_amount?.toLocaleString()}</td>
+                        <td style={{ padding: '0.4rem' }}>
+                          <span className={`status-badge ${policy.status}`} style={{ fontSize: '0.65rem', padding: '0.1rem 0.4rem' }}>
+                            {policy.status}
+                          </span>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            )}
           </div>
 
           <div className="glass-card" style={{ padding: '1.25rem', border: '1px solid var(--border)', borderRadius: '8px', display: 'flex', flexDirection: 'column', gap: '1rem' }}>

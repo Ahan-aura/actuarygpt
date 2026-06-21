@@ -9,8 +9,10 @@ export default function VehicleResult({
   isOfficer = false,
   onApprove,
   onReject,
-  onManualReview
+  onManualReview,
+  processedVehicleApps = []
 }) {
+  const previousClaims = processedVehicleApps ? processedVehicleApps.filter(app => app.client === selectedApp.client && app.id !== selectedApp.id) : [];
   const [expandedSimCaseId, setExpandedSimCaseId] = useState(null);
   const [isModifying, setIsModifying] = useState(false);
   const [modAmount, setModAmount] = useState(selectedApp?.total_claim_amount || "");
@@ -172,7 +174,7 @@ export default function VehicleResult({
               </div>
               <div>
                 <span style={{ display: 'block', fontSize: '0.7rem', color: 'var(--text-muted)' }}>Previous Claims</span>
-                <span style={{ fontSize: '1rem', fontWeight: 700, color: 'var(--text-title)' }}>2</span>
+                <span style={{ fontSize: '1rem', fontWeight: 700, color: 'var(--text-title)' }}>{previousClaims.length}</span>
               </div>
               <div>
                 <span style={{ display: 'block', fontSize: '0.7rem', color: 'var(--text-muted)' }}>Previous Fraud</span>
@@ -187,6 +189,43 @@ export default function VehicleResult({
                 <span style={{ fontSize: '1rem', fontWeight: 700, color: 'var(--text-title)' }}>2019</span>
               </div>
             </div>
+          </div>
+
+          {/* Claimant's Previous Claims List */}
+          <div className="glass-card" style={{ padding: '1.25rem', border: '1px solid var(--border)', borderRadius: '8px', display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+            <h4 style={{ fontSize: '0.95rem', fontWeight: 700, color: 'var(--text-title)', display: 'flex', alignItems: 'center', gap: '0.5rem', margin: 0, borderBottom: '1px solid var(--border)', paddingBottom: '0.5rem' }}>
+              📋 Claimant's Previous Claims List
+            </h4>
+            {previousClaims.length === 0 ? (
+              <p style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>No previous claims found for this customer.</p>
+            ) : (
+              <div style={{ overflowX: 'auto' }}>
+                <table style={{ width: '100%', fontSize: '0.8rem', borderCollapse: 'collapse', textAlign: 'left' }}>
+                  <thead>
+                    <tr style={{ borderBottom: '1px solid var(--border)', color: 'var(--text-muted)' }}>
+                      <th style={{ padding: '0.4rem' }}>Claim ID</th>
+                      <th style={{ padding: '0.4rem' }}>Date</th>
+                      <th style={{ padding: '0.4rem' }}>Amount</th>
+                      <th style={{ padding: '0.4rem' }}>Status</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {previousClaims.map(claim => (
+                      <tr key={claim.id} style={{ borderBottom: '1px solid rgba(255, 255, 255, 0.05)' }}>
+                        <td style={{ padding: '0.4rem', fontWeight: 600, color: 'var(--primary)' }}>{claim.id}</td>
+                        <td style={{ padding: '0.4rem' }}>{claim.date || 'N/A'}</td>
+                        <td style={{ padding: '0.4rem' }}>₹{claim.total_claim_amount?.toLocaleString()}</td>
+                        <td style={{ padding: '0.4rem' }}>
+                          <span className={`status-badge ${claim.status}`} style={{ fontSize: '0.65rem', padding: '0.1rem 0.4rem' }}>
+                            {claim.status}
+                          </span>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            )}
           </div>
 
           {/* Explainable AI: Top Factors */}

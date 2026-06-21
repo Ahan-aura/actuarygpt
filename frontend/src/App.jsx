@@ -847,6 +847,7 @@ function App({ user, handleLogout }) {
                       onManualReview={() => handleTriageDecision('manual_review')}
                       expandedSimCaseId={expandedSimCaseId}
                       setExpandedSimCaseId={setExpandedSimCaseId}
+                      processedApps={analyticsSummary?.processed_list || []}
                     />
                   )}
 
@@ -859,6 +860,7 @@ function App({ user, handleLogout }) {
                       onApprove={(amt) => handleTriageDecision('approve', amt)}
                       onReject={() => handleTriageDecision('reject')}
                       onManualReview={() => handleTriageDecision('manual_review')}
+                      processedVehicleApps={analyticsSummary?.processed_vehicle_list || []}
                     />
                   )}
                 </div>
