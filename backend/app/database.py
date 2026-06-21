@@ -240,6 +240,8 @@ def init_db():
         date TEXT NOT NULL,
         status TEXT NOT NULL CHECK(status IN ('pending', 'approved', 'rejected')),
         fraud_reported TEXT,
+        risk_class INTEGER,
+        risk_category TEXT,
         confidence REAL,
         report TEXT,
         pdf_url TEXT,
@@ -248,8 +250,22 @@ def init_db():
         FOREIGN KEY(client) REFERENCES users(username)
     )
     """)
-    
     conn.commit()
+
+    # Migrate existing databases to add columns if they are missing
+    try:
+        cursor.execute("SELECT risk_class FROM vehicle_applications LIMIT 1")
+    except Exception:
+        try:
+            cursor.execute("ALTER TABLE vehicle_applications ADD COLUMN risk_class INTEGER")
+        except Exception as e:
+            print(f"Skipped adding risk_class (maybe already exists): {e}")
+        try:
+            cursor.execute("ALTER TABLE vehicle_applications ADD COLUMN risk_category TEXT")
+        except Exception as e:
+            print(f"Skipped adding risk_category (maybe already exists): {e}")
+        conn.commit()
+
     
     # 4. Seed Default Users if none exist
     cursor.execute("SELECT COUNT(*) FROM users")

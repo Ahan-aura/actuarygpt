@@ -134,7 +134,9 @@ def evaluate_vehicle_application(id: str):
             report = ?,
             pdf_url = ?,
             underwriting_decision = ?,
-            similar_cases = ?
+            similar_cases = ?,
+            risk_class = ?,
+            risk_category = ?
         WHERE id = ?
         """, (
             agent_result["fraud_reported"],
@@ -143,6 +145,8 @@ def evaluate_vehicle_application(id: str):
             agent_result["pdf_url"],
             agent_result["underwriting_decision"],
             json.dumps(agent_result["similar_cases"]),
+            agent_result.get("risk_class"),
+            agent_result.get("risk_category"),
             id
         ))
         conn.commit()

@@ -264,12 +264,8 @@ function App({ user, handleLogout }) {
       const evalResult = await evalRes.json();
 
       setPendingWizardResult({
-        risk_class: evalResult.risk_class || (evalResult.fraud_reported === 'Y' ? 8 : 1),
-        confidence: evalResult.confidence,
-        premium: evalResult.premium, 
-        underwriting_decision: evalResult.underwriting_decision,
-        report: evalResult.report,
-        pdf_url: evalResult.pdf_url
+        ...evalResult,
+        risk_class: evalResult.risk_class || (evalResult.fraud_reported === 'Y' ? 8 : 1)
       });
       fetchCustomerVehicleSubmissions();
     } catch (err) {
@@ -516,12 +512,21 @@ function App({ user, handleLogout }) {
           )}
           
           {wizardStep === 5 && wizardResult && (
-            <LifeResult 
-              agentResult={wizardResult} 
-              selectedApp={formData} 
-              API_BASE={API_BASE} 
-              isOfficer={false}
-            />
+            customerFormTab === 'vehicle' ? (
+              <VehicleResult 
+                agentResult={wizardResult} 
+                selectedApp={wizardResult} 
+                API_BASE={API_BASE} 
+                isOfficer={false}
+              />
+            ) : (
+              <LifeResult 
+                agentResult={wizardResult} 
+                selectedApp={formData} 
+                API_BASE={API_BASE} 
+                isOfficer={false}
+              />
+            )
           )}
 
           {wizardStep < 4 && customerFormTab === 'life' && (
