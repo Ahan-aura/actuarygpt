@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { ShieldCheck, ShieldAlert, Download, AlertTriangle, History, Car, IndianRupee } from 'lucide-react';
+import { downloadPDF } from '../utils/download';
 
 export default function VehicleResult({
   agentResult,
@@ -166,16 +167,14 @@ export default function VehicleResult({
       <div style={{ borderTop: '1px solid var(--border)', paddingTop: '1.5rem', marginTop: '1rem', display: 'flex', flexDirection: 'column', gap: '1rem' }}>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: '1rem', flexWrap: 'wrap' }}>
           {agentResult.pdf_url ? (
-            <a 
-              href={`${API_BASE}${agentResult.pdf_url}`} 
-              target="_blank" 
-              rel="noreferrer"
+            <button 
+              onClick={() => downloadPDF(`${API_BASE}${agentResult.pdf_url}`)}
               className="btn-secondary"
-              style={{ textDecoration: 'none', display: 'inline-flex', alignItems: 'center', gap: '0.5rem', padding: '0.6rem 1.2rem', fontWeight: 600 }}
+              style={{ display: 'inline-flex', alignItems: 'center', gap: '0.5rem', padding: '0.6rem 1.2rem', fontWeight: 600 }}
             >
               <Download size={16} />
               Download PDF Report
-            </a>
+            </button>
           ) : <div />}
 
           {isOfficer && (

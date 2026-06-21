@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { History, ClipboardList, Car, UserCheck, Download } from 'lucide-react';
+import { downloadPDF } from '../utils/download';
 
 export default function HistoryPage({ 
   processedApps = [], 
@@ -83,7 +84,14 @@ export default function HistoryPage({
                     <td>{p.date}</td>
                     <td>
                       {p.pdf_url ? (
-                        <a href={`${API_BASE}${p.pdf_url}`} target="_blank" rel="noreferrer" style={{ color: 'var(--primary)', fontWeight: 600, textDecoration: 'underline' }}>
+                        <a 
+                          href="#" 
+                          onClick={(e) => {
+                            e.preventDefault();
+                            downloadPDF(`${API_BASE}${p.pdf_url}`);
+                          }}
+                          style={{ color: 'var(--primary)', fontWeight: 600, textDecoration: 'underline', cursor: 'pointer' }}
+                        >
                           PDF
                         </a>
                       ) : 'N/A'}
@@ -142,7 +150,14 @@ export default function HistoryPage({
                       <td>{p.date}</td>
                       <td>
                         {p.pdf_url ? (
-                          <a href={`${API_BASE}${p.pdf_url}`} target="_blank" rel="noreferrer" style={{ color: 'var(--primary)', fontWeight: 600, textDecoration: 'underline' }}>
+                          <a 
+                            href="#" 
+                            onClick={(e) => {
+                              e.preventDefault();
+                              downloadPDF(`${API_BASE}${p.pdf_url}`);
+                            }}
+                            style={{ color: 'var(--primary)', fontWeight: 600, textDecoration: 'underline', cursor: 'pointer' }}
+                          >
                             PDF
                           </a>
                         ) : 'N/A'}

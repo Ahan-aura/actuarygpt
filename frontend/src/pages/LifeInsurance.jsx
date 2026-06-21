@@ -1,5 +1,6 @@
 import React from 'react';
 import { Sparkles, History, AlertCircle, AlertTriangle, Download, Upload } from 'lucide-react';
+import { downloadPDF } from '../utils/download';
 
 export default function LifeInsurance({
   formData,
@@ -683,16 +684,14 @@ export default function LifeInsurance({
                       <div style={{ textAlign: 'right' }}>Calculated Premium: <b style={{ color: 'var(--primary)' }}>₹{app.premium?.toLocaleString()}/yr</b></div>
                     </div>
                     {app.pdf_url && (
-                      <a 
-                        href={`${API_BASE}${app.pdf_url}`} 
-                        target="_blank" 
-                        rel="noreferrer"
+                      <button 
+                        onClick={() => downloadPDF(`${API_BASE}${app.pdf_url}`)}
                         className="btn-secondary"
-                        style={{ textDecoration: 'none', padding: '0.4rem 0.8rem', fontSize: '0.8rem', display: 'inline-flex', width: 'fit-content', marginTop: '0.25rem', alignItems: 'center', gap: '0.25rem' }}
+                        style={{ padding: '0.4rem 0.8rem', fontSize: '0.8rem', display: 'inline-flex', width: 'fit-content', marginTop: '0.25rem', alignItems: 'center', gap: '0.25rem' }}
                       >
                         <Download size={12} />
                         Download Actuarial PDF Report
-                      </a>
+                      </button>
                     )}
                   </div>
                 )}
