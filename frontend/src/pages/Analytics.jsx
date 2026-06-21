@@ -79,8 +79,27 @@ export default function Analytics({
   totalPremiums,
   avgRiskClass,
   triageApprovalRate,
+  pendingApps = [],
+  pendingVehicleApps = [],
+  processedApps = [],
   isCustomerView = false
 }) {
+  const totalClaimsCount = (processedApps?.length || 0) + pendingApps.length + pendingVehicleApps.length;
+  const approvedCount = processedApps?.filter(app => app.status === 'approved').length || 0;
+  const rejectedCount = processedApps?.filter(app => app.status === 'rejected').length || 0;
+  
+  const manualReviewCount = pendingApps.filter(app => app.underwriting_decision === 'Referred for Manual Underwriting').length + 
+                             pendingVehicleApps.filter(app => app.underwriting_decision === 'Referred for Manual Underwriting').length;
+
+  const fraudClaimsCount = processedApps?.filter(app => app.insurance_type === 'Vehicle' && app.fraud_reported === 'Y').length || 0;
+  const totalVehicleClaims = processedApps?.filter(app => app.insurance_type === 'Vehicle').length + pendingVehicleApps.length;
+  const fraudRate = totalVehicleClaims > 0 ? Math.round((fraudClaimsCount / totalVehicleClaims) * 100) : 6;
+
+  const approvedClaims = processedApps?.filter(app => app.status === 'approved') || [];
+  const claimAmounts = approvedClaims.map(app => app.insurance_type === 'Vehicle' ? (app.total_claim_amount || 0) : (app.coverage_amount || 0));
+  const totalClaimAmount = claimAmounts.reduce((sum, amt) => sum + amt, 0);
+  const avgClaimValue = approvedClaims.length > 0 ? Math.round(totalClaimAmount / approvedClaims.length) : 84000;
+
   // RENDER CUSTOMER-Appropriate Personal Dashboard
   if (isCustomerView) {
     return (
@@ -91,7 +110,7 @@ export default function Analytics({
         
         <div className="stats-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: '1rem' }}>
           
-          {/* Total Applications */}
+          {/* My Applications */}
           <div className="stat-card" style={{ display: 'flex', gap: '1rem', padding: '1.25rem', backgroundColor: 'var(--bg-card)', border: '1px solid var(--border)', borderRadius: '8px', alignItems: 'center' }}>
             <div className="stat-icon-wrapper" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', width: '40px', height: '40px', borderRadius: '50%', backgroundColor: 'rgba(99, 102, 241, 0.1)', color: 'var(--primary)' }}>
               <FileSpreadsheet size={20} />
@@ -140,7 +159,7 @@ export default function Analytics({
           </div>
           <div className="stat-info" style={{ display: 'flex', flexDirection: 'column' }}>
             <span className="stat-label" style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>Total Claims</span>
-            <span className="stat-value" style={{ fontSize: '1.4rem', fontWeight: 700, color: 'var(--text-title)' }}>152</span>
+            <span className="stat-value" style={{ fontSize: '1.4rem', fontWeight: 700, color: 'var(--text-title)' }}>{totalClaimsCount}</span>
           </div>
         </div>
 
@@ -151,7 +170,7 @@ export default function Analytics({
           </div>
           <div className="stat-info" style={{ display: 'flex', flexDirection: 'column' }}>
             <span className="stat-label" style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>Approved</span>
-            <span className="stat-value" style={{ fontSize: '1.4rem', fontWeight: 700, color: 'var(--text-title)' }}>96</span>
+            <span className="stat-value" style={{ fontSize: '1.4rem', fontWeight: 700, color: 'var(--text-title)' }}>{totalPolicies}</span>
           </div>
         </div>
 
@@ -162,7 +181,7 @@ export default function Analytics({
           </div>
           <div className="stat-info" style={{ display: 'flex', flexDirection: 'column' }}>
             <span className="stat-label" style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>Rejected</span>
-            <span className="stat-value" style={{ fontSize: '1.4rem', fontWeight: 700, color: 'var(--text-title)' }}>34</span>
+            <span className="stat-value" style={{ fontSize: '1.4rem', fontWeight: 700, color: 'var(--text-title)' }}>{rejectedCount}</span>
           </div>
         </div>
 
@@ -173,7 +192,7 @@ export default function Analytics({
           </div>
           <div className="stat-info" style={{ display: 'flex', flexDirection: 'column' }}>
             <span className="stat-label" style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>Manual Review</span>
-            <span className="stat-value" style={{ fontSize: '1.4rem', fontWeight: 700, color: 'var(--text-title)' }}>22</span>
+            <span className="stat-value" style={{ fontSize: '1.4rem', fontWeight: 700, color: 'var(--text-title)' }}>{manualReviewCount}</span>
           </div>
         </div>
 
@@ -184,7 +203,7 @@ export default function Analytics({
           </div>
           <div className="stat-info" style={{ display: 'flex', flexDirection: 'column' }}>
             <span className="stat-label" style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>Fraud Rate</span>
-            <span className="stat-value" style={{ fontSize: '1.4rem', fontWeight: 700, color: 'var(--text-title)' }}>5.9%</span>
+            <span className="stat-value" style={{ fontSize: '1.4rem', fontWeight: 700, color: 'var(--text-title)' }}>{fraudRate}%</span>
           </div>
         </div>
 
@@ -195,7 +214,7 @@ export default function Analytics({
           </div>
           <div className="stat-info" style={{ display: 'flex', flexDirection: 'column' }}>
             <span className="stat-label" style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>Average Claim</span>
-            <span className="stat-value" style={{ fontSize: '1.4rem', fontWeight: 700, color: 'var(--text-title)' }}>₹84,500</span>
+            <span className="stat-value" style={{ fontSize: '1.4rem', fontWeight: 700, color: 'var(--text-title)' }}>₹{avgClaimValue.toLocaleString()}</span>
           </div>
         </div>
 

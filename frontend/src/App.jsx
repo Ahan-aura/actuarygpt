@@ -901,6 +901,9 @@ function App({ user, handleLogout }) {
             totalPremiums={totalPremiums}
             avgRiskClass={avgRiskClass}
             triageApprovalRate={triageApprovalRate}
+            pendingApps={pendingApps}
+            pendingVehicleApps={pendingVehicleApps}
+            processedApps={analyticsSummary?.processed_list || []}
             riskChartData={riskChartData}
             typeChartData={typeChartData}
             premiumTrendData={premiumTrendData}
