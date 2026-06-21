@@ -264,7 +264,7 @@ function App({ user, handleLogout }) {
       const evalResult = await evalRes.json();
 
       setPendingWizardResult({
-        risk_class: evalResult.fraud_reported === 'Y' ? 8 : 1,
+        risk_class: evalResult.risk_class || (evalResult.fraud_reported === 'Y' ? 8 : 1),
         confidence: evalResult.confidence,
         premium: evalResult.premium, 
         underwriting_decision: evalResult.underwriting_decision,

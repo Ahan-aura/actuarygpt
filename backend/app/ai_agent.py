@@ -199,9 +199,34 @@ Top similar historical claims found:
     if fraud_reported == "Y":
         decision = "High Risk - Potential Fraud - Flag for Investigation"
         category = "High Risk"
+        # High confidence fraud gets Class 8, low confidence gets Class 7
+        risk_class = 8 if confidence >= 80.0 else 7
     else:
         decision = "Preferred Claim - Standard Approval"
-        category = "Low Risk"
+        
+        # Base risk class on incident severity (granular scaling)
+        severity = customer.get("incident_severity", "Minor Damage")
+        if severity == "Total Loss":
+            risk_class = 6
+            category = "High Risk"
+        elif severity == "Major Damage":
+            risk_class = 5
+            category = "Medium Risk"
+        elif severity == "Minor Damage":
+            risk_class = 3
+            category = "Medium Risk"
+        else: # Trivial Damage
+            risk_class = 2
+            category = "Low Risk"
+            
+        # Adjust slightly based on total claim amount
+        total_claim = float(customer.get("total_claim_amount") or 0.0)
+        if total_claim > 60000.0:
+            risk_class = min(risk_class + 1, 6)
+            category = "High Risk" if risk_class >= 6 else category
+        elif total_claim < 10000.0:
+            risk_class = max(risk_class - 1, 1)
+            category = "Low Risk" if risk_class <= 2 else category
         
     BASE_DIR = os.path.dirname(os.path.abspath(__file__))
     REPORTS_DIR = os.path.join(BASE_DIR, "static", "reports")
@@ -213,7 +238,7 @@ Top similar historical claims found:
     generate_vehicle_pdf_report(customer, fraud_reported, confidence, report, pdf_filepath)
     
     return {
-        "risk_class": 0, # Placeholder for vehicle
+        "risk_class": risk_class,
         "risk_category": category,
         "premium": premium,
         "report": report,

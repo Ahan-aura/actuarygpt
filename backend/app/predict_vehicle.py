@@ -33,7 +33,14 @@ def predict_vehicle_fraud(user_data):
     row = {}
     for col in feature_columns:
         val = user_data.get(col)
-        # Default missing values appropriately
+        # Check for dash vs underscore key mismatch
+        if val is None or val == "":
+            if col == "capital-gains" and "capital_gains" in user_data:
+                val = user_data["capital_gains"]
+            elif col == "capital-loss" and "capital_loss" in user_data:
+                val = user_data["capital_loss"]
+                
+        # Default missing values appropriately if still missing
         if val is None or val == "":
             if col in df_dataset.columns:
                 if df_dataset[col].dtype == 'object':
