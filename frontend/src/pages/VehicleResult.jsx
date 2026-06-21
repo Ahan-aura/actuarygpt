@@ -33,6 +33,100 @@ export default function VehicleResult({
   const confidenceScore = isFraud ? 92 : 95;
   const decisionText = agentResult.underwriting_decision || (isFraud ? "Manual Review Recommended" : "Approved for Payout");
 
+  if (!isOfficer) {
+    return (
+      <div 
+        className="glass-card animate-fade-in" 
+        style={{ 
+          maxWidth: '600px', 
+          margin: '2rem auto', 
+          padding: '2.5rem', 
+          textAlign: 'center', 
+          display: 'flex', 
+          flexDirection: 'column', 
+          alignItems: 'center', 
+          gap: '1.5rem',
+          border: '1px solid var(--border)',
+          backgroundColor: 'var(--bg-card)'
+        }}
+      >
+        <div 
+          style={{ 
+            display: 'inline-flex', 
+            alignItems: 'center', 
+            justifyContent: 'center', 
+            width: '72px', 
+            height: '72px', 
+            borderRadius: '50%', 
+            backgroundColor: 'rgba(16, 185, 129, 0.1)', 
+            color: 'var(--risk-low)',
+            marginBottom: '0.5rem'
+          }}
+        >
+          <CheckCircle2 size={40} />
+        </div>
+        
+        <h3 style={{ fontSize: '1.75rem', fontWeight: 800, color: 'var(--text-title)', margin: 0, letterSpacing: '-0.02em' }}>
+          Claim Submitted Successfully
+        </h3>
+        
+        <p style={{ fontSize: '0.95rem', color: 'var(--text-muted)', lineHeight: 1.5, margin: 0, maxWidth: '460px' }}>
+          Your vehicle insurance claim has been registered and is currently under review by our claims audit board. We will notify you once assessment is complete.
+        </p>
+
+        <div 
+          style={{ 
+            width: '100%', 
+            padding: '1.25rem', 
+            backgroundColor: 'var(--bg-input)', 
+            borderRadius: '8px', 
+            border: '1px solid var(--border)',
+            textAlign: 'left',
+            display: 'flex',
+            flexDirection: 'column',
+            gap: '0.50rem',
+            fontSize: '0.85rem'
+          }}
+        >
+          <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+            <span style={{ color: 'var(--text-muted)' }}>Claim ID:</span>
+            <b style={{ color: 'var(--secondary)' }}>{selectedApp?.id || 'VEH-' + Math.random().toString(36).substr(2, 6).toUpperCase()}</b>
+          </div>
+          <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+            <span style={{ color: 'var(--text-muted)' }}>Policyholder Name:</span>
+            <b style={{ color: 'var(--text-title)' }}>{selectedApp?.client || 'Ahan'}</b>
+          </div>
+          <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+            <span style={{ color: 'var(--text-muted)' }}>Vehicle Details:</span>
+            <b style={{ color: 'var(--text-title)' }}>{selectedApp?.auto_make || 'Vehicle'} {selectedApp?.auto_model || ''}</b>
+          </div>
+          <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+            <span style={{ color: 'var(--text-muted)' }}>Total Claimed Amount:</span>
+            <b style={{ color: 'var(--text-title)' }}>₹{selectedApp?.total_claim_amount?.toLocaleString() || 'N/A'}</b>
+          </div>
+        </div>
+
+        <div style={{ width: '100%', display: 'flex', flexDirection: 'column', gap: '0.75rem', marginTop: '0.5rem', textAlign: 'left' }}>
+          <span style={{ fontSize: '0.8rem', fontWeight: 700, color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Timeline & Status</span>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem', fontSize: '0.85rem' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', color: 'var(--risk-low)' }}>
+              <span>✔</span>
+              <span>Incident Parameters Validated</span>
+            </div>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', color: 'var(--risk-low)' }}>
+              <span>✔</span>
+              <span>Forensic & Damage Scan Completed</span>
+            </div>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', color: 'var(--text-muted)' }}>
+              <span className="animate-pulse" style={{ color: 'var(--secondary)', marginRight: '2px' }}>●</span>
+              <span>Sent for Claims Audit Review (Pending)</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
   const handleSendInlineChat = async (text) => {
     const msgText = text || inlineChatInput;
     if (!msgText.trim()) return;

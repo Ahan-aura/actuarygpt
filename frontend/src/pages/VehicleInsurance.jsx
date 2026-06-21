@@ -912,14 +912,6 @@ export default function VehicleInsurance({
                   <span>Date: <b>{app.date}</b></span>
                 </div>
 
-                {app.fraud_reported && (
-                  <div style={{ borderTop: '1px solid var(--border)', paddingTop: '0.5rem', marginTop: '0.25rem', display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
-                    <div style={{ display: 'grid', gridTemplateColumns: '1.5fr 1fr', gap: '1rem', fontSize: '0.8rem' }}>
-                      <div>Fraud Flag: <span className="risk-badge" style={{ padding: '0.1rem 0.5rem', fontSize: '0.7rem', backgroundColor: app.fraud_reported === 'Y' ? 'var(--risk-high-bg)' : 'var(--risk-low-bg)', color: app.fraud_reported === 'Y' ? 'var(--risk-high)' : 'var(--risk-low)' }}>{app.fraud_reported === 'Y' ? 'FLAGGED FRAUD' : 'VERIFIED OK'}</span></div>
-                      <div style={{ textAlign: 'right' }}>Confidence: <b>{app.confidence}%</b></div>
-                    </div>
-                  </div>
-                )}
               </div>
             ))}
           </div>
