@@ -480,55 +480,16 @@ export default function VehicleInsurance({
             </div>
 
             <div style={{ padding: '0.5rem 0', fontWeight: 600, color: 'var(--primary)', fontSize: '0.9rem', borderBottom: '1px dashed var(--border)' }}>Customer Information</div>
-            
-            {/* If customer already exists (ownerName is filled), show Customer History. Otherwise, show Name/Age input fields */}
-            {ownerName.trim() ? (
-              <div className="glass-card animate-fade-in" style={{ padding: '1rem', border: '1px solid var(--border)', borderRadius: '8px', marginBottom: '1.25rem', background: 'linear-gradient(135deg, rgba(99,102,241,0.05) 0%, rgba(168,85,247,0.05) 100%)' }}>
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.75rem', borderBottom: '1px solid var(--border)', paddingBottom: '0.5rem' }}>
-                  <span style={{ fontWeight: 700, color: 'var(--primary)', fontSize: '0.9rem' }}>👤 Customer History: {ownerName}</span>
-                  <button 
-                    type="button" 
-                    onClick={() => { setOwnerName(""); handleInputChange('age', ""); setParsedDocInfo(null); }} 
-                    style={{ background: 'none', border: 'none', color: 'var(--risk-high)', fontSize: '0.75rem', cursor: 'pointer', textDecoration: 'underline' }}
-                  >
-                    Clear / New Customer
-                  </button>
-                </div>
-                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(5, 1fr)', gap: '0.5rem', textAlign: 'center' }}>
-                  <div>
-                    <span style={{ display: 'block', fontSize: '0.7rem', color: 'var(--text-muted)' }}>Policies</span>
-                    <span style={{ fontSize: '1.1rem', fontWeight: 700, color: 'var(--text-title)' }}>3</span>
-                  </div>
-                  <div>
-                    <span style={{ display: 'block', fontSize: '0.7rem', color: 'var(--text-muted)' }}>Prev Claims</span>
-                    <span style={{ fontSize: '1.1rem', fontWeight: 700, color: 'var(--text-title)' }}>2</span>
-                  </div>
-                  <div>
-                    <span style={{ display: 'block', fontSize: '0.7rem', color: 'var(--text-muted)' }}>Prev Fraud</span>
-                    <span style={{ fontSize: '1.1rem', fontWeight: 700, color: 'var(--risk-low)' }}>0</span>
-                  </div>
-                  <div>
-                    <span style={{ display: 'block', fontSize: '0.7rem', color: 'var(--text-muted)' }}>Avg Claim</span>
-                    <span style={{ fontSize: '1.05rem', fontWeight: 700, color: 'var(--secondary)' }}>₹82,000</span>
-                  </div>
-                  <div>
-                    <span style={{ display: 'block', fontSize: '0.7rem', color: 'var(--text-muted)' }}>Since</span>
-                    <span style={{ fontSize: '1.05rem', fontWeight: 700, color: 'var(--text-title)' }}>2019</span>
-                  </div>
-                </div>
+            <div className="form-group-row">
+              <div className="form-group">
+                <label>Owner Name</label>
+                <input type="text" className="form-input" value={ownerName} onChange={(e) => setOwnerName(e.target.value)} required />
               </div>
-            ) : (
-              <div className="form-group-row">
-                <div className="form-group">
-                  <label>Owner Name</label>
-                  <input type="text" className="form-input" value={ownerName} onChange={(e) => setOwnerName(e.target.value)} required />
-                </div>
-                <div className="form-group">
-                  <label>Age</label>
-                  <input type="number" className="form-input" value={formData.age} onChange={(e) => handleInputChange('age', parseInt(e.target.value))} required />
-                </div>
+              <div className="form-group">
+                <label>Age</label>
+                <input type="number" className="form-input" value={formData.age} onChange={(e) => handleInputChange('age', parseInt(e.target.value))} required />
               </div>
-            )}
+            </div>
 
             <div className="form-group-row">
               <div className="form-group">

@@ -160,6 +160,35 @@ export default function VehicleResult({
             </div>
           </div>
 
+          {/* Customer History Card for Officer Review */}
+          <div className="glass-card" style={{ padding: '1.25rem', border: '1px solid var(--border)', borderRadius: '8px', display: 'flex', flexDirection: 'column', gap: '1rem', background: 'linear-gradient(135deg, rgba(99,102,241,0.03) 0%, rgba(168,85,247,0.03) 100%)' }}>
+            <h4 style={{ fontSize: '0.95rem', fontWeight: 700, color: 'var(--text-title)', display: 'flex', alignItems: 'center', gap: '0.5rem', margin: 0, borderBottom: '1px solid var(--border)', paddingBottom: '0.5rem' }}>
+              👤 Customer Claims History Profile
+            </h4>
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '1rem 0.5rem', fontSize: '0.8rem', textAlign: 'center' }}>
+              <div>
+                <span style={{ display: 'block', fontSize: '0.7rem', color: 'var(--text-muted)' }}>Policies</span>
+                <span style={{ fontSize: '1rem', fontWeight: 700, color: 'var(--text-title)' }}>3</span>
+              </div>
+              <div>
+                <span style={{ display: 'block', fontSize: '0.7rem', color: 'var(--text-muted)' }}>Previous Claims</span>
+                <span style={{ fontSize: '1rem', fontWeight: 700, color: 'var(--text-title)' }}>2</span>
+              </div>
+              <div>
+                <span style={{ display: 'block', fontSize: '0.7rem', color: 'var(--text-muted)' }}>Previous Fraud</span>
+                <span style={{ fontSize: '1rem', fontWeight: 700, color: 'var(--risk-low)' }}>0</span>
+              </div>
+              <div>
+                <span style={{ display: 'block', fontSize: '0.7rem', color: 'var(--text-muted)' }}>Avg Claim</span>
+                <span style={{ fontSize: '1rem', fontWeight: 700, color: 'var(--secondary)' }}>₹82,000</span>
+              </div>
+              <div>
+                <span style={{ display: 'block', fontSize: '0.7rem', color: 'var(--text-muted)' }}>Customer Since</span>
+                <span style={{ fontSize: '1rem', fontWeight: 700, color: 'var(--text-title)' }}>2019</span>
+              </div>
+            </div>
+          </div>
+
           {/* Explainable AI: Top Factors */}
           <div className="glass-card" style={{ padding: '1.25rem', border: '1px solid var(--border)', borderRadius: '8px', display: 'flex', flexDirection: 'column', gap: '1rem' }}>
             <h4 style={{ fontSize: '0.95rem', fontWeight: 700, color: 'var(--text-title)', display: 'flex', alignItems: 'center', gap: '0.5rem', margin: 0, borderBottom: '1px solid var(--border)', paddingBottom: '0.5rem' }}>
