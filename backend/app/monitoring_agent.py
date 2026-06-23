@@ -246,7 +246,7 @@ def get_monthly_monitoring_report(force=False):
     Return your response strictly in the following JSON format:
     {{
         "trend_summary": "Fraud rate increasing +3% and SUV claim costs rising",
-        "memo_text": "Claims increased by {int(((this_total-last_total)/last_total)*100) if last_total else 14}%. SUV repair costs are higher. Fraud probability increased from {last_fraud_rate}% to {this_fraud_rate}%. Life insurance high-risk profiles grew to {this_life_high_risk_rate}%. Most affected city: {top_city}. Recommendation: Increase manual review for SUV claims above ₹2 Lakhs.",
+        "memo_text": "Claims increased by {int(((this_total-last_total)/last_total)*100) if last_total else 14}%. SUV repair costs are higher. Fraud probability increased from {last_fraud_rate}% to {this_fraud_rate}%. Life insurance high-risk profiles grew to {this_life_high_risk_rate}%. Most affected city: {top_city}. Recommendation: Increase manual review for vehicle claims originating from Columbus and claims above ₹1,00,000.",
         "trends": [
             {{"title": "Property claims increased", "value": "18%", "desc": "Compared to last month"}},
             {{"title": "High-risk life profiles", "value": "{this_life_high_risk_rate}%", "desc": "Of total life submissions"}},
@@ -277,7 +277,7 @@ def get_monthly_monitoring_report(force=False):
         diff_fraud = this_fraud_rate - last_fraud_rate
         data = {
             "trend_summary": f"Fraud rate increasing (+{diff_fraud}%)",
-            "memo_text": f"Claims increased by 14%. SUV repair costs rose. Fraud probability increased from {last_fraud_rate}% to {this_fraud_rate}%. Life high-risk rate at {this_life_high_risk_rate}%. Most affected city: {top_city}. Recommendation: Review smoker life rates.",
+            "memo_text": f"Claims increased by 14%. SUV repair costs rose. Fraud probability increased from {last_fraud_rate}% to {this_fraud_rate}%. Life high-risk rate at {this_life_high_risk_rate}%. Most affected city: {top_city}. Recommendation: Increase manual review for vehicle claims originating from Columbus and claims above ₹1,00,000.",
             "trends": [
                 {"title": "Property claims increased", "value": "18%", "desc": "Compared to last month"},
                 {"title": "High-risk life profiles", "value": f"{this_life_high_risk_rate}%", "desc": "Of total life submissions"},
@@ -341,7 +341,7 @@ def generate_mock_report():
         "average_claim": 84000,
         "open_claims": 132,
         "trend": "Fraud increasing",
-        "memo": "Claims increased by 14%. SUV claims increased by 18%. Fraud probability increased from 5% to 8%. Most affected city: Hyderabad. Recommendation: Increase manual review for SUV claims above ₹2 Lakhs.",
+        "memo": "Claims increased by 14%. SUV claims increased by 18%. Fraud probability increased from 5% to 8%. Most affected city: Hyderabad. Recommendation: Increase manual review for vehicle claims originating from Columbus and claims above ₹1,00,000.",
         "trends_list": [
             {"title": "Property claims increased", "value": "18%", "desc": "Compared to last month"},
             {"title": "SUV repair costs increased", "value": "12%", "desc": "Driven by major collisions"},
