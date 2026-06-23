@@ -29,8 +29,11 @@ import {
 } from 'lucide-react';
 import './App.css';
 
-const API_BASE = window.location.hostname === "localhost" || window.location.hostname === "127.0.0.1"
-  ? "http://127.0.0.1:8000"
+const API_BASE = window.location.hostname === "localhost" || 
+                 window.location.hostname === "127.0.0.1" || 
+                 window.location.hostname === "[::1]" || 
+                 window.location.port === "5173"
+  ? `http://${window.location.hostname === "[::1]" ? "[::1]" : "127.0.0.1"}:8000`
   : "https://actuarygpt-backend.onrender.com";
 
 const DEFAULT_BLANK_FORM = {
