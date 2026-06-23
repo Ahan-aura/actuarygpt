@@ -14,7 +14,7 @@ if api_key:
 
 model = genai.GenerativeModel("gemini-2.5-flash")
 
-def get_monthly_monitoring_report():
+def get_monthly_monitoring_report(force=False):
     conn = get_db_connection()
     cursor = conn.cursor()
 
@@ -132,7 +132,7 @@ def get_monthly_monitoring_report():
     existing_log = cursor.fetchone()
     
     cache_valid = False
-    if existing_log:
+    if existing_log and not force:
         try:
             # Check if metrics are exactly identical
             same_total = int(existing_log["total_claims"]) == int(this_total)

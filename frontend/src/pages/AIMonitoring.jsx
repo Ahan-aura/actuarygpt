@@ -38,10 +38,11 @@ export default function AIMonitoring({
   const [error, setError] = useState(null);
   const [isRefreshing, setIsRefreshing] = useState(false);
 
-  const fetchMonitoringData = async () => {
+  const fetchMonitoringData = async (force = false) => {
     try {
       setLoading(true);
-      const res = await fetch(`${API_BASE}/api/monitoring`);
+      const url = force ? `${API_BASE}/api/monitoring?force=true` : `${API_BASE}/api/monitoring`;
+      const res = await fetch(url);
       if (!res.ok) throw new Error("Failed to load monitoring data");
       const result = await res.json();
       setData(result);
@@ -77,7 +78,7 @@ export default function AIMonitoring({
 
   const handleRefresh = async () => {
     setIsRefreshing(true);
-    await fetchMonitoringData();
+    await fetchMonitoringData(true);
     setIsRefreshing(false);
   };
 
