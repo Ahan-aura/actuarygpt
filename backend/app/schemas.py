@@ -42,6 +42,7 @@ class RegisterRequest(BaseModel):
     password: str
     role: str
     passkey: Optional[str] = None
+    recovery_hint: Optional[str] = None
 
 class DecisionRequest(BaseModel):
     decision: str

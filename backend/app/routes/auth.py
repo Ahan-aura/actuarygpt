@@ -14,8 +14,8 @@ def register(req: RegisterRequest):
     cursor = conn.cursor()
     try:
         cursor.execute(
-            "INSERT INTO users (username, password, role) VALUES (?, ?, ?)",
-            (req.username.strip().lower(), req.password, req.role.strip())
+            "INSERT INTO users (username, password, role, recovery_hint) VALUES (?, ?, ?, ?)",
+            (req.username.strip().lower(), req.password, req.role.strip(), req.recovery_hint)
         )
         conn.commit()
         return {"success": True, "message": "User registered successfully"}
@@ -47,4 +47,25 @@ def login(req: LoginRequest):
     return {
         "username": user["username"],
         "role": user["role"]
+    }
+
+from pydantic import BaseModel
+class ForgotPasswordRequest(BaseModel):
+    username: str
+
+@router.post("/forgot-password")
+def forgot_password(req: ForgotPasswordRequest):
+    conn = get_db_connection()
+    cursor = conn.cursor()
+    cursor.execute("SELECT password, recovery_hint FROM users WHERE username = ?", (req.username.strip().lower(),))
+    user = cursor.fetchone()
+    conn.close()
+    
+    if not user:
+        raise HTTPException(status_code=404, detail="Username not found.")
+        
+    return {
+        "success": True,
+        "recovery_hint": user["recovery_hint"] or "No recovery hint configured.",
+        "password": user["password"]
     }

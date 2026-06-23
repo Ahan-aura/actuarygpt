@@ -136,10 +136,18 @@ def init_db():
         id INTEGER PRIMARY KEY AUTOINCREMENT,
         username TEXT UNIQUE NOT NULL,
         password TEXT NOT NULL,
-        role TEXT NOT NULL CHECK(role IN ('customer', 'officer'))
+        role TEXT NOT NULL CHECK(role IN ('customer', 'officer')),
+        recovery_hint TEXT
     )
     """)
     conn.commit()
+    
+    # Run column migration for recovery_hint if it doesn't exist
+    try:
+        cursor.execute("ALTER TABLE users ADD COLUMN recovery_hint TEXT")
+        conn.commit()
+    except Exception:
+        pass
     
     # Run casing consistency migration for existing usernames
     try:
