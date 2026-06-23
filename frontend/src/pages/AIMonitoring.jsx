@@ -41,7 +41,9 @@ export default function AIMonitoring({
   const fetchMonitoringData = async (force = false) => {
     try {
       setLoading(true);
-      const url = force ? `${API_BASE}/api/monitoring?force=true` : `${API_BASE}/api/monitoring`;
+      const url = force 
+        ? `${API_BASE}/api/monitoring?force=true&t=${Date.now()}` 
+        : `${API_BASE}/api/monitoring?t=${Date.now()}`;
       const res = await fetch(url);
       if (!res.ok) throw new Error("Failed to load monitoring data");
       const result = await res.json();
@@ -112,7 +114,29 @@ export default function AIMonitoring({
   const memoText = report.memo || "";
 
   return (
-    <div className="ai-monitoring-view animate-fade-in" style={{ display: 'flex', flexDirection: 'column', gap: '2rem' }}>
+    <div className="ai-monitoring-view animate-fade-in" style={{ display: 'flex', flexDirection: 'column', gap: '2rem', position: 'relative' }}>
+      
+      {isRefreshing && (
+        <div style={{ 
+          position: 'fixed', 
+          top: '2rem', 
+          right: '2rem', 
+          backgroundColor: 'var(--primary)', 
+          color: '#fff', 
+          padding: '0.75rem 1.25rem', 
+          borderRadius: '8px', 
+          zIndex: 9999, 
+          display: 'flex', 
+          alignItems: 'center', 
+          gap: '0.75rem', 
+          boxShadow: '0 4px 12px rgba(0,0,0,0.5)', 
+          fontWeight: 600, 
+          border: '1px solid rgba(255,255,255,0.1)' 
+        }}>
+          <RefreshCw className="animate-spin" size={16} />
+          <span>Generating AI Telemetry via Gemini...</span>
+        </div>
+      )}
       
       {/* HEADER ROW */}
       <div className="welcome-banner" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
