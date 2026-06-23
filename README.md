@@ -44,7 +44,7 @@ graph TD
         D -->|Triage Queue Grid| F[AI Profiler Dashboard]
         D -->|Analytics Tab| G[Dynamic Recharts Suite]
         D -->|Underwriter Co-Pilot| H[Actuarial Chatbox]
-        D -->|AI Monitoring Tab| Y[⭐ AI Monitoring Center]
+        D -->|AI Monitoring Tab| Y[AI Monitoring Center]
     end
 
     subgraph Service Tier [FastAPI REST API Server]
