@@ -9,7 +9,7 @@ from fastapi.staticfiles import StaticFiles
 from fastapi.middleware.cors import CORSMiddleware
 
 # Import routers from the routes package
-from routes import auth, life, vehicle, analytics, chatbot
+from routes import auth, life, vehicle, analytics, chatbot, monitoring
 
 app = FastAPI(
     title="ActuaryGPT API",
@@ -45,6 +45,7 @@ app.include_router(life.router)
 app.include_router(vehicle.router)
 app.include_router(analytics.router)
 app.include_router(chatbot.router)
+app.include_router(monitoring.router)
 
 from pydantic import BaseModel
 class DocumentParseRequest(BaseModel):

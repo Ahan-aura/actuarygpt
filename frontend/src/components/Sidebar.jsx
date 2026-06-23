@@ -8,7 +8,8 @@ import {
   TrendingUp, 
   MessageSquare, 
   Settings, 
-  LogOut 
+  LogOut,
+  Cpu
 } from 'lucide-react';
 
 export default function Sidebar({ 
@@ -25,6 +26,7 @@ export default function Sidebar({
     { id: 'triage', label: 'Applications', icon: ClipboardList, badge: pendingAppsCount },
     { id: 'history', label: 'History', icon: HistoryIcon },
     { id: 'analytics', label: 'Analytics', icon: TrendingUp },
+    { id: 'ai_monitoring', label: '⭐ AI Monitoring', icon: Cpu },
     { id: 'assistant', label: 'AI Assistant', icon: MessageSquare },
     { id: 'settings', label: 'Settings', icon: Settings }
   ];

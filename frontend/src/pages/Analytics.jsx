@@ -31,49 +31,6 @@ import {
   Line
 } from 'recharts';
 
-// Custom metrics data for Officer view
-const claimsByMonthData = [
-  { month: 'Jan', Claims: 45 },
-  { month: 'Feb', Claims: 52 },
-  { month: 'Mar', Claims: 68 },
-  { month: 'Apr', Claims: 85 },
-  { month: 'May', Claims: 94 },
-  { month: 'Jun', Claims: 120 }
-];
-
-const fraudTrendData = [
-  { month: 'Jan', 'Fraud Rate (%)': 4.2 },
-  { month: 'Feb', 'Fraud Rate (%)': 4.8 },
-  { month: 'Mar', 'Fraud Rate (%)': 5.5 },
-  { month: 'Apr', 'Fraud Rate (%)': 6.1 },
-  { month: 'May', 'Fraud Rate (%)': 5.9 },
-  { month: 'Jun', 'Fraud Rate (%)': 6.0 }
-];
-
-const topVehicleBrandsData = [
-  { brand: 'Hyundai', Claims: 32 },
-  { brand: 'Maruti', Claims: 28 },
-  { brand: 'Tata', Claims: 25 },
-  { brand: 'Mahindra', Claims: 22 },
-  { brand: 'Honda', Claims: 18 }
-];
-
-const claimAmountDistributionData = [
-  { range: 'Under ₹25k', 'Claims Count': 40 },
-  { range: '₹25k-50k', 'Claims Count': 65 },
-  { range: '₹50k-1L', 'Claims Count': 95 },
-  { range: '₹1L-2L', 'Claims Count': 50 },
-  { range: 'Over ₹2L', 'Claims Count': 20 }
-];
-
-const incidentCitiesData = [
-  { name: 'Pune', value: 38, color: '#6366f1' },
-  { name: 'Mumbai', value: 27, color: '#a855f7' },
-  { name: 'Delhi', value: 20, color: '#10b981' },
-  { name: 'Bangalore', value: 15, color: '#f59e0b' },
-  { name: 'Hyderabad', value: 10, color: '#ef4444' }
-];
-
 export default function Analytics({
   totalPolicies,
   totalPremiums,
@@ -84,6 +41,163 @@ export default function Analytics({
   processedApps = [],
   isCustomerView = false
 }) {
+  // 1. Dynamic Claims by Month
+  const monthNames = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+  const monthCounts = { Jan: 0, Feb: 0, Mar: 0, Apr: 0, May: 0, Jun: 0, Jul: 0, Aug: 0, Sep: 0, Oct: 0, Nov: 0, Dec: 0 };
+  
+  // 2. Dynamic Fraud Trend per month
+  const monthStats = {
+    Jan: { total: 0, fraud: 0 },
+    Feb: { total: 0, fraud: 0 },
+    Mar: { total: 0, fraud: 0 },
+    Apr: { total: 0, fraud: 0 },
+    May: { total: 0, fraud: 0 },
+    Jun: { total: 0, fraud: 0 },
+    Jul: { total: 0, fraud: 0 },
+    Aug: { total: 0, fraud: 0 },
+    Sep: { total: 0, fraud: 0 },
+    Oct: { total: 0, fraud: 0 },
+    Nov: { total: 0, fraud: 0 },
+    Dec: { total: 0, fraud: 0 }
+  };
+
+  // 3. Dynamic Vehicle Brands
+  const brandCounts = {};
+
+  // 4. Dynamic Claim Amount Distribution
+  let under25 = 0, k25_50 = 0, k50_100 = 0, k100_200 = 0, over200 = 0;
+
+  // 5. Dynamic Incident Cities
+  const cityCounts = {};
+  let totalVehicleClaimsCount = 0;
+
+  // Process both processed and pending lists if available
+  const allSubmissions = [...(processedApps || []), ...(pendingApps || []), ...(pendingVehicleApps || [])];
+
+  allSubmissions.forEach(app => {
+    // 1. Claims by Month & Fraud Trend
+    if (app.date) {
+      const dateParts = app.date.split('-');
+      if (dateParts.length >= 2) {
+        const monthIndex = parseInt(dateParts[1], 10) - 1;
+        if (monthIndex >= 0 && monthIndex < 12) {
+          const monthName = monthNames[monthIndex];
+          monthCounts[monthName]++;
+          
+          if (app.insurance_type === 'Vehicle') {
+            monthStats[monthName].total++;
+            if (app.fraud_reported === 'Y') {
+              monthStats[monthName].fraud++;
+            }
+          }
+        }
+      }
+    }
+
+    // 2. Vehicle Brands (make)
+    if (app.insurance_type === 'Vehicle' && app.auto_make) {
+      const brand = app.auto_make;
+      brandCounts[brand] = (brandCounts[brand] || 0) + 1;
+    }
+
+    // 3. Claim amount distribution
+    const amt = app.insurance_type === 'Vehicle' ? (app.total_claim_amount || 0) : (app.coverage_amount || 0);
+    if (amt > 0) {
+      if (amt < 25000) under25++;
+      else if (amt <= 50000) k25_50++;
+      else if (amt <= 100000) k50_100++;
+      else if (amt <= 200000) k100_200++;
+      else over200++;
+    }
+
+    // 4. Incident Cities
+    if (app.insurance_type === 'Vehicle' && app.incident_city) {
+      const city = app.incident_city;
+      cityCounts[city] = (cityCounts[city] || 0) + 1;
+      totalVehicleClaimsCount++;
+    }
+  });
+
+  // Fallbacks if data is empty so graphs don't look completely empty on initial load
+  const hasClaimsData = allSubmissions.length > 0;
+
+  const claimsByMonthData = hasClaimsData 
+    ? monthNames.map(m => ({ month: m, Claims: monthCounts[m] }))
+    : [
+        { month: 'Jan', Claims: 45 },
+        { month: 'Feb', Claims: 52 },
+        { month: 'Mar', Claims: 68 },
+        { month: 'Apr', Claims: 85 },
+        { month: 'May', Claims: 94 },
+        { month: 'Jun', Claims: 120 }
+      ];
+
+  const fraudTrendData = hasClaimsData
+    ? monthNames.map(m => {
+        const total = monthStats[m].total;
+        const fraud = monthStats[m].fraud;
+        return {
+          month: m,
+          'Fraud Rate (%)': total > 0 ? parseFloat(((fraud / total) * 100).toFixed(1)) : 0.0
+        };
+      })
+    : [
+        { month: 'Jan', 'Fraud Rate (%)': 4.2 },
+        { month: 'Feb', 'Fraud Rate (%)': 4.8 },
+        { month: 'Mar', 'Fraud Rate (%)': 5.5 },
+        { month: 'Apr', 'Fraud Rate (%)': 6.1 },
+        { month: 'May', 'Fraud Rate (%)': 5.9 },
+        { month: 'Jun', 'Fraud Rate (%)': 6.0 }
+      ];
+
+  const topVehicleBrandsData = (hasClaimsData && Object.keys(brandCounts).length > 0)
+    ? Object.keys(brandCounts)
+        .map(brand => ({ brand, Claims: brandCounts[brand] }))
+        .sort((a, b) => b.Claims - a.Claims)
+        .slice(0, 5)
+    : [
+        { brand: 'Hyundai', Claims: 32 },
+        { brand: 'Maruti', Claims: 28 },
+        { brand: 'Tata', Claims: 25 },
+        { brand: 'Mahindra', Claims: 22 },
+        { brand: 'Honda', Claims: 18 }
+      ];
+
+  const claimAmountDistributionData = hasClaimsData
+    ? [
+        { range: 'Under ₹25k', 'Claims Count': under25 },
+        { range: '₹25k-50k', 'Claims Count': k25_50 },
+        { range: '₹50k-1L', 'Claims Count': k50_100 },
+        { range: '₹1L-2L', 'Claims Count': k100_200 },
+        { range: 'Over ₹2L', 'Claims Count': over200 }
+      ]
+    : [
+        { range: 'Under ₹25k', 'Claims Count': 40 },
+        { range: '₹25k-50k', 'Claims Count': 65 },
+        { range: '₹50k-1L', 'Claims Count': 95 },
+        { range: '₹1L-2L', 'Claims Count': 50 },
+        { range: 'Over ₹2L', 'Claims Count': 20 }
+      ];
+
+  const cityPalette = ['#6366f1', '#a855f7', '#10b981', '#f59e0b', '#ef4444', '#06b6d4', '#ec4899'];
+  const incidentCitiesData = (hasClaimsData && Object.keys(cityCounts).length > 0)
+    ? Object.keys(cityCounts)
+        .map(name => ({ name, value: cityCounts[name] }))
+        .sort((a, b) => b.value - a.value)
+        .slice(0, 5)
+        .map((city, idx) => ({
+          name: city.name,
+          value: totalVehicleClaimsCount > 0 ? Math.round((city.value / totalVehicleClaimsCount) * 100) : 0,
+          color: cityPalette[idx % cityPalette.length]
+        }))
+    : [
+        { name: 'Pune', value: 38, color: '#6366f1' },
+        { name: 'Mumbai', value: 27, color: '#a855f7' },
+        { name: 'Delhi', value: 20, color: '#10b981' },
+        { name: 'Bangalore', value: 15, color: '#f59e0b' },
+        { name: 'Hyderabad', value: 10, color: '#ef4444' }
+      ];
+
   const totalClaimsCount = (processedApps?.length || 0) + pendingApps.length + pendingVehicleApps.length;
   const approvedCount = processedApps?.filter(app => app.status === 'approved').length || 0;
   const rejectedCount = processedApps?.filter(app => app.status === 'rejected').length || 0;

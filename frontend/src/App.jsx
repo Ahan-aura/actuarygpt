@@ -16,6 +16,7 @@ import Chatbot from './pages/Chatbot';
 import SettingsPage from './pages/Settings';
 import Landing from './pages/Landing';
 import ClaimProcessingScreen from './components/ClaimProcessingScreen';
+import AIMonitoring from './pages/AIMonitoring';
 
 import { 
   Shield, 
@@ -907,6 +908,15 @@ function App({ user, handleLogout }) {
             riskChartData={riskChartData}
             typeChartData={typeChartData}
             premiumTrendData={premiumTrendData}
+          />
+        )}
+
+        {officerTab === 'ai_monitoring' && (
+          <AIMonitoring
+            processedApps={analyticsSummary?.processed_list || []}
+            pendingApps={pendingApps}
+            pendingVehicleApps={pendingVehicleApps}
+            API_BASE={API_BASE}
           />
         )}
 

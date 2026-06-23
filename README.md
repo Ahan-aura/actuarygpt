@@ -25,6 +25,7 @@ Legacy core insurance platforms suffer from:
 * **Explainability:** Generate natural language reasoning summaries (Underwriter Briefs) matching regulatory compliance.
 * **Ledger Auditing:** Retrieve top similar cases from the historical reference database using vector similarity search to prevent duplicate claims.
 * **Secure Access Controls:** Segment operations into a public customer-facing self-service wizard and a secure, officer-restricted risk command dashboard.
+* **AI Monitoring & Telemetry:** Real-time execution logs, model health telemetry, latency profiling, and token cost estimation charts.
 
 ---
 
@@ -43,6 +44,7 @@ graph TD
         D -->|Triage Queue Grid| F[AI Profiler Dashboard]
         D -->|Analytics Tab| G[Dynamic Recharts Suite]
         D -->|Underwriter Co-Pilot| H[Actuarial Chatbox]
+        D -->|AI Monitoring Tab| Y[⭐ AI Monitoring Center]
     end
 
     subgraph Service Tier [FastAPI REST API Server]

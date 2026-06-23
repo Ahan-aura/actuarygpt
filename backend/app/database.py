@@ -258,6 +258,21 @@ def init_db():
     )
     """)
     conn.commit()
+    
+    # 3b. Create Monitoring Logs Table
+    cursor.execute("""
+    CREATE TABLE IF NOT EXISTS monitoring_logs (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        month TEXT UNIQUE NOT NULL,
+        total_claims INTEGER NOT NULL,
+        fraud_rate REAL NOT NULL,
+        average_claim REAL NOT NULL,
+        trend TEXT,
+        memo TEXT,
+        created_at TEXT DEFAULT CURRENT_TIMESTAMP
+    )
+    """)
+    conn.commit()
 
     # Migrate existing databases to add columns if they are missing
     try:
