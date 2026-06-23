@@ -18,8 +18,8 @@ def get_monthly_monitoring_report(force=False):
     conn = get_db_connection()
     cursor = conn.cursor()
 
-    # 1. Fetch life applications and vehicle applications
-    cursor.execute("SELECT id, date, status, coverage_amount, client FROM applications")
+    # 1. Fetch life applications and vehicle applications with risk characteristics
+    cursor.execute("SELECT id, date, status, coverage_amount, client, risk_category, risk_class, smoker, bmi, age FROM applications")
     life_rows = [dict(row) for row in cursor.fetchall()]
     
     cursor.execute("SELECT id, date, status, total_claim_amount, client, fraud_reported, auto_make, incident_city, incident_severity FROM vehicle_applications")
@@ -38,7 +38,12 @@ def get_monthly_monitoring_report(force=False):
             "fraud": "N",
             "make": "N/A",
             "city": "N/A",
-            "severity": "N/A"
+            "severity": "N/A",
+            "risk_category": r["risk_category"] or "Low Risk",
+            "risk_class": r["risk_class"] or 1,
+            "smoker": r["smoker"] or 0,
+            "bmi": r["bmi"] or 0.0,
+            "age": r["age"] or 0.0
         })
         
     for r in vehicle_rows:
@@ -83,6 +88,15 @@ def get_monthly_monitoring_report(force=False):
     this_approved = [c for c in this_claims if c["status"] == "approved"]
     this_avg = sum(c["amount"] for c in this_approved) / len(this_approved) if this_approved else 0.0
     
+    # Life & Health metrics for this month
+    this_life_claims = [c for c in this_claims if c["type"] == "Life"]
+    this_life_total = len(this_life_claims)
+    this_life_high_risk = sum(1 for c in this_life_claims if c["risk_category"] == "High Risk" or (c["risk_class"] and c["risk_class"] >= 6))
+    this_life_high_risk_rate = int((this_life_high_risk / this_life_total) * 100) if this_life_total else 12
+    this_life_smoker_count = sum(1 for c in this_life_claims if c["smoker"] == 1)
+    this_life_smoker_rate = int((this_life_smoker_count / this_life_total) * 100) if this_life_total else 18
+    this_life_avg_age = sum(c["age"] for c in this_life_claims) / this_life_total if this_life_total else 45.0
+    
     # Calculate vehicle fraud rate for this month
     this_vehicle_claims = [c for c in this_claims if c["type"] == "Vehicle"]
     this_fraud_count = sum(1 for c in this_vehicle_claims if c["fraud"] == "Y")
@@ -95,6 +109,13 @@ def get_monthly_monitoring_report(force=False):
         last_approved = [c for c in last_claims if c["status"] == "approved"]
         last_avg = sum(c["amount"] for c in last_approved) / len(last_approved) if last_approved else 81000.0
         
+        last_life_claims = [c for c in last_claims if c["type"] == "Life"]
+        last_life_total = len(last_life_claims)
+        last_life_high_risk = sum(1 for c in last_life_claims if c["risk_category"] == "High Risk" or (c["risk_class"] and c["risk_class"] >= 6))
+        last_life_high_risk_rate = int((last_life_high_risk / last_life_total) * 100) if last_life_total else 10
+        last_life_smoker_count = sum(1 for c in last_life_claims if c["smoker"] == 1)
+        last_life_smoker_rate = int((last_life_smoker_count / last_life_total) * 100) if last_life_total else 15
+        
         last_vehicle_claims = [c for c in last_claims if c["type"] == "Vehicle"]
         last_fraud_count = sum(1 for c in last_vehicle_claims if c["fraud"] == "Y")
         last_fraud_rate = int((last_fraud_count / len(last_vehicle_claims)) * 100) if last_vehicle_claims else 5
@@ -103,13 +124,15 @@ def get_monthly_monitoring_report(force=False):
         last_month = "Previous Month"
         last_total = int(this_total * 0.9)
         last_avg = this_avg * 0.95
+        last_life_high_risk_rate = max(1, this_life_high_risk_rate - 2)
+        last_life_smoker_rate = max(1, this_life_smoker_rate - 3)
         last_fraud_rate = max(1, this_fraud_rate - 3)
+        last_vehicle_claims = []
 
     # Compile demographic distributions for Gemini context
     city_counts = {}
     suv_repair_costs = []
     property_claims_count = 0
-    total_repair_costs = 0
     
     for c in this_claims:
         if c["city"] != "N/A":
@@ -125,7 +148,6 @@ def get_monthly_monitoring_report(force=False):
     avg_suv_cost = sum(suv_repair_costs) / len(suv_repair_costs) if suv_repair_costs else 92000.0
     
     # 2. Check if a report for this month already exists in monitoring_logs with the SAME values to avoid redundant Gemini calls.
-    # If the counts, fraud rates, or average claim values differ (e.g. claims were added/resolved), we invalidate the cache.
     conn = get_db_connection()
     cursor = conn.cursor()
     cursor.execute("SELECT * FROM monitoring_logs WHERE month = ?", (this_month,))
@@ -137,7 +159,6 @@ def get_monthly_monitoring_report(force=False):
             # Check if metrics are exactly identical
             same_total = int(existing_log["total_claims"]) == int(this_total)
             same_fraud = int(existing_log["fraud_rate"]) == int(this_fraud_rate)
-            # Floating point comparison tolerating minor rounding differences
             same_avg = abs(float(existing_log["average_claim"]) - float(this_avg)) < 1.0
             
             if same_total and same_fraud and same_avg:
@@ -168,6 +189,17 @@ def get_monthly_monitoring_report(force=False):
             "trend": existing_log["trend"],
             "memo": memo_text,
             "trends_list": trends_list,
+            "life_metrics": {
+                "total_claims": this_life_total,
+                "high_risk_rate": this_life_high_risk_rate,
+                "smoker_rate": this_life_smoker_rate,
+                "average_age": round(this_life_avg_age, 1)
+            },
+            "vehicle_metrics": {
+                "total_claims": len(this_vehicle_claims),
+                "fraud_rate": this_fraud_rate,
+                "average_claim": sum(c["amount"] for c in this_vehicle_claims if c["status"] == "approved") / sum(1 for c in this_vehicle_claims if c["status"] == "approved") if any(c["status"] == "approved" for c in this_vehicle_claims) else 78000.0
+            },
             "this_month": {
                 "fraud_rate": existing_log["fraud_rate"],
                 "total_claims": existing_log["total_claims"],
@@ -185,31 +217,39 @@ def get_monthly_monitoring_report(force=False):
     You are an expert insurance AI risk auditor. Analyze this month's insurance underwriting and claims database stats compared to last month:
     
     This Month ({this_month}):
-    - Total Claims Filed: {this_total}
+    - Total Claims/Applications Filed: {this_total}
     - Open (Pending) Claims: {this_open}
-    - Approved Claim Payout Average: ₹{this_avg:,.2f}
+    
+    Life & Health Insurance Underwriting ({this_life_total} cases):
+    - Approved Claim Payout/Coverage Average: ₹{this_avg:,.2f}
+    - High Risk Application Rate (Risk class >= 6 or High Risk): {this_life_high_risk_rate}%
+    - Smoker Rate: {this_life_smoker_rate}%
+    - Average Applicant Age: {this_life_avg_age:.1f}
+    
+    Vehicle Insurance Claims ({len(this_vehicle_claims)} cases):
     - Vehicle Fraud Risk Rate: {this_fraud_rate}%
     - Most active claims city: {top_city}
     - Average SUV repair claim cost: ₹{avg_suv_cost:,.2f}
     
     Last Month ({last_month}):
-    - Total Claims Filed: {last_total}
-    - Approved Claim Payout Average: ₹{last_avg:,.2f}
+    - Total Claims/Applications Filed: {last_total}
+    - Life & Health High Risk Rate: {last_life_high_risk_rate}%
+    - Life & Health Smoker Rate: {last_life_smoker_rate}%
     - Vehicle Fraud Risk Rate: {last_fraud_rate}%
     
     Based on this data, formulate:
-    1. A summary memo of key statistics (e.g. claims increased by X%, specific increase in SUV/property repairs, Hyderabad/city anomaly).
-    2. A list of 3 specific emerging trend alerts (such as "Property claims increased by X%", "SUV repair costs increased by Y%", "Fraud probability increased by Z%").
-    3. A specific strategic recommendation (e.g. "Increase manual review for SUV claims above ₹2 Lakhs").
+    1. A summary memo of key statistics (e.g. claims increased by X%, specific increase in SUV/property repairs, Hyderabad/city anomaly, or high risk life/health trends like increase in smoking or high-risk profiles).
+    2. A list of 3 specific emerging trend alerts (such as "Property claims increased by X%", "SUV repair costs increased by Y%", "High-risk life policies increased by Z%", or "Applicant smoker rate rose by W%").
+    3. A specific strategic recommendation (e.g. "Increase manual review for SUV claims above ₹2 Lakhs" or "Apply strict underwriting rules on high-risk smoker life applicants").
     4. A concise main trend summary statement.
     
     Return your response strictly in the following JSON format:
     {{
         "trend_summary": "Fraud rate increasing +3% and SUV claim costs rising",
-        "memo_text": "Claims increased by {int(((this_total-last_total)/last_total)*100) if last_total else 14}%. SUV repair costs are higher. Fraud probability increased from {last_fraud_rate}% to {this_fraud_rate}%. Most affected city: {top_city}. Recommendation: Increase manual review for SUV claims above ₹2 Lakhs.",
+        "memo_text": "Claims increased by {int(((this_total-last_total)/last_total)*100) if last_total else 14}%. SUV repair costs are higher. Fraud probability increased from {last_fraud_rate}% to {this_fraud_rate}%. Life insurance high-risk profiles grew to {this_life_high_risk_rate}%. Most affected city: {top_city}. Recommendation: Increase manual review for SUV claims above ₹2 Lakhs.",
         "trends": [
             {{"title": "Property claims increased", "value": "18%", "desc": "Compared to last month"}},
-            {{"title": "SUV repair costs increased", "value": "12%", "desc": "Driven by major collisions"}},
+            {{"title": "High-risk life profiles", "value": "{this_life_high_risk_rate}%", "desc": "Of total life submissions"}},
             {{"title": "Fraud probability increased", "value": "{this_fraud_rate - last_fraud_rate}%", "desc": "Flagged in vehicle claims queue"}}
         ]
     }}
@@ -237,10 +277,10 @@ def get_monthly_monitoring_report(force=False):
         diff_fraud = this_fraud_rate - last_fraud_rate
         data = {
             "trend_summary": f"Fraud rate increasing (+{diff_fraud}%)",
-            "memo_text": f"Claims increased by 14%. SUV repair costs rose. Fraud probability increased from {last_fraud_rate}% to {this_fraud_rate}%. Most affected city: {top_city}. Recommendation: Increase manual review for SUV claims above ₹2 Lakhs.",
+            "memo_text": f"Claims increased by 14%. SUV repair costs rose. Fraud probability increased from {last_fraud_rate}% to {this_fraud_rate}%. Life high-risk rate at {this_life_high_risk_rate}%. Most affected city: {top_city}. Recommendation: Review smoker life rates.",
             "trends": [
                 {"title": "Property claims increased", "value": "18%", "desc": "Compared to last month"},
-                {"title": "SUV repair costs increased", "value": "12%", "desc": "Driven by major collisions"},
+                {"title": "High-risk life profiles", "value": f"{this_life_high_risk_rate}%", "desc": "Of total life submissions"},
                 {"title": "Fraud probability increased", "value": f"{diff_fraud}%", "desc": "Flagged in vehicle claims queue"}
             ]
         }
@@ -269,6 +309,17 @@ def get_monthly_monitoring_report(force=False):
         "trend": data["trend_summary"],
         "memo": data["memo_text"],
         "trends_list": data["trends"],
+        "life_metrics": {
+            "total_claims": this_life_total,
+            "high_risk_rate": this_life_high_risk_rate,
+            "smoker_rate": this_life_smoker_rate,
+            "average_age": round(this_life_avg_age, 1)
+        },
+        "vehicle_metrics": {
+            "total_claims": len(this_vehicle_claims),
+            "fraud_rate": this_fraud_rate,
+            "average_claim": sum(c["amount"] for c in this_vehicle_claims if c["status"] == "approved") / sum(1 for c in this_vehicle_claims if c["status"] == "approved") if any(c["status"] == "approved" for c in this_vehicle_claims) else 78000.0
+        },
         "this_month": {
             "fraud_rate": this_fraud_rate,
             "total_claims": this_total,
@@ -280,6 +331,7 @@ def get_monthly_monitoring_report(force=False):
             "average_claim": last_avg
         }
     }
+
 
 def generate_mock_report():
     return {
@@ -295,6 +347,17 @@ def generate_mock_report():
             {"title": "SUV repair costs increased", "value": "12%", "desc": "Driven by major collisions"},
             {"title": "Fraud probability increased", "value": "5%", "desc": "Flagged in vehicle claims queue"}
         ],
+        "life_metrics": {
+            "total_claims": 142,
+            "high_risk_rate": 14,
+            "smoker_rate": 21,
+            "average_age": 43.5
+        },
+        "vehicle_metrics": {
+            "total_claims": 1108,
+            "fraud_rate": 8,
+            "average_claim": 81000.0
+        },
         "this_month": {
             "fraud_rate": 8,
             "total_claims": 1250,

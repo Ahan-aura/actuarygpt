@@ -13,7 +13,8 @@ import {
   RefreshCw, 
   Clock, 
   ArrowRight,
-  Database
+  Database,
+  Car
 } from 'lucide-react';
 import { 
   ResponsiveContainer, 
@@ -209,6 +210,57 @@ export default function AIMonitoring({
           </div>
         </div>
 
+      </div>
+
+      {/* PORTFOLIO TELEMETRY SPLIT */}
+      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '2rem' }}>
+        {/* Life & Health Telemetry Card */}
+        <div className="glass-card" style={{ padding: '1.5rem', backgroundColor: 'var(--bg-card)', border: '1px solid var(--border)', borderRadius: '8px' }}>
+          <h3 style={{ fontSize: '1.05rem', fontWeight: 700, color: 'var(--text-title)', borderBottom: '1px solid var(--border)', paddingBottom: '0.5rem', margin: '0 0 1.25rem 0', display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
+            <Activity size={18} style={{ color: 'var(--primary)' }} />
+            Life & Health Portfolio Telemetry
+          </h3>
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
+            <div style={{ padding: '0.75rem 1rem', backgroundColor: 'rgba(255,255,255,0.02)', border: '1px solid var(--border)', borderRadius: '6px' }}>
+              <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)', display: 'block' }}>Total Submissions</span>
+              <b style={{ color: 'var(--text-title)', fontSize: '1.25rem' }}>{report.life_metrics?.total_claims || 0}</b>
+            </div>
+            <div style={{ padding: '0.75rem 1rem', backgroundColor: 'rgba(255,255,255,0.02)', border: '1px solid var(--border)', borderRadius: '6px' }}>
+              <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)', display: 'block' }}>High Risk Rate</span>
+              <b style={{ color: 'var(--risk-high)', fontSize: '1.25rem' }}>{report.life_metrics?.high_risk_rate || 0}%</b>
+            </div>
+            <div style={{ padding: '0.75rem 1rem', backgroundColor: 'rgba(255,255,255,0.02)', border: '1px solid var(--border)', borderRadius: '6px' }}>
+              <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)', display: 'block' }}>Smoker Prevalence</span>
+              <b style={{ color: 'var(--risk-medium)', fontSize: '1.25rem' }}>{report.life_metrics?.smoker_rate || 0}%</b>
+            </div>
+            <div style={{ padding: '0.75rem 1rem', backgroundColor: 'rgba(255,255,255,0.02)', border: '1px solid var(--border)', borderRadius: '6px' }}>
+              <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)', display: 'block' }}>Avg Applicant Age</span>
+              <b style={{ color: 'var(--primary)', fontSize: '1.25rem' }}>{report.life_metrics?.average_age || 0} yrs</b>
+            </div>
+          </div>
+        </div>
+
+        {/* Vehicle Claims Telemetry Card */}
+        <div className="glass-card" style={{ padding: '1.5rem', backgroundColor: 'var(--bg-card)', border: '1px solid var(--border)', borderRadius: '8px' }}>
+          <h3 style={{ fontSize: '1.05rem', fontWeight: 700, color: 'var(--text-title)', borderBottom: '1px solid var(--border)', paddingBottom: '0.5rem', margin: '0 0 1.25rem 0', display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
+            <Car size={18} style={{ color: 'var(--secondary)' }} />
+            Vehicle Claims Portfolio Telemetry
+          </h3>
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
+            <div style={{ padding: '0.75rem 1rem', backgroundColor: 'rgba(255,255,255,0.02)', border: '1px solid var(--border)', borderRadius: '6px' }}>
+              <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)', display: 'block' }}>Total Claims</span>
+              <b style={{ color: 'var(--text-title)', fontSize: '1.25rem' }}>{report.vehicle_metrics?.total_claims || 0}</b>
+            </div>
+            <div style={{ padding: '0.75rem 1rem', backgroundColor: 'rgba(255,255,255,0.02)', border: '1px solid var(--border)', borderRadius: '6px' }}>
+              <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)', display: 'block' }}>Fraud Risk Rate</span>
+              <b style={{ color: 'var(--risk-high)', fontSize: '1.25rem' }}>{report.vehicle_metrics?.fraud_rate || 0}%</b>
+            </div>
+            <div style={{ padding: '0.75rem 1rem', backgroundColor: 'rgba(255,255,255,0.02)', border: '1px solid var(--border)', borderRadius: '6px', gridColumn: 'span 2' }}>
+              <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)', display: 'block' }}>Avg Claim Payout</span>
+              <b style={{ color: 'var(--risk-low)', fontSize: '1.25rem' }}>₹{(report.vehicle_metrics?.average_claim || 0).toLocaleString()}</b>
+            </div>
+          </div>
+        </div>
       </div>
 
       <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '2rem' }}>
