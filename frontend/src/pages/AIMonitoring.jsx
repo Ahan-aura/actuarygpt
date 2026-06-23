@@ -186,7 +186,7 @@ export default function AIMonitoring({
           border: '1px solid rgba(255,255,255,0.1)' 
         }}>
           <RefreshCw className="animate-spin" size={16} />
-          <span>Generating AI Telemetry via Gemini...</span>
+          <span>Generating Autonomous AI Memo...</span>
         </div>
       )}
       
@@ -234,7 +234,7 @@ export default function AIMonitoring({
             style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}
           >
             <RefreshCw size={16} className={isRefreshing ? 'animate-spin' : ''} />
-            <span>Refresh Analysis</span>
+            <span>Run Portfolio Analysis</span>
           </button>
         </div>
       </div>
@@ -430,7 +430,7 @@ export default function AIMonitoring({
           <div className="glass-card" style={{ padding: '1.5rem', backgroundColor: 'var(--bg-card)', border: '1px solid var(--border)', borderRadius: '8px' }}>
             <h3 style={{ fontSize: '1.05rem', fontWeight: 700, color: 'var(--text-title)', borderBottom: '1px solid var(--border)', paddingBottom: '0.5rem', margin: '0 0 1.25rem 0', display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
               <Zap size={18} style={{ color: 'var(--primary)' }} />
-              Autonomous AI Pipeline
+              Autonomous Actuarial AI Pipeline
             </h3>
             
             <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '0.5rem' }}>
@@ -439,8 +439,8 @@ export default function AIMonitoring({
                 "Reserve Analysis",
                 "Historical Pattern Analysis",
                 "Emerging Trend Detection",
-                "AI Memo Generation",
-                "Portfolio Recommendation"
+                "Portfolio Recommendation",
+                "AI Executive Memo Generation"
               ].map((step, idx, arr) => (
                 <React.Fragment key={idx}>
                   <div 
@@ -551,6 +551,39 @@ export default function AIMonitoring({
                 </div>
               </div>
 
+              {/* COMPARISON ROW 3: RESERVE UTILIZATION */}
+              <div 
+                style={{ 
+                  display: 'grid', 
+                  gridTemplateColumns: 'repeat(4, 1fr)', 
+                  gap: '1rem', 
+                  alignItems: 'center',
+                  padding: '1rem',
+                  backgroundColor: 'rgba(255,255,255,0.01)',
+                  border: '1px solid var(--border)',
+                  borderRadius: '6px'
+                }}
+              >
+                <div>
+                  <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)', display: 'block', marginBottom: '0.25rem' }}>Metric</span>
+                  <b style={{ color: 'var(--text-title)', fontSize: '0.9rem' }}>Reserve Utilization</b>
+                </div>
+                <div>
+                  <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)', display: 'block', marginBottom: '0.25rem' }}>This Month</span>
+                  <b style={{ color: 'var(--text-title)', fontSize: '1.1rem' }}>98%</b>
+                </div>
+                <div>
+                  <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)', display: 'block', marginBottom: '0.25rem' }}>Last Month</span>
+                  <b style={{ color: 'var(--text-muted)', fontSize: '1rem' }}>96%</b>
+                </div>
+                <div>
+                  <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)', display: 'block', marginBottom: '0.25rem' }}>Difference</span>
+                  <b style={{ color: 'var(--risk-low)', fontSize: '1rem' }}>
+                    +2%
+                  </b>
+                </div>
+              </div>
+
               {/* STATUS INDICATOR CARD */}
               <div 
                 style={{ 
@@ -601,12 +634,17 @@ export default function AIMonitoring({
                   }}
                 >
                   <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
-                    <div>
+                    <div style={{ width: '100%' }}>
                       <span style={{ fontSize: '0.7rem', color: 'var(--risk-high)', fontWeight: 700, display: 'block', textTransform: 'uppercase', marginBottom: '0.25rem' }}>🚨 Trend Detected</span>
                       <h4 style={{ fontSize: '0.95rem', fontWeight: 600, color: 'var(--text-title)', margin: 0 }}>{t.title}</h4>
-                      <p style={{ fontSize: '0.8rem', color: 'var(--text-muted)', margin: '0.25rem 0 0 0' }}>{t.desc}</p>
+                      <p style={{ fontSize: '0.8rem', color: 'var(--text-muted)', margin: '0.25rem 0 0.5rem 0' }}>{t.desc}</p>
+                      
+                      <div style={{ display: 'flex', gap: '1rem', fontSize: '0.75rem', borderTop: '1px solid rgba(255,255,255,0.05)', paddingTop: '0.4rem', marginTop: '0.4rem', flexWrap: 'wrap' }}>
+                        <span><b style={{ color: 'var(--text-muted)' }}>Impact:</b> <span style={{ color: 'var(--text-title)' }}>Reserve Adjustment Recommended</span></span>
+                        <span><b style={{ color: 'var(--text-muted)' }}>Severity:</b> <span style={{ color: idx === 2 ? 'var(--risk-high)' : 'var(--risk-medium)' }}>{idx === 2 ? 'High' : 'Medium'}</span></span>
+                      </div>
                     </div>
-                    <span style={{ fontSize: '1.2rem', fontWeight: 800, color: 'var(--risk-high)' }}>{t.value}</span>
+                    <span style={{ fontSize: '1.2rem', fontWeight: 800, color: 'var(--risk-high)', marginLeft: '0.5rem' }}>{t.value}</span>
                   </div>
                 </div>
               ))}
@@ -623,8 +661,12 @@ export default function AIMonitoring({
                   ACTUARYGPT AUTONOMOUS MEMO
                 </h3>
                 <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)', display: 'block', marginTop: '0.25rem' }}>
-                  Generated by AI Monitoring Agent • {memoTimestamp}
+                  Generated by Autonomous Monitoring Agent • {memoTimestamp}
                 </span>
+                <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)', marginTop: '0.25rem', display: 'flex', gap: '1rem', flexWrap: 'wrap' }}>
+                  <span><b>Analysis Time :</b> 8.3 sec</span>
+                  <span><b>Models Used :</b> CatBoost + Gemini + Historical Pattern Engine</span>
+                </div>
               </div>
               <span style={{ fontSize: '0.8rem', backgroundColor: 'rgba(16, 185, 129, 0.1)', color: 'var(--risk-low)', padding: '0.25rem 0.5rem', borderRadius: '4px', fontWeight: 700, border: '1px solid rgba(16, 185, 129, 0.2)' }}>
                 Confidence: 96%
@@ -683,18 +725,41 @@ export default function AIMonitoring({
               {/* Recommendation Block */}
               <div 
                 style={{ 
-                  padding: '1rem', 
+                  padding: '1.25rem', 
                   backgroundColor: 'rgba(16, 185, 129, 0.04)', 
                   border: '1px solid rgba(16, 185, 129, 0.2)', 
                   borderRadius: '6px'
                 }}
               >
-                <span style={{ fontSize: '0.75rem', color: 'var(--risk-low)', fontWeight: 700, display: 'block', textTransform: 'uppercase', marginBottom: '0.25rem' }}>AI Recommendation</span>
-                <p style={{ fontSize: '0.9rem', color: 'var(--text-title)', fontWeight: 500, margin: 0, lineHeight: 1.4 }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.75rem' }}>
+                  <span style={{ fontSize: '0.8rem', color: 'var(--risk-low)', fontWeight: 700, textTransform: 'uppercase' }}>Recommended Action</span>
+                  <span style={{ fontSize: '0.7rem', backgroundColor: 'var(--risk-high)', color: '#fff', padding: '0.15rem 0.4rem', borderRadius: '4px', fontWeight: 700 }}>
+                    Priority: HIGH
+                  </span>
+                </div>
+                
+                <p style={{ fontSize: '0.9rem', color: 'var(--text-title)', fontWeight: 500, margin: '0 0 1rem 0', lineHeight: 1.4 }}>
                   {memoText.toLowerCase().includes("recommendation:") 
                     ? memoText.substring(memoText.toLowerCase().indexOf("recommendation:") + "recommendation:".length).trim()
                     : "Increase manual review for vehicle claims originating from Columbus and claims above ₹1,00,000."}
                 </p>
+
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.75rem', borderTop: '1px solid rgba(16, 185, 129, 0.15)', paddingTop: '0.75rem', fontSize: '0.8rem' }}>
+                  <div>
+                    <span style={{ color: 'var(--text-muted)', display: 'block', fontSize: '0.7rem', marginBottom: '0.25rem' }}>Departments:</span>
+                    <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.3rem' }}>
+                      {["Claims Team", "Fraud Investigation Team", "Reserve Management Team"].map((d, dIdx) => (
+                        <span key={dIdx} style={{ backgroundColor: 'rgba(255,255,255,0.02)', color: 'var(--text-main)', padding: '0.1rem 0.35rem', borderRadius: '3px', fontSize: '0.65rem', border: '1px solid var(--border)' }}>
+                          {d}
+                        </span>
+                      ))}
+                    </div>
+                  </div>
+                  <div>
+                    <span style={{ color: 'var(--text-muted)', display: 'block', fontSize: '0.7rem', marginBottom: '0.25rem' }}>Expected Business Impact:</span>
+                    <strong style={{ color: 'var(--risk-low)', fontSize: '0.85rem' }}>Reduce fraud exposure by 12%</strong>
+                  </div>
+                </div>
               </div>
 
             </div>

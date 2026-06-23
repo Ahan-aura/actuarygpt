@@ -73,6 +73,22 @@ export default function Sidebar({
               <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
                 <Icon size={18} />
                 <span>{link.label}</span>
+                {link.id === 'ai_monitoring' && (
+                  <span style={{ 
+                    fontSize: '0.65rem', 
+                    backgroundColor: 'rgba(99, 102, 241, 0.15)', 
+                    color: 'var(--primary)', 
+                    padding: '0.1rem 0.35rem', 
+                    borderRadius: '4px', 
+                    fontWeight: 700,
+                    border: '1px solid rgba(99, 102, 241, 0.25)',
+                    marginLeft: '0.35rem',
+                    textTransform: 'uppercase',
+                    letterSpacing: '0.05em'
+                  }}>
+                    LIVE
+                  </span>
+                )}
               </div>
               {link.badge > 0 && (
                 <span className="sidebar-badge" style={{ backgroundColor: 'var(--primary)', color: '#fff', fontSize: '0.75rem', padding: '0.1rem 0.4rem', borderRadius: '10px', fontWeight: 700 }}>
