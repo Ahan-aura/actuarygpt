@@ -137,7 +137,8 @@ def init_db():
         username TEXT UNIQUE NOT NULL,
         password TEXT NOT NULL,
         role TEXT NOT NULL CHECK(role IN ('customer', 'officer')),
-        recovery_hint TEXT
+        recovery_hint TEXT,
+        recovery_answer TEXT
     )
     """)
     conn.commit()
@@ -145,6 +146,13 @@ def init_db():
     # Run column migration for recovery_hint if it doesn't exist
     try:
         cursor.execute("ALTER TABLE users ADD COLUMN recovery_hint TEXT")
+        conn.commit()
+    except Exception:
+        pass
+
+    # Run column migration for recovery_answer if it doesn't exist
+    try:
+        cursor.execute("ALTER TABLE users ADD COLUMN recovery_answer TEXT")
         conn.commit()
     except Exception:
         pass
