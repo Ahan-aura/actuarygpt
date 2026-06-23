@@ -124,13 +124,28 @@ def get_monthly_monitoring_report():
     
     avg_suv_cost = sum(suv_repair_costs) / len(suv_repair_costs) if suv_repair_costs else 92000.0
     
-    # 2. Check if a report for this month already exists in monitoring_logs to avoid repetitive Gemini calls
+    # 2. Check if a report for this month already exists in monitoring_logs with the SAME values to avoid redundant Gemini calls.
+    # If the counts, fraud rates, or average claim values differ (e.g. claims were added/resolved), we invalidate the cache.
     conn = get_db_connection()
     cursor = conn.cursor()
     cursor.execute("SELECT * FROM monitoring_logs WHERE month = ?", (this_month,))
     existing_log = cursor.fetchone()
     
+    cache_valid = False
     if existing_log:
+        try:
+            # Check if metrics are exactly identical
+            same_total = int(existing_log["total_claims"]) == int(this_total)
+            same_fraud = int(existing_log["fraud_rate"]) == int(this_fraud_rate)
+            # Floating point comparison tolerating minor rounding differences
+            same_avg = abs(float(existing_log["average_claim"]) - float(this_avg)) < 1.0
+            
+            if same_total and same_fraud and same_avg:
+                cache_valid = True
+        except Exception:
+            cache_valid = False
+            
+    if cache_valid:
         conn.close()
         try:
             stored_data = json.loads(existing_log["memo"])
