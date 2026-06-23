@@ -306,11 +306,19 @@ export default function Login({ API_BASE, onLoginSuccess }) {
             </div>
 
             <div className="form-group">
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                <label>Password</label>
+              <label>Password</label>
+              <input 
+                type="password" 
+                className="form-input" 
+                placeholder="••••••••" 
+                value={passwordInput} 
+                onChange={(e) => setPasswordInput(e.target.value)} 
+                required 
+              />
+              <div style={{ display: 'flex', justifyContent: 'flex-end', marginTop: '0.25rem' }}>
                 <button 
                   type="button" 
-                  style={{ background: 'none', border: 'none', color: 'var(--primary)', cursor: 'pointer', fontSize: '0.85rem', padding: 0 }}
+                  style={{ background: 'none', border: 'none', color: 'var(--primary)', cursor: 'pointer', fontSize: '0.8rem', padding: 0 }}
                   onClick={() => {
                     setIsForgotMode(true);
                     setForgotUsername(usernameInput);
@@ -321,14 +329,6 @@ export default function Login({ API_BASE, onLoginSuccess }) {
                   Forgot Password?
                 </button>
               </div>
-              <input 
-                type="password" 
-                className="form-input" 
-                placeholder="••••••••" 
-                value={passwordInput} 
-                onChange={(e) => setPasswordInput(e.target.value)} 
-                required 
-              />
             </div>
 
             {isRegisterMode && (
