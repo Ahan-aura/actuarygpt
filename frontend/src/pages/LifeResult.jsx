@@ -36,6 +36,18 @@ export default function LifeResult({
 
   const previousClaimsCount = selectedApp?.previous_claims !== undefined ? parseInt(selectedApp.previous_claims) : 0;
 
+  let similarCasesList = agentResult?.similar_cases;
+  if (typeof similarCasesList === 'string') {
+    try {
+      similarCasesList = JSON.parse(similarCasesList);
+    } catch (_) {
+      similarCasesList = [];
+    }
+  }
+  if (!Array.isArray(similarCasesList)) {
+    similarCasesList = [];
+  }
+
   const [isModifying, setIsModifying] = React.useState(false);
   const [modAmount, setModAmount] = React.useState(agentResult?.premium || "");
 
@@ -322,18 +334,18 @@ export default function LifeResult({
         </div>
       </div>
 
-      {isOfficer && agentResult.similar_cases && (
+      {isOfficer && similarCasesList && (
         <div className="glass-card" style={{ padding: '1.25rem', border: '1px solid var(--border)', borderRadius: '8px' }}>
           <h4 style={{ fontSize: '0.95rem', fontWeight: 700, marginBottom: '1rem', display: 'flex', alignItems: 'center', gap: '0.5rem', color: 'var(--text-title)' }}>
             <History size={16} style={{ color: 'var(--primary)' }} />
             Top Similar Historical Reference Cases (RAG Matches)
           </h4>
           
-          {agentResult.similar_cases.length === 0 ? (
+          {similarCasesList.length === 0 ? (
             <p style={{ fontSize: '0.85rem', color: 'var(--text-muted)' }}>No historical matches found in database.</p>
           ) : (
             <div className="similarity-cases-list" style={{ display: 'flex', flexDirection: 'column', gap: '0.65rem' }}>
-              {agentResult.similar_cases.map((scase, sidx) => (
+              {similarCasesList.map((scase, sidx) => (
                 <SimilarCaseCard
                   key={scase.id || sidx}
                   scase={scase}

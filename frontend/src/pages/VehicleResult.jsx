@@ -158,12 +158,24 @@ export default function VehicleResult({
     { id: 'Claim VH1021', similarity: 91, status: 'Manual Review', amount: 88000 }
   ];
 
-  const displayedSimilarClaims = agentResult.similar_cases && agentResult.similar_cases.length > 0
-    ? agentResult.similar_cases.slice(0, 3).map((c, idx) => ({
-        id: c.id ? (c.id.toString().startsWith('Claim') ? c.id : `Claim ${c.id}`) : mockSimilarClaims[idx].id,
-        similarity: c.similarity || mockSimilarClaims[idx].similarity,
-        status: c.fraud_reported === 'Y' ? 'Flagged Fraud' : (c.status || mockSimilarClaims[idx].status),
-        amount: c.total_claim_amount || mockSimilarClaims[idx].amount
+  let rawSimilarCases = agentResult?.similar_cases;
+  if (typeof rawSimilarCases === 'string') {
+    try {
+      rawSimilarCases = JSON.parse(rawSimilarCases);
+    } catch (_) {
+      rawSimilarCases = [];
+    }
+  }
+  if (!Array.isArray(rawSimilarCases)) {
+    rawSimilarCases = [];
+  }
+
+  const displayedSimilarClaims = rawSimilarCases.length > 0
+    ? rawSimilarCases.slice(0, 3).map((c, idx) => ({
+        id: c.id ? (c.id.toString().startsWith('Claim') ? c.id : `Claim ${c.id}`) : (mockSimilarClaims[idx] ? mockSimilarClaims[idx].id : `Claim ${idx}`),
+        similarity: c.similarity || (mockSimilarClaims[idx] ? mockSimilarClaims[idx].similarity : 90),
+        status: c.fraud_reported === 'Y' ? 'Flagged Fraud' : (c.status || (mockSimilarClaims[idx] ? mockSimilarClaims[idx].status : 'Approved')),
+        amount: c.total_claim_amount || (mockSimilarClaims[idx] ? mockSimilarClaims[idx].amount : 5000)
       }))
     : mockSimilarClaims;
 

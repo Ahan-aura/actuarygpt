@@ -893,7 +893,11 @@ function App({ user, handleLogout }) {
                   underwriting_decision: app.underwriting_decision || app.status,
                   report: app.report,
                   pdf_url: app.pdf_url,
-                  similar_cases: app.similar_cases ? JSON.parse(app.similar_cases) : []
+                  similar_cases: app.similar_cases 
+                    ? (typeof app.similar_cases === 'string' 
+                        ? (app.similar_cases.trim() ? JSON.parse(app.similar_cases) : []) 
+                        : app.similar_cases)
+                    : []
                 });
               } else {
                 setAgentResult(null);
