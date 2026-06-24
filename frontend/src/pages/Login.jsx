@@ -8,7 +8,7 @@ export default function Login({ API_BASE, onLoginSuccess }) {
   const [passwordInput, setPasswordInput] = useState("");
   const [roleInput, setRoleInput] = useState("customer");
   const [passkeyInput, setPasskeyInput] = useState("");
-  const [recoveryHintInput, setRecoveryHintInput] = useState("");
+  const [recoveryHintInput, setRecoveryHintInput] = useState("What is your mother's maiden name?");
   const [recoveryAnswerInput, setRecoveryAnswerInput] = useState("");
   const [authError, setAuthError] = useState(null);
 
@@ -134,7 +134,7 @@ export default function Login({ API_BASE, onLoginSuccess }) {
     onLoginSuccess(loggedInUser);
     setUsernameInput("");
     setPasswordInput("");
-    setRecoveryHintInput("");
+    setRecoveryHintInput("What is your mother's maiden name?");
     setRecoveryAnswerInput("");
   };
 
@@ -332,31 +332,34 @@ export default function Login({ API_BASE, onLoginSuccess }) {
             </div>
 
             {isRegisterMode && (
-              <>
-                <div className="form-group animate-fade-in">
-                  <label>Security Recovery Question/Hint <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>(Optional)</span></label>
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }} className="animate-fade-in">
+                <div className="form-group">
+                  <label>Security Recovery Question <span style={{ fontSize: '0.75rem', color: 'var(--risk-high)' }}>*</span></label>
+                  <select 
+                    className="form-input" 
+                    value={recoveryHintInput} 
+                    onChange={(e) => setRecoveryHintInput(e.target.value)}
+                    style={{ backgroundColor: 'var(--bg-input)', color: 'var(--text-main)', border: '1px solid var(--border)', borderRadius: '6px', height: '42px', padding: '0 0.75rem', width: '100%', fontSize: '0.9rem' }}
+                    required
+                  >
+                    <option value="What is your mother's maiden name?">What is your mother's maiden name?</option>
+                    <option value="What was the name of your first pet?">What was the name of your first pet?</option>
+                    <option value="In what city were you born?">In what city were you born?</option>
+                    <option value="What was the name of your primary school?">What was the name of your primary school?</option>
+                  </select>
+                </div>
+                <div className="form-group">
+                  <label>Security Answer <span style={{ fontSize: '0.75rem', color: 'var(--risk-high)' }}>*</span></label>
                   <input 
                     type="text" 
                     className="form-input" 
-                    placeholder="e.g. Mother's maiden name, first pet's name" 
-                    value={recoveryHintInput} 
-                    onChange={(e) => setRecoveryHintInput(e.target.value)} 
+                    placeholder="Enter the correct answer..." 
+                    value={recoveryAnswerInput} 
+                    onChange={(e) => setRecoveryAnswerInput(e.target.value)} 
+                    required 
                   />
                 </div>
-                {recoveryHintInput.trim() !== "" && (
-                  <div className="form-group animate-fade-in">
-                    <label>Recovery Hint Answer <span style={{ fontSize: '0.75rem', color: 'var(--risk-high)' }}>*</span></label>
-                    <input 
-                      type="text" 
-                      className="form-input" 
-                      placeholder="Enter the correct answer..." 
-                      value={recoveryAnswerInput} 
-                      onChange={(e) => setRecoveryAnswerInput(e.target.value)} 
-                      required 
-                    />
-                  </div>
-                )}
-              </>
+              </div>
             )}
 
             {isRegisterMode && roleInput === 'officer' && (
