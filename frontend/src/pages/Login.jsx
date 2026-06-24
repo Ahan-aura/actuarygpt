@@ -364,11 +364,11 @@ export default function Login({ API_BASE, onLoginSuccess }) {
 
             {isRegisterMode && roleInput === 'officer' && (
               <div className="form-group animate-fade-in">
-                <label>Officer Security Passkey <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>(Use: ACTUARY_SECURE_2026)</span></label>
+                <label>Officer Security Passkey</label>
                 <input 
                   type="password" 
                   className="form-input" 
-                  placeholder="ACTUARY_SECURE_2026" 
+                  placeholder="Enter officer security passkey..." 
                   value={passkeyInput} 
                   onChange={(e) => setPasskeyInput(e.target.value)} 
                   required 
@@ -378,7 +378,7 @@ export default function Login({ API_BASE, onLoginSuccess }) {
 
             {!isRegisterMode && (
               <div className="form-group">
-                <label>Officer Passkey <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>(Only required for Actuary Officers. Use: ACTUARY_SECURE_2026)</span></label>
+                <label>Officer Passkey <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>(Only required for Actuary Officers)</span></label>
                 <input 
                   type="password" 
                   className="form-input" 
