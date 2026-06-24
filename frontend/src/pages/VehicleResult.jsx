@@ -16,7 +16,11 @@ export default function VehicleResult({
   
   const currentYear = new Date().getFullYear();
   const monthsAsCustomer = selectedApp?.months_as_customer !== undefined ? parseInt(selectedApp.months_as_customer) : 0;
-  const customerSinceYear = currentYear - Math.floor(monthsAsCustomer / 12);
+  let customerSinceYear = currentYear - Math.floor(monthsAsCustomer / 12);
+
+  if (previousClaims.length === 0) {
+    customerSinceYear = selectedApp?.date ? new Date(selectedApp.date).getFullYear() : currentYear;
+  }
 
   const previousClaimsCount = previousClaims.length;
   const previousFraudCount = previousClaims.filter(c => c.status === 'rejected' || c.fraud_reported === 'Y').length;

@@ -241,7 +241,10 @@ function App({ user, handleLogout }) {
 
       setTimeout(() => {
         setWizardStepsProgress(prev => prev.map(s => ({ ...s, status: 'completed' })));
-        setWizardResult(evalResult);
+        setWizardResult({
+          ...newApp,
+          ...evalResult
+        });
         setWizardIsProcessing(false);
         setWizardStep(5);
         fetchCustomerSubmissions();
@@ -276,6 +279,7 @@ function App({ user, handleLogout }) {
       const evalResult = await evalRes.json();
 
       setPendingWizardResult({
+        ...newApp,
         ...evalResult,
         risk_class: evalResult.risk_class || (evalResult.fraud_reported === 'Y' ? 8 : 1)
       });
