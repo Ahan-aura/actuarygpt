@@ -36,7 +36,7 @@ export default function ClaimProcessingScreen({ onComplete }) {
     if (currentIdx === AGENTS.length) {
       const timer = setTimeout(() => {
         if (onComplete) onComplete();
-      }, 500);
+      }, 2000);
       return () => clearTimeout(timer);
     }
   }, [currentIdx, onComplete]);
@@ -88,8 +88,23 @@ export default function ClaimProcessingScreen({ onComplete }) {
         </div>
         <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.8rem', color: 'var(--text-muted)', marginTop: '0.25rem' }}>
           <span>Estimated Time Remaining</span>
-          <b style={{ color: 'var(--text-title)' }}>{estimatedTime} seconds</b>
+          <b style={{ color: 'var(--text-title)' }}>{progress === 100 ? "0 seconds (Processing completed)" : `${estimatedTime} seconds`}</b>
         </div>
+        {progress === 100 && (
+          <div style={{ 
+            marginTop: '1rem', 
+            padding: '0.75rem', 
+            backgroundColor: 'rgba(16, 185, 129, 0.08)', 
+            border: '1px solid rgba(16, 185, 129, 0.3)', 
+            borderRadius: '6px', 
+            fontSize: '0.85rem', 
+            color: 'var(--risk-low)', 
+            fontWeight: 600, 
+            textAlign: 'center' 
+          }} className="animate-fade-in">
+            ✓ Application submitted successfully
+          </div>
+        )}
       </div>
     </div>
   );

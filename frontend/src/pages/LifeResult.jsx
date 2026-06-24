@@ -16,6 +16,26 @@ export default function LifeResult({
   processedApps = []
 }) {
   const previousPolicies = processedApps ? processedApps.filter(app => app.client === selectedApp.client && app.id !== selectedApp.id) : [];
+  
+  const currentYear = new Date().getFullYear();
+  let customerSinceYear = currentYear;
+  if (selectedApp?.date) {
+    const appYear = new Date(selectedApp.date).getFullYear();
+    if (!isNaN(appYear)) {
+      customerSinceYear = Math.min(customerSinceYear, appYear);
+    }
+  }
+  previousPolicies.forEach(app => {
+    if (app.date) {
+      const yr = new Date(app.date).getFullYear();
+      if (!isNaN(yr)) {
+        customerSinceYear = Math.min(customerSinceYear, yr);
+      }
+    }
+  });
+
+  const previousClaimsCount = selectedApp?.previous_claims !== undefined ? parseInt(selectedApp.previous_claims) : 0;
+
   const [isModifying, setIsModifying] = React.useState(false);
   const [modAmount, setModAmount] = React.useState(agentResult?.premium || "");
 
@@ -228,7 +248,7 @@ export default function LifeResult({
               </div>
               <div>
                 <span style={{ display: 'block', fontSize: '0.7rem', color: 'var(--text-muted)' }}>Previous Claims</span>
-                <span style={{ fontSize: '1rem', fontWeight: 700, color: 'var(--text-title)' }}>2</span>
+                <span style={{ fontSize: '1rem', fontWeight: 700, color: 'var(--text-title)' }}>{previousClaimsCount}</span>
               </div>
               <div>
                 <span style={{ display: 'block', fontSize: '0.7rem', color: 'var(--text-muted)' }}>Previous Fraud</span>
@@ -236,11 +256,11 @@ export default function LifeResult({
               </div>
               <div>
                 <span style={{ display: 'block', fontSize: '0.7rem', color: 'var(--text-muted)' }}>Avg Claim</span>
-                <span style={{ fontSize: '1rem', fontWeight: 700, color: 'var(--secondary)' }}>₹82,000</span>
+                <span style={{ fontSize: '1rem', fontWeight: 700, color: 'var(--secondary)' }}>{previousClaimsCount > 0 ? "₹82,000" : "₹0"}</span>
               </div>
               <div>
                 <span style={{ display: 'block', fontSize: '0.7rem', color: 'var(--text-muted)' }}>Customer Since</span>
-                <span style={{ fontSize: '1rem', fontWeight: 700, color: 'var(--text-title)' }}>2019</span>
+                <span style={{ fontSize: '1rem', fontWeight: 700, color: 'var(--text-title)' }}>{customerSinceYear}</span>
               </div>
             </div>
           </div>

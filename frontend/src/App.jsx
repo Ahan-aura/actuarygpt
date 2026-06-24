@@ -553,6 +553,7 @@ function App({ user, handleLogout }) {
                 selectedApp={wizardResult} 
                 API_BASE={API_BASE} 
                 isOfficer={false}
+                processedVehicleApps={customerVehicleSubmissions}
               />
             ) : (
               <LifeResult 
@@ -560,6 +561,7 @@ function App({ user, handleLogout }) {
                 selectedApp={formData} 
                 API_BASE={API_BASE} 
                 isOfficer={false}
+                processedApps={customerSubmissions}
               />
             )
           )}

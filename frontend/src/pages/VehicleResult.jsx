@@ -13,6 +13,21 @@ export default function VehicleResult({
   processedVehicleApps = []
 }) {
   const previousClaims = processedVehicleApps ? processedVehicleApps.filter(app => app.client === selectedApp.client && app.id !== selectedApp.id) : [];
+  
+  const currentYear = new Date().getFullYear();
+  const monthsAsCustomer = selectedApp?.months_as_customer !== undefined ? parseInt(selectedApp.months_as_customer) : 0;
+  const customerSinceYear = currentYear - Math.floor(monthsAsCustomer / 12);
+
+  const previousClaimsCount = previousClaims.length;
+  const previousFraudCount = previousClaims.filter(c => c.status === 'rejected' || c.fraud_reported === 'Y').length;
+  
+  let avgClaimAmount = 0;
+  if (previousClaimsCount > 0) {
+    const total = previousClaims.reduce((sum, c) => sum + (c.total_claim_amount || 0), 0);
+    avgClaimAmount = Math.round(total / previousClaimsCount);
+  }
+  const avgClaimText = avgClaimAmount > 0 ? `₹${avgClaimAmount.toLocaleString()}` : "₹0";
+
   const [expandedSimCaseId, setExpandedSimCaseId] = useState(null);
   const [isModifying, setIsModifying] = useState(false);
   const [modAmount, setModAmount] = useState(selectedApp?.total_claim_amount || "");
@@ -317,23 +332,23 @@ export default function VehicleResult({
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(5, 1fr)', gap: '0.5rem', textAlign: 'center', fontSize: '0.85rem' }}>
           <div>
             <span style={{ display: 'block', fontSize: '0.75rem', color: 'var(--text-muted)' }}>Policies</span>
-            <span style={{ fontSize: '1.1rem', fontWeight: 700, color: 'var(--text-title)' }}>3</span>
+            <span style={{ fontSize: '1.1rem', fontWeight: 700, color: 'var(--text-title)' }}>{previousClaimsCount + 1}</span>
           </div>
           <div>
             <span style={{ display: 'block', fontSize: '0.75rem', color: 'var(--text-muted)' }}>Claims</span>
-            <span style={{ fontSize: '1.1rem', fontWeight: 700, color: 'var(--text-title)' }}>{previousClaims.length > 0 ? previousClaims.length : 2}</span>
+            <span style={{ fontSize: '1.1rem', fontWeight: 700, color: 'var(--text-title)' }}>{previousClaimsCount}</span>
           </div>
           <div>
             <span style={{ display: 'block', fontSize: '0.75rem', color: 'var(--text-muted)' }}>Fraud Cases</span>
-            <span style={{ fontSize: '1.1rem', fontWeight: 700, color: 'var(--risk-low)' }}>0</span>
+            <span style={{ fontSize: '1.1rem', fontWeight: 700, color: 'var(--risk-low)' }}>{previousFraudCount}</span>
           </div>
           <div>
             <span style={{ display: 'block', fontSize: '0.75rem', color: 'var(--text-muted)' }}>Customer Since</span>
-            <span style={{ fontSize: '1.1rem', fontWeight: 700, color: 'var(--text-title)' }}>2020</span>
+            <span style={{ fontSize: '1.1rem', fontWeight: 700, color: 'var(--text-title)' }}>{customerSinceYear}</span>
           </div>
           <div>
             <span style={{ display: 'block', fontSize: '0.75rem', color: 'var(--text-muted)' }}>Average Claim</span>
-            <span style={{ fontSize: '1.1rem', fontWeight: 700, color: 'var(--secondary)' }}>₹78,000</span>
+            <span style={{ fontSize: '1.1rem', fontWeight: 700, color: 'var(--secondary)' }}>{avgClaimText}</span>
           </div>
         </div>
       </div>
