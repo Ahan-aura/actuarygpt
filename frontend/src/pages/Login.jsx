@@ -378,7 +378,7 @@ export default function Login({ API_BASE, onLoginSuccess }) {
 
             {!isRegisterMode && (
               <div className="form-group">
-                <label>Officer Passkey <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>(Only required for Actuary Officers)</span></label>
+                <label>Officer Passkey</label>
                 <input 
                   type="password" 
                   className="form-input" 
