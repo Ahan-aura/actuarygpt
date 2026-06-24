@@ -1,4 +1,6 @@
 import os
+import sys
+from datetime import datetime
 from reportlab.lib.pagesizes import letter
 from reportlab.platypus import SimpleDocTemplate, Paragraph, Spacer, Table, TableStyle
 from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
@@ -231,7 +233,7 @@ def generate_vehicle_pdf_report(customer: dict, fraud_reported: str, confidence:
     claim_id = customer.get('id') or "N/A"
     claim_amount = customer.get('total_claim_amount') or 0.0
     claim_type = customer.get('incident_type') or "Single Vehicle Collision"
-    claim_date = customer.get('date') or customer.get('accidentDate') or datetime.now().strftime("%Y-%m-%d") if 'datetime' in sys.modules else "2026-06-20"
+    claim_date = customer.get('date') or customer.get('accidentDate') or datetime.now().strftime("%Y-%m-%d")
     
     profile_data = [
         [Paragraph("CUSTOMER", bold_label_style), Paragraph(f"<b>Name:</b> {cust_name}<br/><b>Email:</b> {cust_email}<br/><b>Phone:</b> {cust_phone}<br/><b>Occupation:</b> {cust_occ}", body_style)],
