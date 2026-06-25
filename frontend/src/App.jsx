@@ -112,10 +112,13 @@ function App({ user, handleLogout }) {
       const res = await fetch(`${API_BASE}/applications?client=${user.name}`);
       if (res.ok) {
         const data = await res.json();
-        setCustomerSubmissions(data);
+        setCustomerSubmissions(Array.isArray(data) ? data : []);
+      } else {
+        setCustomerSubmissions([]);
       }
     } catch (err) {
       console.error("Error fetching submissions:", err);
+      setCustomerSubmissions([]);
     }
   };
 
@@ -124,10 +127,13 @@ function App({ user, handleLogout }) {
       const res = await fetch(`${API_BASE}/applications/vehicle?client=${user.name}`);
       if (res.ok) {
         const data = await res.json();
-        setCustomerVehicleSubmissions(data);
+        setCustomerVehicleSubmissions(Array.isArray(data) ? data : []);
+      } else {
+        setCustomerVehicleSubmissions([]);
       }
     } catch (err) {
       console.error("Error fetching vehicle submissions:", err);
+      setCustomerVehicleSubmissions([]);
     }
   };
 
@@ -136,10 +142,13 @@ function App({ user, handleLogout }) {
       const res = await fetch(`${API_BASE}/applications?status=pending`);
       if (res.ok) {
         const data = await res.json();
-        setPendingApps(data);
+        setPendingApps(Array.isArray(data) ? data : []);
+      } else {
+        setPendingApps([]);
       }
     } catch (err) {
       console.error("Error fetching pending queue:", err);
+      setPendingApps([]);
     }
   };
 
@@ -148,10 +157,13 @@ function App({ user, handleLogout }) {
       const res = await fetch(`${API_BASE}/applications/vehicle?status=pending`);
       if (res.ok) {
         const data = await res.json();
-        setPendingVehicleApps(data);
+        setPendingVehicleApps(Array.isArray(data) ? data : []);
+      } else {
+        setPendingVehicleApps([]);
       }
     } catch (err) {
       console.error("Error fetching pending vehicle claims:", err);
+      setPendingVehicleApps([]);
     }
   };
 
@@ -160,10 +172,13 @@ function App({ user, handleLogout }) {
       const res = await fetch(`${API_BASE}/analytics/summary`);
       if (res.ok) {
         const data = await res.json();
-        setAnalyticsSummary(data);
+        setAnalyticsSummary(data && typeof data === 'object' ? data : null);
+      } else {
+        setAnalyticsSummary(null);
       }
     } catch (err) {
       console.error("Error fetching analytics:", err);
+      setAnalyticsSummary(null);
     }
   };
 
@@ -954,7 +969,14 @@ function App({ user, handleLogout }) {
 // Wrapper for Auth context holding current logged in state
 export default function AppWrapper() {
   const savedUser = localStorage.getItem('actuary_auth_user');
-  const [currentUser, setCurrentUser] = useState(savedUser ? JSON.parse(savedUser) : null);
+  const [currentUser, setCurrentUser] = useState(() => {
+    if (!savedUser || savedUser === 'undefined' || savedUser === 'null') return null;
+    try {
+      return JSON.parse(savedUser);
+    } catch (_) {
+      return null;
+    }
+  });
 
   const handleLoginSuccess = (loggedInUser) => {
     setCurrentUser(loggedInUser);
