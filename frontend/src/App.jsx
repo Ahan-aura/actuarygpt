@@ -686,6 +686,9 @@ function App({ user, handleLogout }) {
                 setFormData(DEFAULT_BLANK_FORM);
                 fetchPendingApps();
                 setOfficerTab('triage');
+              } else {
+                const errData = await res.json().catch(() => ({}));
+                alert(`Error queueing application: ${errData.detail || "Server error"}`);
               }
             }} style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
               <div className="form-group">
@@ -730,6 +733,9 @@ function App({ user, handleLogout }) {
                   alert("Vehicle claim queued.");
                   fetchPendingVehicleApps();
                   setOfficerTab('triage');
+                } else {
+                  const errData = await res.json().catch(() => ({}));
+                  alert(`Error queueing vehicle claim: ${errData.detail || "Server error"}`);
                 }
               }}
               wizardStep={wizardStep}
