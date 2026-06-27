@@ -204,7 +204,7 @@ function App({ user, handleLogout }) {
 
     // Scaling raw inputs to normal distributions in backend automatically
     const payload = {
-      client: user.name,
+      client: user.username || "customer1",
       age: parseFloat(formData.age) || 35.0,
       height: parseFloat(formData.height) || 170.0,
       weight: parseFloat(formData.weight) || 70.0,
@@ -220,7 +220,7 @@ function App({ user, handleLogout }) {
       exercise: parseInt(formData.exercise) || 1,
       alcohol: parseInt(formData.alcohol) || 0,
       gender: formData.gender || "Male",
-      fullName: formData.fullName,
+      full_name: formData.fullName,
       email: formData.email,
       phone: formData.phone,
       medical_conditions: formData.medicalConditions,
