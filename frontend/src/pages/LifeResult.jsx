@@ -62,6 +62,18 @@ export default function LifeResult({
 
   const decisionText = agentResult.underwriting_decision || "Refer for Manual Review";
 
+  const coverageAmount = parseFloat(selectedApp?.coverage_amount || 0);
+  const premium = parseFloat(agentResult?.premium || 0);
+  const isHighRisk = agentResult.risk_class >= 6;
+  const loading = isHighRisk ? 0 : (agentResult.risk_class >= 3 ? Math.round(premium * 0.15) : 0);
+  const recommendedPremium = isHighRisk ? 0 : premium;
+  const riskProbability = Math.round((agentResult.risk_class / 8) * 100);
+  const riskSeverityLabel = agentResult.risk_class <= 2 ? "Low" : agentResult.risk_class <= 5 ? "Medium" : "High";
+  
+  const finalDecisionText = isHighRisk ? "Manual Underwriting" : "Approve Policy";
+  const riskClassText = `Class ${agentResult.risk_class || 1}`;
+  const riskCategoryLabel = agentResult.risk_category?.toUpperCase() || (isHighRisk ? "HIGH RISK" : "LOW RISK");
+
   if (!isOfficer) {
     return (
       <div 
@@ -169,45 +181,114 @@ export default function LifeResult({
         AI Risk Assessment & Actuarial Dossier
       </h3>
 
-      <div className="metrics-row" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '1rem' }}>
-        {/* Predicted Risk Class */}
-        <div className="metric-box" style={{ padding: '1rem', backgroundColor: 'var(--bg-input)', border: '1px solid var(--border)', borderRadius: '8px' }}>
-          <span className="metric-label" style={{ fontSize: '0.75rem', color: 'var(--text-muted)', display: 'block' }}>Predicted Risk Class</span>
-          <span className="metric-value" style={{ fontSize: '1.75rem', fontWeight: 700, display: 'block', margin: '0.25rem 0', color: 'var(--text-title)' }}>
-            Class {agentResult.risk_class}
-          </span>
-          <span className={`risk-badge class-${agentResult.risk_class}`} style={{ fontSize: '0.7rem', padding: '0.1rem 0.5rem', borderRadius: '4px', backgroundColor: agentResult.risk_class <= 2 ? 'var(--risk-low-bg)' : agentResult.risk_class <= 5 ? 'var(--risk-medium-bg)' : 'var(--risk-high-bg)', color: agentResult.risk_class <= 2 ? 'var(--risk-low)' : agentResult.risk_class <= 5 ? 'var(--risk-medium)' : 'var(--risk-high)', fontWeight: 600 }}>
-            {agentResult.risk_category}
-          </span>
-        </div>
-        
-        {/* Inference Confidence */}
-        <div className="metric-box" style={{ padding: '1rem', backgroundColor: 'var(--bg-input)', border: '1px solid var(--border)', borderRadius: '8px' }}>
-          <span className="metric-label" style={{ fontSize: '0.75rem', color: 'var(--text-muted)', display: 'block' }}>Inference Confidence</span>
-          <span className="metric-value" style={{ fontSize: '1.75rem', fontWeight: 700, display: 'block', margin: '0.25rem 0', color: 'var(--secondary)' }}>
-            {agentResult.confidence}%
-          </span>
-          <div className="confidence-bar-bg" style={{ width: '100%', height: '5px', backgroundColor: 'var(--border)', borderRadius: '2.5px', overflow: 'hidden', marginTop: '0.5rem' }}>
-            <div className="confidence-bar-fg" style={{ width: `${agentResult.confidence}%`, height: '100%', backgroundColor: 'var(--secondary)' }}></div>
+      <div className="glass-card" style={{ padding: '1.25rem', border: '1px solid var(--border)', borderRadius: '8px', backgroundColor: 'var(--bg-card)' }}>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: '1rem' }}>
+          
+          {/* 1. Policy Risk Class */}
+          <div style={{ padding: '1rem', backgroundColor: 'var(--bg-input)', border: '1px solid var(--border)', borderRadius: '8px' }}>
+            <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)', display: 'block' }}>1. Policy Risk Class</span>
+            <span style={{ fontSize: '1.5rem', fontWeight: 700, display: 'block', margin: '0.25rem 0', color: isHighRisk ? 'var(--risk-high)' : 'var(--risk-low)' }}>
+              {riskClassText}
+            </span>
+            <span style={{ 
+              fontSize: '0.7rem', 
+              padding: '0.15rem 0.5rem', 
+              borderRadius: '4px', 
+              backgroundColor: isHighRisk ? 'var(--risk-high-bg)' : 'var(--risk-low-bg)', 
+              color: isHighRisk ? 'var(--risk-high)' : 'var(--risk-low)', 
+              fontWeight: 700 
+            }}>
+              {riskCategoryLabel}
+            </span>
           </div>
-        </div>
 
-        {/* Decision */}
-        <div className="metric-box" style={{ padding: '1rem', backgroundColor: 'var(--bg-input)', border: '1px solid var(--border)', borderRadius: '8px' }}>
-          <span className="metric-label" style={{ fontSize: '0.75rem', color: 'var(--text-muted)', display: 'block' }}>Decision</span>
-          <span className="metric-value" style={{ fontSize: '1.05rem', fontWeight: 700, display: 'block', margin: '0.35rem 0', color: 'var(--primary)' }}>
-            {decisionText}
-          </span>
-          <span style={{ fontSize: '0.7rem', color: 'var(--text-muted)' }}>AI Underwriting recommendation</span>
-        </div>
+          {/* 2. AI Confidence */}
+          <div style={{ padding: '1rem', backgroundColor: 'var(--bg-input)', border: '1px solid var(--border)', borderRadius: '8px' }}>
+            <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)', display: 'block' }}>2. AI Confidence</span>
+            <span style={{ fontSize: '1.5rem', fontWeight: 700, display: 'block', margin: '0.25rem 0', color: 'var(--secondary)' }}>
+              {agentResult.confidence}%
+            </span>
+            <div style={{ width: '100%', height: '4px', backgroundColor: 'rgba(255,255,255,0.05)', borderRadius: '2px', overflow: 'hidden', marginTop: '0.5rem' }}>
+              <div style={{ width: `${agentResult.confidence}%`, height: '100%', backgroundColor: 'var(--secondary)' }}></div>
+            </div>
+          </div>
 
-        {/* Annual Premium */}
-        <div className="metric-box" style={{ padding: '1rem', backgroundColor: 'var(--bg-input)', border: '1px solid var(--border)', borderRadius: '8px' }}>
-          <span className="metric-label" style={{ fontSize: '0.75rem', color: 'var(--text-muted)', display: 'block' }}>Recommended Annual Premium</span>
-          <span className="metric-value" style={{ fontSize: '1.75rem', fontWeight: 700, display: 'block', margin: '0.25rem 0', color: 'var(--primary)' }}>
-            ₹{agentResult.premium?.toLocaleString()}
-          </span>
-          <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>Auto-calculated actuarial rate</span>
+          {/* 3. Underwriting Decision */}
+          <div style={{ padding: '1rem', backgroundColor: 'var(--bg-input)', border: '1px solid var(--border)', borderRadius: '8px' }}>
+            <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)', display: 'block' }}>3. Policy Decision</span>
+            <span style={{ fontSize: '1.2rem', fontWeight: 700, display: 'block', margin: '0.4rem 0', color: isHighRisk ? 'var(--risk-high)' : 'var(--risk-low)' }}>
+              {finalDecisionText}
+            </span>
+            <span style={{ fontSize: '0.7rem', color: 'var(--text-muted)' }}>Automated underwriting recommendation</span>
+          </div>
+
+          {/* 4. Requested Sum Assured */}
+          <div style={{ padding: '1rem', backgroundColor: 'var(--bg-input)', border: '1px solid var(--border)', borderRadius: '8px' }}>
+            <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)', display: 'block' }}>4. Requested Sum Assured</span>
+            <span style={{ fontSize: '1.5rem', fontWeight: 700, display: 'block', margin: '0.25rem 0', color: 'var(--text-title)' }}>
+              ₹{coverageAmount.toLocaleString()}
+            </span>
+            <span style={{ fontSize: '0.7rem', color: 'var(--text-muted)' }}>Requested coverage amount</span>
+          </div>
+
+          {/* 5. Recommended Premium */}
+          <div style={{ padding: '1rem', backgroundColor: 'var(--bg-input)', border: '1px solid var(--border)', borderRadius: '8px' }}>
+            <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)', display: 'block' }}>5. Recommended Premium ⭐</span>
+            <span style={{ fontSize: '1.5rem', fontWeight: 800, display: 'block', margin: '0.25rem 0', color: isHighRisk ? 'var(--text-muted)' : 'var(--primary)' }}>
+              ₹{recommendedPremium.toLocaleString()}
+            </span>
+            <span style={{ fontSize: '0.7rem', color: 'var(--text-muted)' }}>Calculated annual premium rate</span>
+          </div>
+
+          {/* 6. Premium Loading */}
+          <div style={{ padding: '1rem', backgroundColor: 'var(--bg-input)', border: '1px solid var(--border)', borderRadius: '8px' }}>
+            <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)', display: 'block' }}>6. Premium Loading</span>
+            <span style={{ fontSize: '1.5rem', fontWeight: 700, display: 'block', margin: '0.25rem 0', color: 'var(--risk-medium)' }}>
+              ₹{loading.toLocaleString()}
+            </span>
+            <span style={{ fontSize: '0.7rem', color: 'var(--text-muted)' }}>15% Health risk surcharge (Class 3-5)</span>
+          </div>
+
+          {/* 7. Underwriting Risk Probability */}
+          <div style={{ padding: '1rem', backgroundColor: 'var(--bg-input)', border: '1px solid var(--border)', borderRadius: '8px' }}>
+            <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)', display: 'block' }}>7. Underwriting Risk Prob.</span>
+            <span style={{ fontSize: '1.5rem', fontWeight: 700, display: 'block', margin: '0.25rem 0', color: isHighRisk ? 'var(--risk-high)' : 'var(--risk-low)' }}>
+              {riskProbability}%
+            </span>
+            <span style={{ 
+              fontSize: '0.7rem', 
+              padding: '0.15rem 0.5rem', 
+              borderRadius: '4px', 
+              backgroundColor: isHighRisk ? 'var(--risk-high-bg)' : 'var(--risk-low-bg)', 
+              color: isHighRisk ? 'var(--risk-high)' : 'var(--risk-low)', 
+              fontWeight: 700 
+            }}>
+              {riskSeverityLabel}
+            </span>
+          </div>
+
+          {/* 8. Processing Time / Reason */}
+          <div style={{ padding: '1rem', backgroundColor: 'var(--bg-input)', border: '1px solid var(--border)', borderRadius: '8px' }}>
+            {!isHighRisk ? (
+              <>
+                <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)', display: 'block' }}>8. Processing Time</span>
+                <span style={{ fontSize: '1.15rem', fontWeight: 700, display: 'block', margin: '0.4rem 0', color: 'var(--text-title)' }}>
+                  Estimated: 1 Day
+                </span>
+                <span style={{ fontSize: '0.7rem', color: 'var(--text-muted)' }}>Subject to direct policy issuance</span>
+              </>
+            ) : (
+              <>
+                <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)', display: 'block' }}>Reason</span>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '0.25rem', marginTop: '0.25rem', fontSize: '0.75rem', color: 'var(--risk-high)', fontWeight: 600 }}>
+                  <div>• High underwriting risk category</div>
+                  <div>• Critical medical indicators</div>
+                  <div>• Family medical history flag</div>
+                </div>
+              </>
+            )}
+          </div>
+
         </div>
       </div>
 
