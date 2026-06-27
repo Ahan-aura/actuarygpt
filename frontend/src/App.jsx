@@ -795,11 +795,11 @@ function App({ user, handleLogout }) {
                       style={{ padding: '0.75rem 1rem', border: '1px solid var(--border)', borderRadius: '8px', cursor: 'pointer', backgroundColor: selectedApp?.id === app.id ? 'var(--primary-glow)' : 'var(--bg-input)' }}
                     >
                       <div style={{ display: 'flex', justifyContent: 'space-between', fontWeight: 600 }}>
-                        <span>{app.client}</span>
+                        <span>{app.full_name || app.client}</span>
                         <span style={{ color: 'var(--primary)', fontSize: '0.8rem' }}>{app.id}</span>
                       </div>
                       <div style={{ fontSize: '0.8rem', color: 'var(--text-muted)', marginTop: '0.25rem' }}>
-                        Life Policy • sum assured ₹{app.coverage_amount?.toLocaleString()}
+                        {app.insurance_type || "Life"} Claim • sum assured ₹{app.coverage_amount?.toLocaleString()}
                       </div>
                     </div>
                   ))}

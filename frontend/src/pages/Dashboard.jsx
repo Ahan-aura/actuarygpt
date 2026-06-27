@@ -160,8 +160,8 @@ export default function Dashboard({
                   style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '0.75rem 1rem', backgroundColor: 'var(--bg-input)', border: '1px solid var(--border)', borderRadius: '8px', cursor: 'pointer' }}
                 >
                   <div>
-                    <p style={{ fontWeight: 600, color: 'var(--text-title)' }}>{app.client}</p>
-                    <p style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>Life Cover • Requested: ₹{app.coverage_amount?.toLocaleString()}</p>
+                    <p style={{ fontWeight: 600, color: 'var(--text-title)' }}>{app.full_name || app.client}</p>
+                    <p style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>{app.insurance_type || "Life"} Cover • Requested: ₹{app.coverage_amount?.toLocaleString()}</p>
                   </div>
                   <span style={{ fontSize: '0.85rem', color: 'var(--primary)', fontWeight: 600 }}>Evaluate →</span>
                 </div>
