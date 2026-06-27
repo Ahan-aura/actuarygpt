@@ -817,8 +817,8 @@ function App({ user, handleLogout }) {
                 <div className="animate-slide-in">
                   <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.25rem' }}>
                     <div>
-                      <h4 style={{ fontSize: '1.2rem', color: 'var(--text-title)' }}>Applicant: {selectedApp.client}</h4>
-                      <span style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>ID: {selectedApp.id} | Date: {selectedApp.date}</span>
+                      <h4 style={{ fontSize: '1.2rem', color: 'var(--text-title)' }}>Applicant: {selectedApp?.client || "N/A"}</h4>
+                      <span style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>ID: {selectedApp?.id || "N/A"} | Date: {selectedApp?.date || "N/A"}</span>
                     </div>
                     {!isLoading && !agentResult && (
                       <button className="btn-primary" onClick={() => runActuarialAgent(selectedApp)}>
@@ -828,39 +828,39 @@ function App({ user, handleLogout }) {
                     )}
                   </div>
 
-                  {!selectedApp.id.startsWith('VEH') ? (
+                  {!selectedApp?.id?.startsWith('VEH') ? (
                     /* Life workstation details */
                     <div className="details-grid" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '0.75rem', marginBottom: '1.5rem' }}>
-                      <div className="detail-box"><span className="detail-label">Age Index</span><span className="detail-val">{selectedApp.age}</span></div>
-                      <div className="detail-box"><span className="detail-label">Gender</span><span className="detail-val">{selectedApp.gender}</span></div>
-                      <div className="detail-box"><span className="detail-label">Height / Weight</span><span className="detail-val">{selectedApp.height}cm / {selectedApp.weight}kg</span></div>
-                      <div className="detail-box"><span className="detail-label">BMI</span><span className="detail-val">{selectedApp.bmi}</span></div>
-                      <div className="detail-box"><span className="detail-label">Income</span><span className="detail-val">₹{selectedApp.income?.toLocaleString()}</span></div>
-                      <div className="detail-box"><span className="detail-label">Smoker</span><span className="detail-val">{selectedApp.smoker ? 'Yes' : 'No'}</span></div>
-                      <div className="detail-box"><span className="detail-label">Claims History</span><span className="detail-val">{selectedApp.previous_claims} claims</span></div>
-                      <div className="detail-box"><span className="detail-label">Type / Sum Assured</span><span className="detail-val">{selectedApp.insurance_type} / ₹{selectedApp.coverage_amount?.toLocaleString()}</span></div>
-                      {selectedApp.medical_bill && (
+                      <div className="detail-box"><span className="detail-label">Age Index</span><span className="detail-val">{selectedApp?.age || "35"}</span></div>
+                      <div className="detail-box"><span className="detail-label">Gender</span><span className="detail-val">{selectedApp?.gender || "Male"}</span></div>
+                      <div className="detail-box"><span className="detail-label">Height / Weight</span><span className="detail-val">{selectedApp?.height || "170"}cm / {selectedApp?.weight || "70"}kg</span></div>
+                      <div className="detail-box"><span className="detail-label">BMI</span><span className="detail-val">{selectedApp?.bmi || "24.2"}</span></div>
+                      <div className="detail-box"><span className="detail-label">Income</span><span className="detail-val">₹{selectedApp?.income?.toLocaleString() || "50,000"}</span></div>
+                      <div className="detail-box"><span className="detail-label">Smoker</span><span className="detail-val">{selectedApp?.smoker ? 'Yes' : 'No'}</span></div>
+                      <div className="detail-box"><span className="detail-label">Claims History</span><span className="detail-val">{selectedApp?.previous_claims || "0"} claims</span></div>
+                      <div className="detail-box"><span className="detail-label">Type / Sum Assured</span><span className="detail-val">{selectedApp?.insurance_type || "Health"} / ₹{selectedApp?.coverage_amount?.toLocaleString() || "1,00,000"}</span></div>
+                      {selectedApp?.medical_bill && (
                         <div className="detail-box" style={{ gridColumn: 'span 3', display: 'flex', alignItems: 'center', gap: '0.5rem', backgroundColor: 'rgba(99, 102, 241, 0.04)', border: '1px dashed var(--primary)' }}>
                           <span className="detail-label" style={{ margin: 0 }}>Attached Medical Bill:</span>
-                          <span className="detail-val" style={{ fontWeight: 700, color: 'var(--primary)', fontSize: '0.85rem' }}>📄 {selectedApp.medical_bill}</span>
+                          <span className="detail-val" style={{ fontWeight: 700, color: 'var(--primary)', fontSize: '0.85rem' }}>📄 {selectedApp?.medical_bill}</span>
                         </div>
                       )}
                     </div>
                   ) : (
                     /* Vehicle workstation details */
                     <div className="details-grid" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '0.75rem', marginBottom: '1.5rem' }}>
-                      <div className="detail-box"><span className="detail-label">Age</span><span className="detail-val">{selectedApp.age} yr</span></div>
-                      <div className="detail-box"><span className="detail-label">Gender</span><span className="detail-val">{selectedApp.insured_sex}</span></div>
-                      <div className="detail-box"><span className="detail-label">Occupation</span><span className="detail-val">{selectedApp.insured_occupation}</span></div>
-                      <div className="detail-box"><span className="detail-label">Policy State / CSL</span><span className="detail-val">{selectedApp.policy_state} / {selectedApp.policy_csl}</span></div>
-                      <div className="detail-box"><span className="detail-label">Annual Premium</span><span className="detail-val">₹{selectedApp.policy_annual_premium?.toLocaleString()}</span></div>
-                      <div className="detail-box"><span className="detail-label">Deductible</span><span className="detail-val">{selectedApp.policy_deductable ? `₹${selectedApp.policy_deductable.toLocaleString()}` : '₹0'}</span></div>
-                      <div className="detail-box"><span className="detail-label">Incident Severity</span><span className="detail-val">{selectedApp.incident_severity}</span></div>
-                      <div className="detail-box"><span className="detail-label">Collision Type</span><span className="detail-val">{selectedApp.collision_type}</span></div>
-                      <div className="detail-box"><span className="detail-label">Property Damage</span><span className="detail-val">{selectedApp.property_damage}</span></div>
-                      <div className="detail-box"><span className="detail-label">Police Report</span><span className="detail-val">{selectedApp.police_report_available}</span></div>
-                      <div className="detail-box"><span className="detail-label">Bodily Injuries</span><span className="detail-val">{selectedApp.bodily_injuries}</span></div>
-                      <div className="detail-box"><span className="detail-label">Claim Payout</span><span className="detail-val" style={{ color: 'var(--primary)', fontWeight: 700 }}>₹{selectedApp.total_claim_amount?.toLocaleString()}</span></div>
+                      <div className="detail-box"><span className="detail-label">Age</span><span className="detail-val">{selectedApp?.age || "35"} yr</span></div>
+                      <div className="detail-box"><span className="detail-label">Gender</span><span className="detail-val">{selectedApp?.insured_sex || "MALE"}</span></div>
+                      <div className="detail-box"><span className="detail-label">Occupation</span><span className="detail-val">{selectedApp?.insured_occupation || "Professional"}</span></div>
+                      <div className="detail-box"><span className="detail-label">Policy State / CSL</span><span className="detail-val">{selectedApp?.policy_state || "OH"} / {selectedApp?.policy_csl || "250/500"}</span></div>
+                      <div className="detail-box"><span className="detail-label">Annual Premium</span><span className="detail-val">₹{selectedApp?.policy_annual_premium?.toLocaleString() || "1,200"}</span></div>
+                      <div className="detail-box"><span className="detail-label">Deductible</span><span className="detail-val">{selectedApp?.policy_deductable ? `₹${selectedApp?.policy_deductable?.toLocaleString()}` : '₹0'}</span></div>
+                      <div className="detail-box"><span className="detail-label">Incident Severity</span><span className="detail-val">{selectedApp?.incident_severity || "Minor Damage"}</span></div>
+                      <div className="detail-box"><span className="detail-label">Collision Type</span><span className="detail-val">{selectedApp?.collision_type || "Side Collision"}</span></div>
+                      <div className="detail-box"><span className="detail-label">Property Damage</span><span className="detail-val">{selectedApp?.property_damage || "NO"}</span></div>
+                      <div className="detail-box"><span className="detail-label">Police Report</span><span className="detail-val">{selectedApp?.police_report_available || "NO"}</span></div>
+                      <div className="detail-box"><span className="detail-label">Bodily Injuries</span><span className="detail-val">{selectedApp?.bodily_injuries || "0"}</span></div>
+                      <div className="detail-box"><span className="detail-label">Claim Payout</span><span className="detail-val" style={{ color: 'var(--primary)', fontWeight: 700 }}>₹{selectedApp?.total_claim_amount?.toLocaleString() || "0"}</span></div>
                     </div>
                   )}
 
@@ -876,7 +876,7 @@ function App({ user, handleLogout }) {
 
                   {isLoading && <AIThinking pipelineSteps={pipelineSteps} />}
                   
-                  {agentResult && !isLoading && !selectedApp.id.startsWith('VEH') && (
+                  {agentResult && !isLoading && !selectedApp?.id?.startsWith('VEH') && (
                     <LifeResult 
                       agentResult={agentResult} 
                       selectedApp={selectedApp} 
@@ -891,7 +891,7 @@ function App({ user, handleLogout }) {
                     />
                   )}
 
-                  {agentResult && !isLoading && selectedApp.id.startsWith('VEH') && (
+                  {agentResult && !isLoading && selectedApp?.id?.startsWith('VEH') && (
                     <VehicleResult 
                       agentResult={agentResult} 
                       selectedApp={selectedApp} 

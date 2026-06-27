@@ -15,7 +15,9 @@ export default function LifeResult({
   setExpandedSimCaseId,
   processedApps = []
 }) {
-  const previousPolicies = processedApps ? processedApps.filter(app => app.client === selectedApp.client && app.id !== selectedApp.id) : [];
+  const previousPolicies = (processedApps && selectedApp && selectedApp.client)
+    ? processedApps.filter(app => app && app.client === selectedApp.client && app.id !== selectedApp.id)
+    : [];
   
   const currentYear = new Date().getFullYear();
   let customerSinceYear = currentYear;
