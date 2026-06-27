@@ -1,19 +1,31 @@
-import React from 'react';
-import { Sparkles, History, AlertCircle, AlertTriangle, Download, Upload, CheckCircle2 } from 'lucide-react';
-import { downloadPDF } from '../utils/download';
+import React, { useState, useEffect } from 'react';
+import { Sparkles, History, AlertCircle, AlertTriangle, Download, Upload, CheckCircle2, FileText, ArrowRight, ShieldCheck } from 'lucide-react';
 
 export default function LifeInsurance({
   formData,
   setFormData,
   wizardStep,
   setWizardStep,
-  customerSubmissions,
+  customerSubmissions = [],
   API_BASE,
   handleCustomerSubmit
 }) {
-  const [isScanning, setIsScanning] = React.useState(false);
-  const [scanStatus, setScanStatus] = React.useState("");
-  const [parsedDocInfo, setParsedDocInfo] = React.useState(null);
+  const [isScanning, setIsScanning] = useState(false);
+  const [scanStatus, setScanStatus] = useState("");
+  const [parsedDocInfo, setParsedDocInfo] = useState(null);
+
+  // local states for claim specific fields to sync into formData
+  const [claimType, setClaimType] = useState(formData.insurance_type || "Health");
+  const [claimId] = useState(() => formData.id || "CLM-" + Math.floor(100000 + Math.random() * 900000));
+  
+  // Sync claimType to parent formData
+  useEffect(() => {
+    setFormData(prev => ({
+      ...prev,
+      id: claimId,
+      insurance_type: claimType
+    }));
+  }, [claimType, claimId, setFormData]);
 
   const handleDocumentScan = async (e) => {
     const file = e.target.files[0];
@@ -45,62 +57,38 @@ export default function LifeInsurance({
         if (data.success && data.features) {
           const f = data.features;
           
-          // Zero-typing autofill default values
-          f.fullName = f.fullName || "Ahan";
-          f.age = f.age || 29;
-          f.gender = f.gender || "Male";
-          f.occupation = f.occupation || "Software Engineer";
-          f.income = f.income || 1200000;
-          f.email = f.email || "ahan@gmail.com";
-          f.phone = f.phone || "+91 98765 43210";
-          f.height = f.height || 175;
-          f.weight = f.weight || 70;
-          f.smoker = f.smoker !== undefined ? f.smoker : 0;
-          f.alcohol = f.alcohol !== undefined ? f.alcohol : 0;
-          f.exercise = f.exercise !== undefined ? f.exercise : 1;
-          f.medicalConditions = f.medicalConditions || "Type 2 Diabetes controlled with metformin.";
-          f.insurance_type = f.insurance_type || "Health";
-          f.coverage_amount = f.coverage_amount || 45000;
-          f.policyDuration = f.policyDuration || 10;
-          f.previous_claims = f.previous_claims || 0;
-          f.nomineeAge = f.nomineeAge || 55;
-          f.product_info_2 = f.product_info_2 || "A1";
+          // Auto-fill extracted values
+          const updatedType = f.insurance_type === 'Life' ? 'Life' : 'Health';
+          setClaimType(updatedType);
 
           setFormData(prev => {
-            const updated = { ...prev, ...f };
-            updated.medicalBill = file.name;
-            if (f.age) updated.age = parseInt(f.age) || prev.age;
-            if (f.income) updated.income = parseFloat(f.income) || prev.income;
-            if (f.height) updated.height = parseFloat(f.height) || prev.height;
-            if (f.weight) updated.weight = parseFloat(f.weight) || prev.weight;
-            if (f.coverage_amount) updated.coverage_amount = parseFloat(f.coverage_amount) || prev.coverage_amount;
-            if (f.policyDuration) updated.policyDuration = parseInt(f.policyDuration) || prev.policyDuration;
-            if (f.previous_claims) updated.previous_claims = parseInt(f.previous_claims) || prev.previous_claims;
-            if (f.nomineeAge) updated.nomineeAge = parseInt(f.nomineeAge) || prev.nomineeAge;
-            
-            if (f.height || f.weight) {
-              const h_m = parseFloat(updated.height || prev.height) / 100;
-              const w_kg = parseFloat(updated.weight || prev.weight);
-              if (h_m > 0) {
-                updated.bmi = parseFloat((w_kg / (h_m * h_m)).toFixed(2));
-              }
-            }
+            const updated = {
+              ...prev,
+              fullName: f.fullName || prev.fullName || "Ahan",
+              age: parseInt(f.age) || prev.age || 29,
+              gender: f.gender || prev.gender || "Male",
+              email: f.email || prev.email || "ahan@gmail.com",
+              phone: f.phone || prev.phone || "+91 98765 43210",
+              coverage_amount: parseFloat(f.coverage_amount) || prev.coverage_amount || 45000.0,
+              medicalConditions: f.medicalConditions || prev.medicalConditions || "",
+              medicalBill: file.name,
+              insurance_type: updatedType
+            };
             return updated;
           });
 
-          const isHealth = f.insurance_type === 'Health' || file.name.toLowerCase().includes('bill') || file.name.toLowerCase().includes('invoice') || file.name.toLowerCase().includes('medical');
           setParsedDocInfo({
-            isHealth: isHealth,
-            fullName: f.fullName,
-            amount: f.coverage_amount,
-            conditions: f.medicalConditions,
-            id: isHealth ? "BILL-849204" : "POL-938294",
+            isHealth: updatedType === 'Health',
+            fullName: f.fullName || "Ahan",
+            amount: f.coverage_amount || 45000.0,
+            conditions: f.medicalConditions || "Extracted claim documentation review.",
+            id: claimId,
             expiryDate: "2027-12-31"
           });
           
-          setScanStatus("Scan complete! Form populated successfully.");
+          setScanStatus("Scan complete! Claim form populated successfully.");
         } else {
-          setScanStatus("Scan failed: Unable to extract features from this document.");
+          setScanStatus("Scan failed: Unable to extract claim features.");
         }
       } catch (err) {
         console.error(err);
@@ -121,35 +109,20 @@ export default function LifeInsurance({
     setFormData(prev => ({ ...prev, [field]: val }));
   };
 
-  const handleSizeChange = (field, val) => {
-    const newFields = { ...formData, [field]: val };
-    
-    // Auto-calculate BMI
-    if (newFields.height && newFields.weight) {
-      const h_m = parseFloat(newFields.height) / 100;
-      const w_kg = parseFloat(newFields.weight);
-      if (h_m > 0) {
-        newFields.bmi = parseFloat((w_kg / (h_m * h_m)).toFixed(2));
-      }
-    }
-    setFormData(newFields);
-  };
-
   const stepLabels = [
-    "1. Personal",
-    "2. Health",
-    "3. Insurance",
-    "4. AI Processing",
-    "5. AI Result"
+    "1. Claim Selection",
+    "2. Claim Details",
+    "3. Attach Documents"
   ];
 
   return (
     <div className="customer-grid animate-fade-in" style={{ display: 'grid', gridTemplateColumns: '1.2fr 1fr', gap: '2rem', marginTop: '1rem' }}>
       {/* Customer Submission Form Wizard */}
-      <div className="glass-card">
+      <div className="glass-card" style={{ padding: '1.5rem', border: '1px solid var(--border)', borderRadius: '10px', backgroundColor: 'var(--bg-card)' }}>
+        
         {/* Wizard Steps Header Tracker */}
         <div className="wizard-progress-bar" style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '2rem', borderBottom: '1px solid var(--border)', paddingBottom: '1rem', overflowX: 'auto', gap: '1rem' }}>
-          {[1, 2, 3, 4, 5].map((stepNum) => {
+          {[1, 2, 3].map((stepNum) => {
             let stepColor = 'var(--text-muted)';
             let stepWeight = 500;
             if (wizardStep === stepNum) {
@@ -192,13 +165,13 @@ export default function LifeInsurance({
           })}
         </div>
 
-        {/* STEP 1: Personal Information */}
+        {/* STEP 1: Select Claim Type & Common Fields */}
         {wizardStep === 1 && (
           <div className="animate-fade-in">
             <h3 style={{ fontSize: '1.1rem', fontWeight: 700, marginBottom: '1.25rem', borderBottom: '1px solid var(--border)', paddingBottom: '0.5rem', color: 'var(--text-title)' }}>
-              Personal Information
+              Step 1: Select Claim Type & General Details
             </h3>
-            
+
             {/* AI Document Scan Auto-Fill Widget */}
             <div 
               style={{
@@ -211,17 +184,15 @@ export default function LifeInsurance({
                 gap: '0.75rem',
                 alignItems: 'center',
                 textAlign: 'center',
-                marginBottom: '1.5rem',
-                transition: 'all 0.3s ease'
+                marginBottom: '1.5rem'
               }}
             >
               <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', color: 'var(--primary)' }}>
                 <Sparkles size={20} className={isScanning ? 'animate-pulse' : ''} />
                 <span style={{ fontSize: '0.9rem', fontWeight: 700 }}>⚡ AI Auto-Fill via Document Upload</span>
               </div>
-              
               <p style={{ fontSize: '0.8rem', color: 'var(--text-muted)', maxWidth: '420px', margin: 0, lineHeight: 1.4 }}>
-                Skip the manual typing! Upload a medical bill, hospital invoice, or policyholder sheet (PDF or Image) to scan and extract all details automatically.
+                Upload any Hospital Invoice, Medical Report, or Death Certificate to automatically detect the Claim Type and parse details instantly.
               </p>
               
               <div style={{ position: 'relative', marginTop: '0.25rem' }}>
@@ -230,11 +201,11 @@ export default function LifeInsurance({
                   accept="image/*,application/pdf" 
                   onChange={handleDocumentScan} 
                   disabled={isScanning}
-                  id="aiLifeDocUpload"
+                  id="aiClaimDocUpload"
                   style={{ display: 'none' }}
                 />
                 <label 
-                  htmlFor="aiLifeDocUpload" 
+                  htmlFor="aiClaimDocUpload" 
                   className="btn-secondary"
                   style={{ 
                     cursor: isScanning ? 'not-allowed' : 'pointer', 
@@ -242,519 +213,467 @@ export default function LifeInsurance({
                     alignItems: 'center', 
                     gap: '0.5rem', 
                     padding: '0.5rem 1rem', 
-                    fontSize: '0.85rem',
-                    opacity: isScanning ? 0.6 : 1
+                    fontSize: '0.85rem'
                   }}
                 >
                   <Upload size={14} />
-                  {isScanning ? "Scanning Document/Bill..." : "Upload PDF / Image"}
+                  {isScanning ? "Scanning with Gemini..." : "Upload Document / Certificate"}
                 </label>
               </div>
 
-              {/* OCR Agent Panel during / after scan */}
-              {(isScanning || parsedDocInfo) && (
-                <div 
-                  className="glass-card animate-fade-in" 
-                  style={{ 
-                    marginTop: '1rem', 
-                    padding: '1.25rem', 
-                    width: '100%', 
-                    border: '1px solid var(--border)', 
-                    backgroundColor: 'var(--bg-input)',
-                    textAlign: 'left' 
-                  }}
-                >
-                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '0.75rem', borderBottom: '1px solid var(--border)', paddingBottom: '0.5rem' }}>
-                    <span style={{ fontWeight: 700, fontSize: '0.9rem', color: 'var(--primary)', display: 'flex', alignItems: 'center', gap: '0.25rem' }}>🤖 OCR Agent</span>
-                    <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>Status: <b style={{ color: isScanning ? 'var(--secondary)' : 'var(--risk-low)' }}>{isScanning ? "Reading document..." : "OCR Completed Successfully"}</b></span>
-                  </div>
-
-                  <div style={{ display: 'flex', flexDirection: 'column', gap: '0.4rem', fontSize: '0.8rem', color: 'var(--text-main)' }}>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', color: isScanning ? 'var(--text-muted)' : 'var(--risk-low)' }}>
-                      <span style={{ fontWeight: 'bold' }}>✓</span>
-                      <span style={{ color: 'var(--text-main)' }}>Policy Number Extracted: <b style={{ color: 'var(--text-title)' }}>{parsedDocInfo?.id || (isScanning ? "Extracting..." : "N/A")}</b></span>
-                    </div>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', color: isScanning ? 'var(--text-muted)' : 'var(--risk-low)' }}>
-                      <span style={{ fontWeight: 'bold' }}>✓</span>
-                      <span style={{ color: 'var(--text-main)' }}>Customer Name Extracted: <b style={{ color: 'var(--text-title)' }}>{parsedDocInfo?.fullName || (isScanning ? "Extracting..." : "N/A")}</b></span>
-                    </div>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', color: isScanning ? 'var(--text-muted)' : 'var(--risk-low)' }}>
-                      <span style={{ fontWeight: 'bold' }}>✓</span>
-                      <span style={{ color: 'var(--text-main)' }}>Medical History Extracted: <b style={{ color: 'var(--text-title)' }}>{parsedDocInfo?.conditions || (isScanning ? "Extracting..." : "N/A")}</b></span>
-                    </div>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', color: isScanning ? 'var(--text-muted)' : 'var(--risk-low)' }}>
-                      <span style={{ fontWeight: 'bold' }}>✓</span>
-                      <span style={{ color: 'var(--text-main)' }}>Total Amount Extracted: <b style={{ color: 'var(--text-title)' }}>₹{parsedDocInfo?.amount?.toLocaleString() || (isScanning ? "Extracting..." : "N/A")}</b></span>
-                    </div>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', color: isScanning ? 'var(--text-muted)' : 'var(--risk-low)' }}>
-                      <span style={{ fontWeight: 'bold' }}>✓</span>
-                      <span style={{ color: 'var(--text-main)' }}>Expiry Date Extracted: <b style={{ color: 'var(--text-title)' }}>{parsedDocInfo?.expiryDate || (isScanning ? "Extracting..." : "N/A")}</b></span>
-                    </div>
-                  </div>
-                </div>
-              )}
+              {scanStatus && <div style={{ fontSize: '0.8rem', color: 'var(--primary)', fontWeight: 600 }}>{scanStatus}</div>}
             </div>
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '1.25rem' }}>
               <div className="form-group">
-                <label>Full Name</label>
-                <input 
-                  type="text" 
-                  className="form-input" 
-                  placeholder="e.g. John Doe"
-                  value={formData.fullName} 
-                  onChange={(e) => handleInputChange('fullName', e.target.value)} 
-                  required 
-                />
-              </div>
-              
-              <div className="form-group-row">
-                <div className="form-group">
-                  <label>Age (Years)</label>
-                  <input 
-                    type="number" 
-                    min="18" 
-                    max="100" 
-                    className="form-input" 
-                    placeholder="e.g. 35"
-                    value={formData.age} 
-                    onChange={(e) => handleInputChange('age', e.target.value)} 
-                    required 
-                  />
-                </div>
-                <div className="form-group">
-                  <label>Gender</label>
-                  <select 
-                    className="form-select" 
-                    value={formData.gender} 
-                    onChange={(e) => handleInputChange('gender', e.target.value)}
-                  >
-                    <option value="Male">Male</option>
-                    <option value="Female">Female</option>
-                    <option value="Other">Other</option>
-                  </select>
+                <label style={{ fontWeight: 600, marginBottom: '0.5rem', display: 'block' }}>Claim Type *</label>
+                <div style={{ display: 'flex', gap: '1.5rem' }}>
+                  <label style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', cursor: 'pointer', fontSize: '0.9rem' }}>
+                    <input 
+                      type="radio" 
+                      name="claim_type" 
+                      value="Health"
+                      checked={claimType === "Health"} 
+                      onChange={(e) => setClaimType(e.target.value)}
+                    />
+                    Health Insurance Claim
+                  </label>
+                  <label style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', cursor: 'pointer', fontSize: '0.9rem' }}>
+                    <input 
+                      type="radio" 
+                      name="claim_type" 
+                      value="Life"
+                      checked={claimType === "Life"} 
+                      onChange={(e) => setClaimType(e.target.value)}
+                    />
+                    Life Insurance Claim
+                  </label>
                 </div>
               </div>
 
-              <div className="form-group-row">
+              <div className="form-group-row" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
                 <div className="form-group">
-                  <label>Occupation</label>
+                  <label>Claim ID (Auto-generated)</label>
+                  <input type="text" className="form-input" value={claimId} disabled />
+                </div>
+                <div className="form-group">
+                  <label>Policy Number *</label>
                   <input 
                     type="text" 
                     className="form-input" 
-                    placeholder="e.g. Software Engineer"
-                    value={formData.occupation} 
-                    onChange={(e) => handleInputChange('occupation', e.target.value)} 
-                    required 
-                  />
-                </div>
-                <div className="form-group">
-                  <label>Annual Income (INR)</label>
-                  <input 
-                    type="number" 
-                    className="form-input" 
-                    placeholder="e.g. 1200000"
-                    value={formData.income} 
-                    onChange={(e) => handleInputChange('income', e.target.value)} 
+                    placeholder="e.g. POL-849204" 
+                    value={formData.product_info_2 || ""} 
+                    onChange={(e) => handleInputChange('product_info_2', e.target.value)} 
                     required 
                   />
                 </div>
               </div>
 
-              <div className="form-group-row">
+              <div className="form-group-row" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
                 <div className="form-group">
-                  <label>Email Address</label>
+                  <label>Policyholder Name *</label>
                   <input 
-                    type="email" 
+                    type="text" 
                     className="form-input" 
-                    placeholder="e.g. johndoe@example.com"
-                    value={formData.email} 
-                    onChange={(e) => handleInputChange('email', e.target.value)} 
+                    placeholder="Full Name" 
+                    value={formData.fullName || ""} 
+                    onChange={(e) => handleInputChange('fullName', e.target.value)} 
                     required 
                   />
                 </div>
                 <div className="form-group">
-                  <label>Phone Number</label>
+                  <label>Nominee Name</label>
+                  <input 
+                    type="text" 
+                    className="form-input" 
+                    placeholder="Beneficiary Name" 
+                    value={formData.nomineeName || ""} 
+                    onChange={(e) => handleInputChange('nomineeName', e.target.value)} 
+                  />
+                </div>
+              </div>
+
+              <div className="form-group-row" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
+                <div className="form-group">
+                  <label>Mobile Number *</label>
                   <input 
                     type="tel" 
                     className="form-input" 
-                    placeholder="e.g. +91 9876543210"
-                    value={formData.phone} 
+                    placeholder="e.g. +91 98765 43210" 
+                    value={formData.phone || ""} 
                     onChange={(e) => handleInputChange('phone', e.target.value)} 
                     required 
                   />
                 </div>
-              </div>
-
-              <div style={{ marginTop: '1.5rem', display: 'flex', justifyContent: 'flex-end' }}>
-                <button 
-                  className="btn-primary" 
-                  onClick={() => {
-                    if (!formData.fullName || !formData.age || !formData.occupation || !formData.income || !formData.email || !formData.phone) {
-                      alert("Please fill in all fields to proceed.");
-                      return;
-                    }
-                    setWizardStep(2);
-                  }}
-                >
-                  Next Step
-                </button>
-              </div>
-            </div>
-          </div>
-        )}
-
-        {/* STEP 2: Health Information */}
-        {wizardStep === 2 && (
-          <div className="animate-fade-in">
-            <h3 style={{ fontSize: '1.1rem', fontWeight: 700, marginBottom: '1.25rem', borderBottom: '1px solid var(--border)', paddingBottom: '0.5rem', color: 'var(--text-title)' }}>
-              Health Information
-            </h3>
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '1.25rem' }}>
-              <div className="form-group-row">
                 <div className="form-group">
-                  <label>Height (cm)</label>
+                  <label>Email Address *</label>
                   <input 
-                    type="number" 
+                    type="email" 
                     className="form-input" 
-                    placeholder="e.g. 175"
-                    value={formData.height} 
-                    onChange={(e) => handleSizeChange('height', e.target.value)} 
-                    required 
-                  />
-                </div>
-                <div className="form-group">
-                  <label>Weight (kg)</label>
-                  <input 
-                    type="number" 
-                    className="form-input" 
-                    placeholder="e.g. 70"
-                    value={formData.weight} 
-                    onChange={(e) => handleSizeChange('weight', e.target.value)} 
+                    placeholder="e.g. ahan@gmail.com" 
+                    value={formData.email || ""} 
+                    onChange={(e) => handleInputChange('email', e.target.value)} 
                     required 
                   />
                 </div>
               </div>
 
-              <div className="form-group">
-                <label>Automatically Calculated BMI</label>
-                <input 
-                  type="number" 
-                  className="form-input" 
-                  value={formData.bmi || ""} 
-                  placeholder="BMI auto-computed"
-                  disabled 
-                  style={{ opacity: 0.8, backgroundColor: 'rgba(0,0,0,0.15)', cursor: 'not-allowed' }} 
-                />
-              </div>
-
-              <div className="form-group-row" style={{ gap: '2rem' }}>
+              <div className="form-group-row" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
                 <div className="form-group">
-                  <label style={{ marginBottom: '0.5rem', display: 'block' }}>Smoking Habits</label>
-                  <div style={{ display: 'flex', gap: '1.5rem', marginTop: '0.25rem' }}>
-                    <label style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', cursor: 'pointer', fontSize: '0.9rem' }}>
-                      <input 
-                        type="radio" 
-                        name="smoker" 
-                        checked={formData.smoker === 1} 
-                        onChange={() => handleInputChange('smoker', 1)}
-                      />
-                      Yes
-                    </label>
-                    <label style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', cursor: 'pointer', fontSize: '0.9rem' }}>
-                      <input 
-                        type="radio" 
-                        name="smoker" 
-                        checked={formData.smoker === 0} 
-                        onChange={() => handleInputChange('smoker', 0)}
-                      />
-                      No
-                    </label>
-                  </div>
-                </div>
-
-                <div className="form-group">
-                  <label style={{ marginBottom: '0.5rem', display: 'block' }}>Alcohol Consumption</label>
-                  <div style={{ display: 'flex', gap: '1.5rem', marginTop: '0.25rem' }}>
-                    <label style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', cursor: 'pointer', fontSize: '0.9rem' }}>
-                      <input 
-                        type="radio" 
-                        name="alcohol" 
-                        checked={formData.alcohol === 1} 
-                        onChange={() => handleInputChange('alcohol', 1)}
-                      />
-                      Yes
-                    </label>
-                    <label style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', cursor: 'pointer', fontSize: '0.9rem' }}>
-                      <input 
-                        type="radio" 
-                        name="alcohol" 
-                        checked={formData.alcohol === 0} 
-                        onChange={() => handleInputChange('alcohol', 0)}
-                      />
-                      No
-                    </label>
-                  </div>
-                </div>
-              </div>
-
-              <div className="form-group">
-                <label style={{ marginBottom: '0.5rem', display: 'block' }}>Exercise Frequency</label>
-                <div style={{ display: 'flex', gap: '1.5rem', marginTop: '0.25rem' }}>
-                  <label style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', cursor: 'pointer', fontSize: '0.9rem' }}>
-                    <input 
-                      type="radio" 
-                      name="exercise" 
-                      checked={formData.exercise === 2} 
-                      onChange={() => handleInputChange('exercise', 2)}
-                    />
-                    Daily
-                  </label>
-                  <label style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', cursor: 'pointer', fontSize: '0.9rem' }}>
-                    <input 
-                      type="radio" 
-                      name="exercise" 
-                      checked={formData.exercise === 1} 
-                      onChange={() => handleInputChange('exercise', 1)}
-                    />
-                    Weekly
-                  </label>
-                  <label style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', cursor: 'pointer', fontSize: '0.9rem' }}>
-                    <input 
-                      type="radio" 
-                      name="exercise" 
-                      checked={formData.exercise === 0} 
-                      onChange={() => handleInputChange('exercise', 0)}
-                    />
-                    Rarely
-                  </label>
-                </div>
-              </div>
-
-              <div className="form-group">
-                <label>Existing Medical Conditions / History</label>
-                
-                {/* Dedicated Medical Bill Upload option in health info step */}
-                <div 
-                  style={{
-                    padding: '1rem',
-                    border: '1px dashed var(--primary)',
-                    borderRadius: '8px',
-                    backgroundColor: 'rgba(99, 102, 241, 0.02)',
-                    display: 'flex',
-                    flexDirection: 'column',
-                    gap: '0.5rem',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    marginBottom: '0.75rem',
-                    textAlign: 'center',
-                    marginTop: '0.5rem'
-                  }}
-                >
-                  <div style={{ fontSize: '0.8rem', fontWeight: 700, color: 'var(--primary)', display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
-                    <Sparkles size={14} />
-                    <span>Upload Medical Bill / Invoice to Auto-Fill Health History & Cost</span>
-                  </div>
-                  <p style={{ fontSize: '0.75rem', color: 'var(--text-muted)', margin: 0, maxWidth: '400px' }}>
-                    Have a digital hospital invoice or bill? Upload it to auto-extract diagnosed conditions, medications, patient details, and total billing costs.
-                  </p>
+                  <label>Aadhaar / ID Number *</label>
                   <input 
-                    type="file" 
-                    accept="image/*,application/pdf" 
-                    onChange={handleDocumentScan} 
-                    id="step2MedicalBillUpload"
-                    style={{ display: 'none' }}
+                    type="text" 
+                    className="form-input" 
+                    placeholder="Aadhaar / National ID" 
+                    value={formData.aadhaarId || ""} 
+                    onChange={(e) => handleInputChange('aadhaarId', e.target.value)} 
+                    required 
                   />
-                  <label 
-                    htmlFor="step2MedicalBillUpload" 
-                    className="btn-secondary" 
-                    style={{ 
-                      cursor: isScanning ? 'not-allowed' : 'pointer', 
-                      display: 'inline-flex', 
-                      alignItems: 'center', 
-                      gap: '0.4rem', 
-                      padding: '0.4rem 0.8rem', 
-                      fontSize: '0.8rem' 
-                    }}
-                  >
-                    <Upload size={12} />
-                    {isScanning ? "Scanning Bill..." : "Upload Medical Bill"}
-                  </label>
-                  {formData.medicalBill && (
-                    <div style={{ fontSize: '0.75rem', color: 'var(--risk-low)', fontWeight: 600, display: 'flex', alignItems: 'center', gap: '0.25rem' }}>
-                      <CheckCircle2 size={12} />
-                      Attached: {formData.medicalBill}
-                    </div>
-                  )}
-                </div>
-
-                <textarea 
-                  className="form-input" 
-                  style={{ minHeight: '80px', resize: 'vertical', fontFamily: 'inherit' }}
-                  placeholder="Please detail any pre-existing chronic conditions, medications, or surgical history..."
-                  value={formData.medicalConditions} 
-                  onChange={(e) => handleInputChange('medicalConditions', e.target.value)} 
-                />
-              </div>
-
-              <div style={{ marginTop: '1.5rem', display: 'flex', justifyContent: 'space-between' }}>
-                <button className="btn-secondary" onClick={() => setWizardStep(1)}>
-                  Previous
-                </button>
-                <button 
-                  className="btn-primary" 
-                  onClick={() => {
-                    if (!formData.height || !formData.weight) {
-                      alert("Please fill in height and weight parameters.");
-                      return;
-                    }
-                    setWizardStep(3);
-                  }}
-                >
-                  Next Step
-                </button>
-              </div>
-            </div>
-          </div>
-        )}
-
-        {/* STEP 3: Insurance Details */}
-        {wizardStep === 3 && (
-          <form className="animate-fade-in" onSubmit={(e) => { e.preventDefault(); handleCustomerSubmit(); }}>
-            <h3 style={{ fontSize: '1.1rem', fontWeight: 700, marginBottom: '1.25rem', borderBottom: '1px solid var(--border)', paddingBottom: '0.5rem', color: 'var(--text-title)' }}>
-              Insurance Details
-            </h3>
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '1.25rem' }}>
-              <div className="form-group-row">
-                <div className="form-group">
-                  <label>Policy Type</label>
-                  <select 
-                    className="form-select" 
-                    value={formData.insurance_type} 
-                    onChange={(e) => handleInputChange('insurance_type', e.target.value)}
-                  >
-                    <option value="Life">Term Life Insurance</option>
-                    <option value="Health">Comprehensive Health Cover</option>
-                    <option value="Property">Commercial Property Cover</option>
-                  </select>
                 </div>
                 <div className="form-group">
-                  <label>Product Category Code</label>
-                  <select 
-                    className="form-select" 
-                    value={formData.product_info_2} 
-                    onChange={(e) => handleInputChange('product_info_2', e.target.value)}
-                  >
-                    <option value="A1">A1 (Standard Short-Term)</option>
-                    <option value="D1">D1 (Preferred Multi-Benefit)</option>
-                    <option value="D2">D2 (Standard Joint Life)</option>
-                    <option value="E1">E1 (Special Substandard)</option>
-                  </select>
-                </div>
-              </div>
-
-              <div className="form-group-row">
-                <div className="form-group">
-                  <label>Requested Coverage Amount (Sum Assured INR)</label>
+                  <label>Claim Amount Requested (INR) *</label>
                   <input 
                     type="number" 
                     className="form-input" 
-                    placeholder="e.g. 5000000"
-                    value={formData.coverage_amount} 
+                    placeholder="₹ Claim amount" 
+                    value={formData.coverage_amount || ""} 
                     onChange={(e) => handleInputChange('coverage_amount', e.target.value)} 
                     required 
                   />
                 </div>
-                <div className="form-group">
-                  <label>Policy Duration (Years)</label>
-                  <input 
-                    type="number" 
-                    className="form-input" 
-                    placeholder="e.g. 15"
-                    value={formData.policyDuration} 
-                    onChange={(e) => handleInputChange('policyDuration', e.target.value)} 
-                    required 
-                  />
-                </div>
-              </div>
-
-              <div className="form-group-row" style={{ gap: '2rem' }}>
-                <div className="form-group">
-                  <label style={{ marginBottom: '0.5rem', display: 'block' }}>Previous Insurance Claims</label>
-                  <div style={{ display: 'flex', gap: '1.5rem', marginTop: '0.25rem' }}>
-                    <label style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', cursor: 'pointer', fontSize: '0.9rem' }}>
-                      <input 
-                        type="radio" 
-                        name="previous_claims" 
-                        checked={formData.previous_claims === 0} 
-                        onChange={() => handleInputChange('previous_claims', 0)}
-                      />
-                      0
-                    </label>
-                    <label style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', cursor: 'pointer', fontSize: '0.9rem' }}>
-                      <input 
-                        type="radio" 
-                        name="previous_claims" 
-                        checked={formData.previous_claims === 1} 
-                        onChange={() => handleInputChange('previous_claims', 1)}
-                      />
-                      1
-                    </label>
-                    <label style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', cursor: 'pointer', fontSize: '0.9rem' }}>
-                      <input 
-                        type="radio" 
-                        name="previous_claims" 
-                        checked={formData.previous_claims === 2} 
-                        onChange={() => handleInputChange('previous_claims', 2)}
-                      />
-                      2+
-                    </label>
-                  </div>
-                </div>
-
-                <div className="form-group">
-                  <label style={{ marginBottom: '0.5rem', display: 'block' }}>Family Medical History Risk</label>
-                  <div style={{ display: 'flex', gap: '1.5rem', marginTop: '0.25rem' }}>
-                    <label style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', cursor: 'pointer', fontSize: '0.9rem' }}>
-                      <input 
-                        type="radio" 
-                        name="family_history" 
-                        checked={formData.family_history === 1} 
-                        onChange={() => handleInputChange('family_history', 1)}
-                      />
-                      Yes
-                    </label>
-                    <label style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', cursor: 'pointer', fontSize: '0.9rem' }}>
-                      <input 
-                        type="radio" 
-                        name="family_history" 
-                        checked={formData.family_history === 0} 
-                        onChange={() => handleInputChange('family_history', 0)}
-                      />
-                      No
-                    </label>
-                  </div>
-                </div>
               </div>
 
               <div className="form-group">
-                <label>Nominee Age</label>
+                <label>Bank Account Details (IFSC & Account No) *</label>
                 <input 
-                  type="number" 
+                  type="text" 
                   className="form-input" 
-                  placeholder="e.g. 28"
-                  value={formData.nomineeAge} 
-                  onChange={(e) => handleInputChange('nomineeAge', e.target.value)} 
+                  placeholder="e.g. HDFC0000123 - A/C 50100239102" 
+                  value={formData.bankDetails || ""} 
+                  onChange={(e) => handleInputChange('bankDetails', e.target.value)} 
                   required 
                 />
               </div>
+
+              <div style={{ marginTop: '1.5rem', display: 'flex', justifyContent: 'flex-end' }}>
+                <button 
+                  type="button" 
+                  className="btn-primary" 
+                  onClick={() => {
+                    if (!formData.product_info_2 || !formData.fullName || !formData.phone || !formData.email || !formData.coverage_amount) {
+                      alert("Please complete all required fields (*).");
+                      return;
+                    }
+                    setWizardStep(2);
+                  }}
+                  style={{ display: 'inline-flex', alignItems: 'center', gap: '0.5rem' }}
+                >
+                  Next Step
+                  <ArrowRight size={16} />
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* STEP 2: Claim Type Specific Fields */}
+        {wizardStep === 2 && (
+          <div className="animate-fade-in">
+            <h3 style={{ fontSize: '1.1rem', fontWeight: 700, marginBottom: '1.25rem', borderBottom: '1px solid var(--border)', paddingBottom: '0.5rem', color: 'var(--text-title)' }}>
+              Step 2: Specific Details for {claimType} Insurance Claim
+            </h3>
+
+            {claimType === "Health" ? (
+              /* Health Insurance Fields */
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '1.25rem' }}>
+                <div className="form-group-row" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
+                  <div className="form-group">
+                    <label>Hospital Name *</label>
+                    <input 
+                      type="text" 
+                      className="form-input" 
+                      placeholder="Hospital Name" 
+                      value={formData.hospitalName || ""} 
+                      onChange={(e) => handleInputChange('hospitalName', e.target.value)} 
+                      required 
+                    />
+                  </div>
+                  <div className="form-group">
+                    <label>Hospital Provider ID</label>
+                    <input 
+                      type="text" 
+                      className="form-input" 
+                      placeholder="Hospital ID" 
+                      value={formData.hospitalId || ""} 
+                      onChange={(e) => handleInputChange('hospitalId', e.target.value)} 
+                    />
+                  </div>
+                </div>
+
+                <div className="form-group-row" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
+                  <div className="form-group">
+                    <label>Admission Date *</label>
+                    <input 
+                      type="date" 
+                      className="form-input" 
+                      value={formData.admissionDate || ""} 
+                      onChange={(e) => handleInputChange('admissionDate', e.target.value)} 
+                      required 
+                    />
+                  </div>
+                  <div className="form-group">
+                    <label>Discharge Date *</label>
+                    <input 
+                      type="date" 
+                      className="form-input" 
+                      value={formData.dischargeDate || ""} 
+                      onChange={(e) => handleInputChange('dischargeDate', e.target.value)} 
+                      required 
+                    />
+                  </div>
+                </div>
+
+                <div className="form-group-row" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
+                  <div className="form-group">
+                    <label>Diagnosis *</label>
+                    <input 
+                      type="text" 
+                      className="form-input" 
+                      placeholder="e.g. Acute Appendicitis" 
+                      value={formData.medicalConditions || ""} 
+                      onChange={(e) => handleInputChange('medicalConditions', e.target.value)} 
+                      required 
+                    />
+                  </div>
+                  <div className="form-group">
+                    <label>Treatment Type *</label>
+                    <input 
+                      type="text" 
+                      className="form-input" 
+                      placeholder="e.g. Appendectomy surgery" 
+                      value={formData.treatmentType || ""} 
+                      onChange={(e) => handleInputChange('treatmentType', e.target.value)} 
+                      required 
+                    />
+                  </div>
+                </div>
+
+                <div className="form-group-row" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
+                  <div className="form-group">
+                    <label>Doctor / Consultant Name *</label>
+                    <input 
+                      type="text" 
+                      className="form-input" 
+                      placeholder="Dr. Full Name" 
+                      value={formData.doctorName || ""} 
+                      onChange={(e) => handleInputChange('doctorName', e.target.value)} 
+                      required 
+                    />
+                  </div>
+                  <div className="form-group">
+                    <label>Hospital Bill Amount (INR) *</label>
+                    <input 
+                      type="number" 
+                      className="form-input" 
+                      placeholder="₹ Hospital bill total" 
+                      value={formData.hospitalBillAmount || ""} 
+                      onChange={(e) => handleInputChange('hospitalBillAmount', e.target.value)} 
+                      required 
+                    />
+                  </div>
+                </div>
+              </div>
+            ) : (
+              /* Life Insurance Fields */
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '1.25rem' }}>
+                <div className="form-group-row" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
+                  <div className="form-group">
+                    <label>Date of Death *</label>
+                    <input 
+                      type="date" 
+                      className="form-input" 
+                      value={formData.dateOfDeath || ""} 
+                      onChange={(e) => handleInputChange('dateOfDeath', e.target.value)} 
+                      required 
+                    />
+                  </div>
+                  <div className="form-group">
+                    <label>Cause of Death *</label>
+                    <input 
+                      type="text" 
+                      className="form-input" 
+                      placeholder="e.g. Cardiorespiratory arrest" 
+                      value={formData.medicalConditions || ""} 
+                      onChange={(e) => handleInputChange('medicalConditions', e.target.value)} 
+                      required 
+                    />
+                  </div>
+                </div>
+
+                <div className="form-group-row" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
+                  <div className="form-group">
+                    <label>Place of Death *</label>
+                    <input 
+                      type="text" 
+                      className="form-input" 
+                      placeholder="Hospital or residence city" 
+                      value={formData.placeOfDeath || ""} 
+                      onChange={(e) => handleInputChange('placeOfDeath', e.target.value)} 
+                      required 
+                    />
+                  </div>
+                  <div className="form-group">
+                    <label>Relationship of Nominee to Deceased *</label>
+                    <select 
+                      className="form-select" 
+                      value={formData.relationshipOfNominee || "Spouse"} 
+                      onChange={(e) => handleInputChange('relationshipOfNominee', e.target.value)}
+                    >
+                      <option value="Spouse">Spouse</option>
+                      <option value="Child">Son / Daughter</option>
+                      <option value="Parent">Father / Mother</option>
+                      <option value="Sibling">Brother / Sister</option>
+                      <option value="Other">Other Legal Heir</option>
+                    </select>
+                  </div>
+                </div>
+
+                <div className="form-group">
+                  <label>Accident Details (if accidental death)</label>
+                  <textarea 
+                    className="form-input" 
+                    placeholder="Briefly describe accident collision details if reported in FIR..." 
+                    style={{ minHeight: '80px', resize: 'vertical' }}
+                    value={formData.accidentDetails || ""} 
+                    onChange={(e) => handleInputChange('accidentDetails', e.target.value)} 
+                  />
+                </div>
+
+                <div className="form-group">
+                  <label>Witness Details (optional)</label>
+                  <input 
+                    type="text" 
+                    className="form-input" 
+                    placeholder="Name and contact details of witness" 
+                    value={formData.witnessDetails || ""} 
+                    onChange={(e) => handleInputChange('witnessDetails', e.target.value)} 
+                  />
+                </div>
+              </div>
+            )}
+
+            <div style={{ marginTop: '1.5rem', display: 'flex', justifyContent: 'space-between' }}>
+              <button type="button" className="btn-secondary" onClick={() => setWizardStep(1)}>
+                Previous
+              </button>
+              <button 
+                type="button" 
+                className="btn-primary" 
+                onClick={() => {
+                  if (claimType === "Health") {
+                    if (!formData.hospitalName || !formData.admissionDate || !formData.dischargeDate || !formData.medicalConditions || !formData.doctorName || !formData.hospitalBillAmount) {
+                      alert("Please fill in all required Health fields (*).");
+                      return;
+                    }
+                  } else {
+                    if (!formData.dateOfDeath || !formData.medicalConditions || !formData.placeOfDeath) {
+                      alert("Please fill in all required Death particulars (*).");
+                      return;
+                    }
+                  }
+                  setWizardStep(3);
+                }}
+                style={{ display: 'inline-flex', alignItems: 'center', gap: '0.5rem' }}
+              >
+                Next Step
+                <ArrowRight size={16} />
+              </button>
+            </div>
+          </div>
+        )}
+
+        {/* STEP 3: Supporting Documents & Submit */}
+        {wizardStep === 3 && (
+          <form className="animate-fade-in" onSubmit={(e) => { e.preventDefault(); handleCustomerSubmit(); }}>
+            <h3 style={{ fontSize: '1.1rem', fontWeight: 700, marginBottom: '1.25rem', borderBottom: '1px solid var(--border)', paddingBottom: '0.5rem', color: 'var(--text-title)' }}>
+              Step 3: Attach Claim Documents & File
+            </h3>
+
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '1.25rem' }}>
+              
+              {/* Supporting Documents (Common) */}
+              <div className="form-group">
+                <label style={{ fontWeight: 600, display: 'block', marginBottom: '0.5rem' }}>Supporting ID / Policy Document *</label>
+                <div style={{ border: '1px dashed var(--border)', padding: '1rem', borderRadius: '8px', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '0.5rem', backgroundColor: 'var(--bg-input)' }}>
+                  <Upload size={20} style={{ color: 'var(--primary)' }} />
+                  <span style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>Upload Identity card or original policy copy</span>
+                  <input type="file" required style={{ fontSize: '0.8rem' }} onChange={(e) => handleInputChange('medicalBill', e.target.files[0]?.name || "")} />
+                </div>
+              </div>
+
+              {claimType === "Health" ? (
+                /* Health Insurance Uploads */
+                <>
+                  <div className="form-group-row" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
+                    <div className="form-group">
+                      <label>Medical Diagnosis Reports *</label>
+                      <input type="file" required style={{ fontSize: '0.8rem' }} />
+                    </div>
+                    <div className="form-group">
+                      <label>Discharge Summary *</label>
+                      <input type="file" required style={{ fontSize: '0.8rem' }} />
+                    </div>
+                  </div>
+                  <div className="form-group">
+                    <label>Doctor's Prescription *</label>
+                    <input type="file" required style={{ fontSize: '0.8rem' }} />
+                  </div>
+                </>
+              ) : (
+                /* Life Insurance Uploads */
+                <>
+                  <div className="form-group-row" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
+                    <div className="form-group">
+                      <label>Death Certificate Copy *</label>
+                      <input type="file" required style={{ fontSize: '0.8rem' }} />
+                    </div>
+                    <div className="form-group">
+                      <label>Nominee ID Proof *</label>
+                      <input type="file" required style={{ fontSize: '0.8rem' }} />
+                    </div>
+                  </div>
+
+                  <div className="form-group-row" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
+                    <div className="form-group">
+                      <label>Hospital Medical Records (optional)</label>
+                      <input type="file" style={{ fontSize: '0.8rem' }} />
+                    </div>
+                    <div className="form-group">
+                      <label>Police FIR (if accidental death)</label>
+                      <input type="file" style={{ fontSize: '0.8rem' }} />
+                    </div>
+                  </div>
+
+                  <div className="form-group-row" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
+                    <div className="form-group">
+                      <label>Postmortem Report (if applicable)</label>
+                      <input type="file" style={{ fontSize: '0.8rem' }} />
+                    </div>
+                    <div className="form-group">
+                      <label>Funeral / Cremation Certificate</label>
+                      <input type="file" style={{ fontSize: '0.8rem' }} />
+                    </div>
+                  </div>
+                </>
+              )}
 
               <div style={{ marginTop: '1.5rem', display: 'flex', justifyContent: 'space-between' }}>
                 <button type="button" className="btn-secondary" onClick={() => setWizardStep(2)}>
                   Previous
                 </button>
-                <button type="submit" className="btn-primary" style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                <button type="submit" className="btn-primary" style={{ display: 'inline-flex', alignItems: 'center', gap: '0.5rem' }}>
                   <Sparkles size={16} />
-                  Analyze Application
+                  Submit Claim to AI Auditor
                 </button>
               </div>
             </div>
@@ -762,37 +681,37 @@ export default function LifeInsurance({
         )}
       </div>
 
-      {/* Customer Submissions History Ledger */}
-      <div className="glass-card">
-        <h3 className="card-title" style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+      {/* Customer Claims Ledger on the Right side */}
+      <div className="glass-card" style={{ padding: '1.5rem', border: '1px solid var(--border)', borderRadius: '10px', backgroundColor: 'var(--bg-card)' }}>
+        <h3 className="card-title" style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', fontSize: '1.1rem', fontWeight: 700, marginBottom: '1.25rem', borderBottom: '1px solid var(--border)', paddingBottom: '0.5rem', color: 'var(--text-title)' }}>
           <History size={18} style={{ color: 'var(--primary)' }} />
-          My Policies & Applications
+          My Filed Claims
         </h3>
 
         {customerSubmissions.length === 0 ? (
           <div style={{ textAlign: 'center', padding: '3rem 1rem', color: 'var(--text-muted)' }}>
             <AlertCircle size={32} style={{ margin: '0 auto 1rem', display: 'block', opacity: 0.5 }} />
-            <p>You have not submitted any policy applications yet.</p>
-            <p style={{ fontSize: '0.8rem', marginTop: '0.5rem' }}>Fill out the application form on the left to get started.</p>
+            <p>You have not filed any claims yet.</p>
+            <p style={{ fontSize: '0.8rem', marginTop: '0.5rem' }}>Complete the wizard on the left to file your first claim.</p>
           </div>
         ) : (
-          <div className="ledger-list" style={{ display: 'flex', flexDirection: 'column', gap: '1rem', marginTop: '1rem' }}>
+          <div className="ledger-list" style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
             {customerSubmissions.map(app => (
               <div key={app.id} className="ledger-card" style={{ padding: '1rem', border: '1px solid var(--border)', borderRadius: '8px', backgroundColor: 'var(--bg-input)' }}>
                 <div className="ledger-row" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.5rem' }}>
-                  <span className="ledger-item-title" style={{ fontWeight: 600, color: 'var(--text-title)' }}>{app.insurance_type} Policy Cover</span>
-                  <span className={`status-badge ${app.status}`} style={{ textTransform: 'capitalize', fontSize: '0.75rem', padding: '0.2rem 0.6rem', borderRadius: '4px', fontWeight: 600, backgroundColor: app.status === 'approved' ? 'var(--risk-low-bg)' : app.status === 'rejected' ? 'var(--risk-high-bg)' : 'var(--bg-card)' }}>
+                  <span className="ledger-item-title" style={{ fontWeight: 600, color: 'var(--text-title)', fontSize: '0.85rem' }}>
+                    {app.insurance_type} Claim
+                  </span>
+                  <span className={`status-badge ${app.status}`} style={{ textTransform: 'capitalize', fontSize: '0.7rem', padding: '0.15rem 0.5rem', borderRadius: '4px', fontWeight: 700, backgroundColor: app.status === 'approved' ? 'var(--risk-low-bg)' : app.status === 'rejected' ? 'var(--risk-high-bg)' : 'var(--border)' }}>
                     {app.status}
                   </span>
                 </div>
                 
-                <div className="ledger-meta" style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.75rem', color: 'var(--text-muted)', marginBottom: '0.5rem' }}>
+                <div className="ledger-meta" style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.75rem', color: 'var(--text-muted)' }}>
                   <span>ID: <b>{app.id}</b></span>
-                  <span>Coverage: <b>₹{app.coverage_amount?.toLocaleString()}</b></span>
+                  <span>Claimed: <b>₹{parseFloat(app.coverage_amount || 0).toLocaleString()}</b></span>
                   <span>Date: <b>{app.date}</b></span>
                 </div>
-
-
               </div>
             ))}
           </div>

@@ -194,10 +194,11 @@ function App({ user, handleLogout }) {
     setWizardResult(null);
 
     const wizardProgressMock = [
-      { label: "Validating applicant parameters", status: 'active' },
-      { label: "Predicting actuarial risk class", status: 'pending' },
-      { label: "Running similarity match audit", status: 'pending' },
-      { label: "Compiling actuarial brief", status: 'pending' }
+      { label: "Verifying policy status & premium payments", status: 'active' },
+      { label: "Validating nominee registry records", status: 'pending' },
+      { label: "Performing document validity & OCR checks", status: 'pending' },
+      { label: "Auditing ledger for duplicate claims", status: 'pending' },
+      { label: "Analyzing claim for potential fraud anomalies", status: 'pending' }
     ];
     setWizardStepsProgress(wizardProgressMock);
 
@@ -208,44 +209,44 @@ function App({ user, handleLogout }) {
       height: parseFloat(formData.height) || 170.0,
       weight: parseFloat(formData.weight) || 70.0,
       bmi: parseFloat(formData.bmi) || 24.2,
-      product_info_2: formData.product_info_2,
-      occupation: formData.occupation,
+      product_info_2: formData.product_info_2 || "A1",
+      occupation: formData.occupation || "Professional",
       income: parseFloat(formData.income) || 50000.0,
       smoker: parseInt(formData.smoker) || 0,
       previous_claims: parseInt(formData.previous_claims) || 0,
       family_history: parseInt(formData.family_history) || 0,
-      insurance_type: formData.insurance_type,
+      insurance_type: formData.insurance_type || "Health",
       coverage_amount: parseFloat(formData.coverage_amount) || 100000.0,
       exercise: parseInt(formData.exercise) || 1,
       alcohol: parseInt(formData.alcohol) || 0,
-      gender: formData.gender,
+      gender: formData.gender || "Male",
       fullName: formData.fullName,
       email: formData.email,
       phone: formData.phone,
       medical_conditions: formData.medicalConditions,
-      policy_duration: parseInt(formData.policyDuration),
-      nominee_age: parseInt(formData.nomineeAge),
+      policy_duration: parseInt(formData.policyDuration) || 10,
+      nominee_age: parseInt(formData.nomineeAge) || 30,
       medical_bill: formData.medicalBill || null
     };
 
     try {
-      // Step 1 complete
+      // Step 1 complete -> Step 2 active
       setTimeout(() => {
         setWizardStepsProgress(prev => prev.map((s, i) => i === 0 ? { ...s, status: 'completed' } : i === 1 ? { ...s, status: 'active' } : s));
-      }, 700);
+      }, 600);
 
       const res = await fetch(`${API_BASE}/applications`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(payload)
       });
-      if (!res.ok) throw new Error("Failed to create application");
+      if (!res.ok) throw new Error("Failed to create claim application");
       const newApp = await res.json();
 
-      // Step 2 complete -> Step 3 active (trigger evaluate)
+      // Step 2 complete -> Step 3 active
       setTimeout(() => {
         setWizardStepsProgress(prev => prev.map((s, i) => i === 1 ? { ...s, status: 'completed' } : i === 2 ? { ...s, status: 'active' } : s));
-      }, 1400);
+      }, 1200);
 
       const evalRes = await fetch(`${API_BASE}/applications/${newApp.id}/evaluate`, {
         method: "POST"
@@ -255,9 +256,14 @@ function App({ user, handleLogout }) {
       // Step 3 complete -> Step 4 active
       setTimeout(() => {
         setWizardStepsProgress(prev => prev.map((s, i) => i === 2 ? { ...s, status: 'completed' } : i === 3 ? { ...s, status: 'active' } : s));
-      }, 2100);
+      }, 1800);
 
       const evalResult = await evalRes.json();
+
+      // Step 4 complete -> Step 5 active
+      setTimeout(() => {
+        setWizardStepsProgress(prev => prev.map((s, i) => i === 3 ? { ...s, status: 'completed' } : i === 4 ? { ...s, status: 'active' } : s));
+      }, 2400);
 
       setTimeout(() => {
         setWizardStepsProgress(prev => prev.map(s => ({ ...s, status: 'completed' })));
@@ -268,7 +274,7 @@ function App({ user, handleLogout }) {
         setWizardIsProcessing(false);
         setWizardStep(5);
         fetchCustomerSubmissions();
-      }, 2800);
+      }, 3000);
 
     } catch (err) {
       console.error(err);
