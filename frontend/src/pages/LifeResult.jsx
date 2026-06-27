@@ -62,36 +62,18 @@ export default function LifeResult({
 
   if (!agentResult) return null;
 
-  let primaryDocName = "supporting_id_document.pdf";
-  let medicalReportsName = "medical_diagnosis_report.pdf";
-  let dischargeSummaryName = "discharge_summary.pdf";
-  let prescriptionName = "doctor_prescription.pdf";
-  let deathCertificateName = "death_certificate.pdf";
-  let nomineeIdProofName = "nominee_id_proof.pdf";
-  let hospitalRecordsName = "hospital_records_brief.pdf";
-  let policeFirName = "fir_accident_report.pdf";
-  let postmortemName = "postmortem_report.pdf";
-  let funeralName = "funeral_certificate.pdf";
-
+  let files = {};
   const rawBill = selectedApp?.medical_bill || selectedApp?.medicalBill;
-  if (rawBill && typeof rawBill === 'string' && rawBill.trim().startsWith('{')) {
-    try {
-      const files = JSON.parse(rawBill);
-      if (files.primary) primaryDocName = files.primary;
-      if (files.medicalReports) medicalReportsName = files.medicalReports;
-      if (files.dischargeSummary) dischargeSummaryName = files.dischargeSummary;
-      if (files.prescription) prescriptionName = files.prescription;
-      if (files.deathCertificate) deathCertificateName = files.deathCertificate;
-      if (files.nomineeIdProof) nomineeIdProofName = files.nomineeIdProof;
-      if (files.hospitalRecords) hospitalRecordsName = files.hospitalRecords;
-      if (files.policeFir) policeFirName = files.policeFir;
-      if (files.postmortem) postmortemName = files.postmortem;
-      if (files.funeral) funeralName = files.funeral;
-    } catch (_) {
-      primaryDocName = rawBill;
+  if (rawBill && typeof rawBill === 'string') {
+    if (rawBill.trim().startsWith('{')) {
+      try {
+        files = JSON.parse(rawBill);
+      } catch (_) {}
+    } else {
+      files = { primary: rawBill };
     }
   } else if (rawBill) {
-    primaryDocName = rawBill;
+    files = { primary: rawBill };
   }
 
   const decisionText = agentResult.underwriting_decision || "Refer for Manual Review";
@@ -400,99 +382,100 @@ export default function LifeResult({
           Submitted Documents & Claims Evidence
         </h4>
         
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: '1rem' }}>
-          {/* Document 1: Primary policy/id document */}
-          <div style={{ padding: '0.75rem', backgroundColor: 'var(--bg-input)', border: '1px solid var(--border)', borderRadius: '6px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', minWidth: 0, gap: '0.5rem' }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', minWidth: 0 }}>
-              <FileText size={20} style={{ color: 'var(--secondary)', flexShrink: 0 }} />
-              <div style={{ minWidth: 0 }}>
-                <span style={{ fontSize: '0.8rem', fontWeight: 600, display: 'block', color: 'var(--text-title)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-                  {primaryDocName}
-                </span>
-                <span style={{ fontSize: '0.7rem', color: 'var(--text-muted)' }}>Primary ID / Policy Copy • 1.4 MB</span>
-              </div>
-            </div>
-            <span style={{ fontSize: '0.7rem', padding: '0.15rem 0.4rem', borderRadius: '4px', backgroundColor: 'var(--risk-low-bg)', color: 'var(--risk-low)', fontWeight: 700, flexShrink: 0 }}>OCR Verified</span>
+        {Object.keys(files).length === 0 ? (
+          <div style={{ color: 'var(--text-muted)', fontSize: '0.85rem', padding: '1.5rem', textAlign: 'center', border: '1px dashed var(--border)', borderRadius: '6px' }}>
+            No files submitted with this claim application.
           </div>
-
-          {selectedApp?.insurance_type === "Life" ? (
-            <>
-              {/* Life Document 2: Death certificate */}
-              <div style={{ padding: '0.75rem', backgroundColor: 'var(--bg-input)', border: '1px solid var(--border)', borderRadius: '6px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', minWidth: 0, gap: '0.5rem' }}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', minWidth: 0 }}>
-                  <FileText size={20} style={{ color: 'var(--secondary)', flexShrink: 0 }} />
-                  <div style={{ minWidth: 0 }}>
-                    <span style={{ fontSize: '0.8rem', fontWeight: 600, display: 'block', color: 'var(--text-title)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{deathCertificateName}</span>
-                    <span style={{ fontSize: '0.7rem', color: 'var(--text-muted)' }}>Certified Registrar Copy • 2.1 MB</span>
+        ) : (
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: '1rem' }}>
+            {Object.entries(files).map(([key, val]) => {
+              if (!val) return null;
+              
+              const isUrl = val.startsWith('http') || val.startsWith('/static');
+              const downloadUrl = isUrl ? (val.startsWith('/') ? `${API_BASE}${val}` : val) : null;
+              const displayName = val.split('/').pop() || val;
+              
+              const labelMap = {
+                primary: "Primary ID / Policy Copy",
+                medicalReports: "Medical Diagnosis Report",
+                dischargeSummary: "Discharge Summary",
+                prescription: "Doctor's Prescription",
+                deathCertificate: "Death Certificate",
+                nomineeIdProof: "Nominee ID Proof",
+                hospitalRecords: "Hospital Medical Records",
+                policeFir: "Police FIR (Accident Report)",
+                postmortem: "Postmortem Report",
+                funeral: "Funeral Certificate"
+              };
+              const fileLabel = labelMap[key] || key.replace(/([A-Z])/g, ' $1').replace(/^./, str => str.toUpperCase());
+              
+              return (
+                <div key={key} style={{ padding: '0.75rem', backgroundColor: 'var(--bg-input)', border: '1px solid var(--border)', borderRadius: '6px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', minWidth: 0, gap: '0.5rem' }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', minWidth: 0, flex: 1 }}>
+                    <FileText size={20} style={{ color: 'var(--secondary)', flexShrink: 0 }} />
+                    <div style={{ minWidth: 0, flex: 1 }}>
+                      <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)', display: 'block', fontWeight: 500 }}>{fileLabel}</span>
+                      {downloadUrl ? (
+                        <a 
+                          href={downloadUrl} 
+                          download 
+                          target="_blank" 
+                          rel="noreferrer" 
+                          style={{ 
+                            fontSize: '0.85rem', 
+                            fontWeight: 700, 
+                            color: 'var(--primary)', 
+                            textDecoration: 'underline',
+                            display: 'block',
+                            overflow: 'hidden', 
+                            textOverflow: 'ellipsis', 
+                            whiteSpace: 'nowrap' 
+                          }}
+                        >
+                          📄 {displayName}
+                        </a>
+                      ) : (
+                        <span style={{ fontSize: '0.85rem', fontWeight: 600, display: 'block', color: 'var(--text-title)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                          📄 {displayName}
+                        </span>
+                      )}
+                    </div>
                   </div>
+                  {downloadUrl ? (
+                    <a 
+                      href={downloadUrl} 
+                      download 
+                      target="_blank" 
+                      rel="noreferrer" 
+                      style={{ 
+                        fontSize: '0.7rem', 
+                        padding: '0.2rem 0.5rem', 
+                        borderRadius: '4px', 
+                        backgroundColor: 'rgba(99, 102, 241, 0.08)', 
+                        color: 'var(--primary)', 
+                        fontWeight: 700, 
+                        flexShrink: 0,
+                        border: '1px solid var(--primary)',
+                        cursor: 'pointer',
+                        display: 'inline-flex',
+                        alignItems: 'center',
+                        gap: '0.25rem',
+                        textDecoration: 'none'
+                      }}
+                    >
+                      <Download size={12} />
+                      Download
+                    </a>
+                  ) : (
+                    <span style={{ fontSize: '0.7rem', padding: '0.15rem 0.4rem', borderRadius: '4px', backgroundColor: 'var(--risk-medium-bg)', color: 'var(--risk-medium)', fontWeight: 700, flexShrink: 0 }}>
+                      Local File
+                    </span>
+                  )}
                 </div>
-                <span style={{ fontSize: '0.7rem', padding: '0.15rem 0.4rem', borderRadius: '4px', backgroundColor: 'var(--risk-low-bg)', color: 'var(--risk-low)', fontWeight: 700, flexShrink: 0 }}>Signature Match</span>
-              </div>
-
-              {/* Life Document 3: Nominee ID */}
-              <div style={{ padding: '0.75rem', backgroundColor: 'var(--bg-input)', border: '1px solid var(--border)', borderRadius: '6px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', minWidth: 0, gap: '0.5rem' }}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', minWidth: 0 }}>
-                  <FileText size={20} style={{ color: 'var(--secondary)', flexShrink: 0 }} />
-                  <div style={{ minWidth: 0 }}>
-                    <span style={{ fontSize: '0.8rem', fontWeight: 600, display: 'block', color: 'var(--text-title)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{nomineeIdProofName}</span>
-                    <span style={{ fontSize: '0.7rem', color: 'var(--text-muted)' }}>Aadhaar Card copy • 950 KB</span>
-                  </div>
-                </div>
-                <span style={{ fontSize: '0.7rem', padding: '0.15rem 0.4rem', borderRadius: '4px', backgroundColor: 'var(--risk-low-bg)', color: 'var(--risk-low)', fontWeight: 700, flexShrink: 0 }}>Aadhaar API Verified</span>
-              </div>
-
-              {/* Life Document 4: Police FIR */}
-              <div style={{ padding: '0.75rem', backgroundColor: 'var(--bg-input)', border: '1px solid var(--border)', borderRadius: '6px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', minWidth: 0, gap: '0.5rem' }}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', minWidth: 0 }}>
-                  <FileText size={20} style={{ color: 'var(--secondary)', flexShrink: 0 }} />
-                  <div style={{ minWidth: 0 }}>
-                    <span style={{ fontSize: '0.8rem', fontWeight: 600, display: 'block', color: 'var(--text-title)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{policeFirName}</span>
-                    <span style={{ fontSize: '0.7rem', color: 'var(--text-muted)' }}>Police Incident Report • 1.8 MB</span>
-                  </div>
-                </div>
-                <span style={{ fontSize: '0.7rem', padding: '0.15rem 0.4rem', borderRadius: '4px', backgroundColor: 'var(--risk-low-bg)', color: 'var(--risk-low)', fontWeight: 700, flexShrink: 0 }}>Authenticated</span>
-              </div>
-            </>
-          ) : (
-            <>
-              {/* Health Document 2: Diagnosis Reports */}
-              <div style={{ padding: '0.75rem', backgroundColor: 'var(--bg-input)', border: '1px solid var(--border)', borderRadius: '6px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', minWidth: 0, gap: '0.5rem' }}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', minWidth: 0 }}>
-                  <FileText size={20} style={{ color: 'var(--secondary)', flexShrink: 0 }} />
-                  <div style={{ minWidth: 0 }}>
-                    <span style={{ fontSize: '0.8rem', fontWeight: 600, display: 'block', color: 'var(--text-title)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{medicalReportsName}</span>
-                    <span style={{ fontSize: '0.7rem', color: 'var(--text-muted)' }}>Lab Reports & Pathology • 3.2 MB</span>
-                  </div>
-                </div>
-                <span style={{ fontSize: '0.7rem', padding: '0.15rem 0.4rem', borderRadius: '4px', backgroundColor: 'var(--risk-low-bg)', color: 'var(--risk-low)', fontWeight: 700, flexShrink: 0 }}>Diagnosis Match</span>
-              </div>
-
-              {/* Health Document 3: Discharge Summary */}
-              <div style={{ padding: '0.75rem', backgroundColor: 'var(--bg-input)', border: '1px solid var(--border)', borderRadius: '6px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', minWidth: 0, gap: '0.5rem' }}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', minWidth: 0 }}>
-                  <FileText size={20} style={{ color: 'var(--secondary)', flexShrink: 0 }} />
-                  <div style={{ minWidth: 0 }}>
-                    <span style={{ fontSize: '0.8rem', fontWeight: 600, display: 'block', color: 'var(--text-title)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{dischargeSummaryName}</span>
-                    <span style={{ fontSize: '0.7rem', color: 'var(--text-muted)' }}>Hospital Discharge Sheet • 1.1 MB</span>
-                  </div>
-                </div>
-                <span style={{ fontSize: '0.7rem', padding: '0.15rem 0.4rem', borderRadius: '4px', backgroundColor: 'var(--risk-low-bg)', color: 'var(--risk-low)', fontWeight: 700, flexShrink: 0 }}>Hospital Signature</span>
-              </div>
-
-              {/* Health Document 4: Prescription */}
-              <div style={{ padding: '0.75rem', backgroundColor: 'var(--bg-input)', border: '1px solid var(--border)', borderRadius: '6px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', minWidth: 0, gap: '0.5rem' }}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', minWidth: 0 }}>
-                  <FileText size={20} style={{ color: 'var(--secondary)', flexShrink: 0 }} />
-                  <div style={{ minWidth: 0 }}>
-                    <span style={{ fontSize: '0.8rem', fontWeight: 600, display: 'block', color: 'var(--text-title)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{prescriptionName}</span>
-                    <span style={{ fontSize: '0.7rem', color: 'var(--text-muted)' }}>Prescribed Medications • 600 KB</span>
-                  </div>
-                </div>
-                <span style={{ fontSize: '0.7rem', padding: '0.15rem 0.4rem', borderRadius: '4px', backgroundColor: 'var(--risk-low-bg)', color: 'var(--risk-low)', fontWeight: 700, flexShrink: 0 }}>Physician Signed</span>
-              </div>
-            </>
-          )}
-        </div>
+              );
+            })}
+          </div>
+        )}
       </div>
 
       <div style={{ display: 'grid', gridTemplateColumns: '1.2fr 1.8fr', gap: '2rem' }}>
