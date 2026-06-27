@@ -317,7 +317,7 @@ export default function VehicleResult({
 
           {/* 5. Recommended Payout */}
           <div style={{ padding: '1rem', backgroundColor: 'var(--bg-input)', border: '1px solid var(--border)', borderRadius: '8px' }}>
-            <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)', display: 'block' }}>5. Recommended Payout ⭐</span>
+            <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)', display: 'block' }}>5. Recommended Payout</span>
             <span style={{ fontSize: '1.5rem', fontWeight: 800, display: 'block', margin: '0.25rem 0', color: isSuspicious ? 'var(--text-muted)' : 'var(--primary)' }}>
               ₹{recommendedPayout.toLocaleString()}
             </span>
