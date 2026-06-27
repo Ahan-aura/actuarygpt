@@ -392,6 +392,8 @@ export default function LifeResult({
               if (!val) return null;
               
               const isUrl = val.startsWith('http') || val.startsWith('/static');
+              if (!isUrl) return null;
+              
               const downloadUrl = isUrl ? (val.startsWith('/') ? `${API_BASE}${val}` : val) : null;
               const displayName = val.split('/').pop() || val;
               

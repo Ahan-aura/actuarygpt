@@ -875,6 +875,7 @@ function App({ user, handleLogout }) {
                               {Object.entries(files).map(([key, val]) => {
                                 if (!val) return null;
                                 const isUrl = val.startsWith('http') || val.startsWith('/static');
+                                if (!isUrl) return null;
                                 const downloadUrl = isUrl ? (val.startsWith('/') ? `${API_BASE}${val}` : val) : null;
                                 const displayName = val.split('/').pop() || val;
                                 
@@ -930,6 +931,7 @@ function App({ user, handleLogout }) {
                               {Object.entries(files).map(([key, val]) => {
                                 if (!val) return null;
                                 const isUrl = val.startsWith('http') || val.startsWith('/static');
+                                if (!isUrl) return null;
                                 const downloadUrl = isUrl ? (val.startsWith('/') ? `${API_BASE}${val}` : val) : null;
                                 const displayName = val.split('/').pop() || val;
                                 
