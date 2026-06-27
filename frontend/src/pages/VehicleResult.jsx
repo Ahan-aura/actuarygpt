@@ -357,7 +357,7 @@ export default function VehicleResult({
               <>
                 <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)', display: 'block' }}>8. Processing Time</span>
                 <span style={{ fontSize: '1.15rem', fontWeight: 700, display: 'block', margin: '0.4rem 0', color: 'var(--text-title)' }}>
-                  Estimated: 2 Days
+                  Estimated: 7 Days
                 </span>
                 <span style={{ fontSize: '0.7rem', color: 'var(--text-muted)' }}>Subject to immediate verification</span>
               </>
