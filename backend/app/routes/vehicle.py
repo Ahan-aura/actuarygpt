@@ -45,6 +45,7 @@ class VehicleApplicationCreate(BaseModel):
     auto_make: str
     auto_model: str
     auto_year: int
+    medical_bill: Optional[str] = None
 
 def parse_vehicle_row(row):
     if not row:
@@ -92,8 +93,8 @@ def create_vehicle_application(req: VehicleApplicationCreate):
             incident_type, collision_type, incident_severity, authorities_contacted, incident_state,
             incident_city, incident_hour_of_the_day, number_of_vehicles_involved, property_damage,
             bodily_injuries, witnesses, police_report_available, total_claim_amount, injury_claim,
-            property_claim, vehicle_claim, auto_make, auto_model, auto_year, date, status
-        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+            property_claim, vehicle_claim, auto_make, auto_model, auto_year, date, status, medical_bill
+        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
         """, (
             app_id, req.client, req.months_as_customer, req.age, req.policy_state, req.policy_csl,
             req.policy_deductable, req.policy_annual_premium, req.umbrella_limit, req.insured_sex,
@@ -102,7 +103,7 @@ def create_vehicle_application(req: VehicleApplicationCreate):
             req.authorities_contacted, req.incident_state, req.incident_city, req.incident_hour_of_the_day,
             req.number_of_vehicles_involved, req.property_damage, req.bodily_injuries, req.witnesses,
             req.police_report_available, req.total_claim_amount, req.injury_claim, req.property_claim,
-            req.vehicle_claim, req.auto_make, req.auto_model, req.auto_year, date_str, 'pending'
+            req.vehicle_claim, req.auto_make, req.auto_model, req.auto_year, date_str, 'pending', req.medical_bill
         ))
         conn.commit()
         cursor.execute("SELECT * FROM vehicle_applications WHERE id = ?", (app_id,))

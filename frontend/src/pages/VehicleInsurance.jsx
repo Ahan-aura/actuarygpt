@@ -69,6 +69,53 @@ export default function VehicleInsurance({
     insurance: false
   });
 
+  const [uploadProgress, setUploadProgress] = useState({
+    images: null,
+    fir: null,
+    insurance: null
+  });
+
+  const [attachedFileUrls, setAttachedFileUrls] = useState({
+    images: "",
+    fir: "",
+    insurance: ""
+  });
+
+  const uploadVehicleFile = async (file, type) => {
+    if (!file) return;
+    setUploadProgress(prev => ({ ...prev, [type]: 'uploading' }));
+    
+    const reader = new FileReader();
+    reader.onload = async () => {
+      try {
+        const base64Data = reader.result;
+        const response = await fetch(`${API_BASE}/upload-file`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            file_name: file.name,
+            file_base64: base64Data
+          })
+        });
+        
+        if (!response.ok) throw new Error("Upload failed");
+        const data = await response.json();
+        
+        if (data.success && data.url) {
+          setAttachedFileUrls(prev => ({ ...prev, [type]: data.url }));
+          setUploadProgress(prev => ({ ...prev, [type]: 'done' }));
+          setUploadedFiles(prev => ({ ...prev, [type]: true }));
+        } else {
+          setUploadProgress(prev => ({ ...prev, [type]: 'error' }));
+        }
+      } catch (err) {
+        console.error(err);
+        setUploadProgress(prev => ({ ...prev, [type]: 'error' }));
+      }
+    };
+    reader.readAsDataURL(file);
+  };
+
   const [isScanning, setIsScanning] = useState(false);
   const [scanStatus, setScanStatus] = useState("");
 
@@ -343,7 +390,8 @@ export default function VehicleInsurance({
       auto_make: formData.auto_make || "Unknown",
       auto_model: formData.auto_model || "Unknown",
       auto_year: parseInt(formData.auto_year) || 2015,
-      date: accidentDate
+      date: accidentDate,
+      medical_bill: JSON.stringify(attachedFileUrls)
     };
     handleVehicleSubmit(finalPayload);
   };
@@ -857,28 +905,88 @@ export default function VehicleInsurance({
             <div style={{ padding: '0.5rem 0', fontWeight: 600, color: 'var(--primary)', fontSize: '0.9rem', borderBottom: '1px dashed var(--border)' }}>Attachments (Forensics)</div>
             
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(160px, 1fr))', gap: '1rem', marginTop: '0.25rem' }}>
+              {/* Images Box */}
               <div 
-                onClick={() => triggerUpload('images')}
+                onClick={() => document.getElementById('vehicle_upload_images').click()}
                 style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: '1rem', border: '1px dashed var(--border)', borderRadius: '8px', cursor: 'pointer', backgroundColor: uploadedFiles.images ? 'rgba(16, 185, 129, 0.05)' : 'var(--bg-input)', transition: 'all 0.2s' }}
               >
-                {uploadedFiles.images ? <CheckCircle2 size={24} style={{ color: 'var(--risk-low)', marginBottom: '0.5rem' }} /> : <Upload size={24} style={{ color: 'var(--text-muted)', marginBottom: '0.5rem' }} />}
-                <span style={{ fontSize: '0.75rem', fontWeight: 600 }}>{uploadedFiles.images ? "Images Uploaded" : "Upload Images"}</span>
+                <input 
+                  type="file" 
+                  id="vehicle_upload_images" 
+                  style={{ display: 'none' }} 
+                  accept="image/*"
+                  onChange={(e) => uploadVehicleFile(e.target.files[0], 'images')} 
+                />
+                {uploadProgress.images === 'uploading' ? (
+                  <span style={{ fontSize: '0.75rem', color: 'var(--primary)' }}>⏳ Uploading...</span>
+                ) : uploadedFiles.images ? (
+                  <>
+                    <CheckCircle2 size={24} style={{ color: 'var(--risk-low)', marginBottom: '0.5rem' }} />
+                    <span style={{ fontSize: '0.75rem', fontWeight: 600 }}>Images Uploaded</span>
+                  </>
+                ) : (
+                  <>
+                    <Upload size={24} style={{ color: 'var(--text-muted)', marginBottom: '0.5rem' }} />
+                    <span style={{ fontSize: '0.75rem', fontWeight: 600 }}>Upload Vehicle Images</span>
+                  </>
+                )}
+                {uploadProgress.images === 'error' && <span style={{ fontSize: '0.7rem', color: 'var(--risk-high)' }}>❌ Try again</span>}
               </div>
 
+              {/* FIR Box */}
               <div 
-                onClick={() => triggerUpload('fir')}
+                onClick={() => document.getElementById('vehicle_upload_fir').click()}
                 style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: '1rem', border: '1px dashed var(--border)', borderRadius: '8px', cursor: 'pointer', backgroundColor: uploadedFiles.fir ? 'rgba(16, 185, 129, 0.05)' : 'var(--bg-input)', transition: 'all 0.2s' }}
               >
-                {uploadedFiles.fir ? <CheckCircle2 size={24} style={{ color: 'var(--risk-low)', marginBottom: '0.5rem' }} /> : <FileText size={24} style={{ color: 'var(--text-muted)', marginBottom: '0.5rem' }} />}
-                <span style={{ fontSize: '0.75rem', fontWeight: 600 }}>{uploadedFiles.fir ? "FIR Uploaded" : "Upload FIR"}</span>
+                <input 
+                  type="file" 
+                  id="vehicle_upload_fir" 
+                  style={{ display: 'none' }} 
+                  accept="image/*,application/pdf"
+                  onChange={(e) => uploadVehicleFile(e.target.files[0], 'fir')} 
+                />
+                {uploadProgress.fir === 'uploading' ? (
+                  <span style={{ fontSize: '0.75rem', color: 'var(--primary)' }}>⏳ Uploading...</span>
+                ) : uploadedFiles.fir ? (
+                  <>
+                    <CheckCircle2 size={24} style={{ color: 'var(--risk-low)', marginBottom: '0.5rem' }} />
+                    <span style={{ fontSize: '0.75rem', fontWeight: 600 }}>FIR Uploaded</span>
+                  </>
+                ) : (
+                  <>
+                    <FileText size={24} style={{ color: 'var(--text-muted)', marginBottom: '0.5rem' }} />
+                    <span style={{ fontSize: '0.75rem', fontWeight: 600 }}>Upload FIR Copy</span>
+                  </>
+                )}
+                {uploadProgress.fir === 'error' && <span style={{ fontSize: '0.7rem', color: 'var(--risk-high)' }}>❌ Try again</span>}
               </div>
 
+              {/* Insurance Copy Box */}
               <div 
-                onClick={() => triggerUpload('insurance')}
+                onClick={() => document.getElementById('vehicle_upload_insurance').click()}
                 style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: '1rem', border: '1px dashed var(--border)', borderRadius: '8px', cursor: 'pointer', backgroundColor: uploadedFiles.insurance ? 'rgba(16, 185, 129, 0.05)' : 'var(--bg-input)', transition: 'all 0.2s' }}
               >
-                {uploadedFiles.insurance ? <CheckCircle2 size={24} style={{ color: 'var(--risk-low)', marginBottom: '0.5rem' }} /> : <FileText size={24} style={{ color: 'var(--text-muted)', marginBottom: '0.5rem' }} />}
-                <span style={{ fontSize: '0.75rem', fontWeight: 600 }}>{uploadedFiles.insurance ? "Policy Copy Uploaded" : "Upload Policy Copy"}</span>
+                <input 
+                  type="file" 
+                  id="vehicle_upload_insurance" 
+                  style={{ display: 'none' }} 
+                  accept="image/*,application/pdf"
+                  onChange={(e) => uploadVehicleFile(e.target.files[0], 'insurance')} 
+                />
+                {uploadProgress.insurance === 'uploading' ? (
+                  <span style={{ fontSize: '0.75rem', color: 'var(--primary)' }}>⏳ Uploading...</span>
+                ) : uploadedFiles.insurance ? (
+                  <>
+                    <CheckCircle2 size={24} style={{ color: 'var(--risk-low)', marginBottom: '0.5rem' }} />
+                    <span style={{ fontSize: '0.75rem', fontWeight: 600 }}>Policy Uploaded</span>
+                  </>
+                ) : (
+                  <>
+                    <FileText size={24} style={{ color: 'var(--text-muted)', marginBottom: '0.5rem' }} />
+                    <span style={{ fontSize: '0.75rem', fontWeight: 600 }}>Upload Policy Copy</span>
+                  </>
+                )}
+                {uploadProgress.insurance === 'error' && <span style={{ fontSize: '0.7rem', color: 'var(--risk-high)' }}>❌ Try again</span>}
               </div>
             </div>
 

@@ -13,6 +13,7 @@ export default function LifeInsurance({
   const [isScanning, setIsScanning] = useState(false);
   const [scanStatus, setScanStatus] = useState("");
   const [parsedDocInfo, setParsedDocInfo] = useState(null);
+  const [uploadProgress, setUploadProgress] = useState({});
 
   // local states for claim specific fields to sync into formData
   const [claimType, setClaimType] = useState(formData.insurance_type || "Health");
@@ -26,6 +27,42 @@ export default function LifeInsurance({
       insurance_type: claimType
     }));
   }, [claimType, claimId, setFormData]);
+
+  const uploadFileToServer = async (file, fieldName) => {
+    if (!file) return;
+    setUploadProgress(prev => ({ ...prev, [fieldName]: 'uploading' }));
+    
+    const reader = new FileReader();
+    reader.onload = async () => {
+      try {
+        const base64Data = reader.result;
+        const payload = {
+          file_name: file.name,
+          file_base64: base64Data
+        };
+        
+        const response = await fetch(`${API_BASE}/upload-file`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(payload)
+        });
+        
+        if (!response.ok) throw new Error("Upload failed");
+        const data = await response.json();
+        
+        if (data.success && data.url) {
+          handleInputChange(fieldName, data.url);
+          setUploadProgress(prev => ({ ...prev, [fieldName]: 'done' }));
+        } else {
+          setUploadProgress(prev => ({ ...prev, [fieldName]: 'error' }));
+        }
+      } catch (err) {
+        console.error(err);
+        setUploadProgress(prev => ({ ...prev, [fieldName]: 'error' }));
+      }
+    };
+    reader.readAsDataURL(file);
+  };
 
   const handleDocumentScan = async (e) => {
     const file = e.target.files[0];
@@ -45,6 +82,24 @@ export default function LifeInsurance({
           file_base64: base64Data
         };
         
+        // Upload the file first to preserve it
+        let fileUrl = file.name;
+        try {
+          const uploadRes = await fetch(`${API_BASE}/upload-file`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ file_name: file.name, file_base64: base64Data })
+          });
+          if (uploadRes.ok) {
+            const uploadData = await uploadRes.json();
+            if (uploadData.success && uploadData.url) {
+              fileUrl = uploadData.url;
+            }
+          }
+        } catch (uploadErr) {
+          console.error("Error uploading scanned file:", uploadErr);
+        }
+
         const response = await fetch(`${API_BASE}/parse-document`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
@@ -60,7 +115,7 @@ export default function LifeInsurance({
           // Auto-fill extracted values
           const updatedType = f.insurance_type === 'Life' ? 'Life' : 'Health';
           setClaimType(updatedType);
-
+ 
           setFormData(prev => {
             const updated = {
               ...prev,
@@ -71,7 +126,7 @@ export default function LifeInsurance({
               phone: f.phone || prev.phone || "+91 98765 43210",
               coverage_amount: parseFloat(f.coverage_amount) || prev.coverage_amount || 45000.0,
               medicalConditions: f.medicalConditions || prev.medicalConditions || "",
-              medicalBill: file.name,
+              medicalBill: fileUrl,
               insurance_type: updatedType
             };
             return updated;
@@ -607,7 +662,10 @@ export default function LifeInsurance({
                 <div style={{ border: '1px dashed var(--border)', padding: '1rem', borderRadius: '8px', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '0.5rem', backgroundColor: 'var(--bg-input)' }}>
                   <Upload size={20} style={{ color: 'var(--primary)' }} />
                   <span style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>Upload Identity card or original policy copy</span>
-                  <input type="file" required style={{ fontSize: '0.8rem' }} onChange={(e) => handleInputChange('medicalBill', e.target.files[0]?.name || "")} />
+                  <input type="file" required={!formData.medicalBill} style={{ fontSize: '0.8rem' }} onChange={(e) => uploadFileToServer(e.target.files[0], 'medicalBill')} />
+                  {uploadProgress['medicalBill'] === 'uploading' && <span style={{ fontSize: '0.75rem', color: 'var(--primary)' }}>⏳ Uploading...</span>}
+                  {uploadProgress['medicalBill'] === 'done' && <span style={{ fontSize: '0.75rem', color: 'var(--risk-low)' }}>✅ Uploaded successfully</span>}
+                  {uploadProgress['medicalBill'] === 'error' && <span style={{ fontSize: '0.75rem', color: 'var(--risk-high)' }}>❌ Upload failed</span>}
                 </div>
               </div>
 
@@ -617,16 +675,25 @@ export default function LifeInsurance({
                   <div className="form-group-row" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
                     <div className="form-group">
                       <label>Medical Diagnosis Reports *</label>
-                      <input type="file" required style={{ fontSize: '0.8rem' }} onChange={(e) => handleInputChange('medicalReportsFile', e.target.files[0]?.name || "")} />
+                      <input type="file" required={!formData.medicalReportsFile} style={{ fontSize: '0.8rem' }} onChange={(e) => uploadFileToServer(e.target.files[0], 'medicalReportsFile')} />
+                      {uploadProgress['medicalReportsFile'] === 'uploading' && <span style={{ fontSize: '0.75rem', color: 'var(--primary)' }}>⏳ Uploading...</span>}
+                      {uploadProgress['medicalReportsFile'] === 'done' && <span style={{ fontSize: '0.75rem', color: 'var(--risk-low)' }}>✅ Uploaded</span>}
+                      {uploadProgress['medicalReportsFile'] === 'error' && <span style={{ fontSize: '0.75rem', color: 'var(--risk-high)' }}>❌ Failed</span>}
                     </div>
                     <div className="form-group">
                       <label>Discharge Summary *</label>
-                      <input type="file" required style={{ fontSize: '0.8rem' }} onChange={(e) => handleInputChange('dischargeSummaryFile', e.target.files[0]?.name || "")} />
+                      <input type="file" required={!formData.dischargeSummaryFile} style={{ fontSize: '0.8rem' }} onChange={(e) => uploadFileToServer(e.target.files[0], 'dischargeSummaryFile')} />
+                      {uploadProgress['dischargeSummaryFile'] === 'uploading' && <span style={{ fontSize: '0.75rem', color: 'var(--primary)' }}>⏳ Uploading...</span>}
+                      {uploadProgress['dischargeSummaryFile'] === 'done' && <span style={{ fontSize: '0.75rem', color: 'var(--risk-low)' }}>✅ Uploaded</span>}
+                      {uploadProgress['dischargeSummaryFile'] === 'error' && <span style={{ fontSize: '0.75rem', color: 'var(--risk-high)' }}>❌ Failed</span>}
                     </div>
                   </div>
                   <div className="form-group">
                     <label>Doctor's Prescription *</label>
-                    <input type="file" required style={{ fontSize: '0.8rem' }} onChange={(e) => handleInputChange('prescriptionFile', e.target.files[0]?.name || "")} />
+                    <input type="file" required={!formData.prescriptionFile} style={{ fontSize: '0.8rem' }} onChange={(e) => uploadFileToServer(e.target.files[0], 'prescriptionFile')} />
+                    {uploadProgress['prescriptionFile'] === 'uploading' && <span style={{ fontSize: '0.75rem', color: 'var(--primary)' }}>⏳ Uploading...</span>}
+                    {uploadProgress['prescriptionFile'] === 'done' && <span style={{ fontSize: '0.75rem', color: 'var(--risk-low)' }}>✅ Uploaded successfully</span>}
+                    {uploadProgress['prescriptionFile'] === 'error' && <span style={{ fontSize: '0.75rem', color: 'var(--risk-high)' }}>❌ Upload failed</span>}
                   </div>
                 </>
               ) : (
@@ -635,33 +702,51 @@ export default function LifeInsurance({
                   <div className="form-group-row" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
                     <div className="form-group">
                       <label>Death Certificate Copy *</label>
-                      <input type="file" required style={{ fontSize: '0.8rem' }} onChange={(e) => handleInputChange('deathCertificateFile', e.target.files[0]?.name || "")} />
+                      <input type="file" required={!formData.deathCertificateFile} style={{ fontSize: '0.8rem' }} onChange={(e) => uploadFileToServer(e.target.files[0], 'deathCertificateFile')} />
+                      {uploadProgress['deathCertificateFile'] === 'uploading' && <span style={{ fontSize: '0.75rem', color: 'var(--primary)' }}>⏳ Uploading...</span>}
+                      {uploadProgress['deathCertificateFile'] === 'done' && <span style={{ fontSize: '0.75rem', color: 'var(--risk-low)' }}>✅ Uploaded</span>}
+                      {uploadProgress['deathCertificateFile'] === 'error' && <span style={{ fontSize: '0.75rem', color: 'var(--risk-high)' }}>❌ Failed</span>}
                     </div>
                     <div className="form-group">
                       <label>Nominee ID Proof *</label>
-                      <input type="file" required style={{ fontSize: '0.8rem' }} onChange={(e) => handleInputChange('nomineeIdProofFile', e.target.files[0]?.name || "")} />
+                      <input type="file" required={!formData.nomineeIdProofFile} style={{ fontSize: '0.8rem' }} onChange={(e) => uploadFileToServer(e.target.files[0], 'nomineeIdProofFile')} />
+                      {uploadProgress['nomineeIdProofFile'] === 'uploading' && <span style={{ fontSize: '0.75rem', color: 'var(--primary)' }}>⏳ Uploading...</span>}
+                      {uploadProgress['nomineeIdProofFile'] === 'done' && <span style={{ fontSize: '0.75rem', color: 'var(--risk-low)' }}>✅ Uploaded</span>}
+                      {uploadProgress['nomineeIdProofFile'] === 'error' && <span style={{ fontSize: '0.75rem', color: 'var(--risk-high)' }}>❌ Failed</span>}
                     </div>
                   </div>
 
                   <div className="form-group-row" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
                     <div className="form-group">
                       <label>Hospital Medical Records (optional)</label>
-                      <input type="file" style={{ fontSize: '0.8rem' }} onChange={(e) => handleInputChange('hospitalRecordsFile', e.target.files[0]?.name || "")} />
+                      <input type="file" style={{ fontSize: '0.8rem' }} onChange={(e) => uploadFileToServer(e.target.files[0], 'hospitalRecordsFile')} />
+                      {uploadProgress['hospitalRecordsFile'] === 'uploading' && <span style={{ fontSize: '0.75rem', color: 'var(--primary)' }}>⏳ Uploading...</span>}
+                      {uploadProgress['hospitalRecordsFile'] === 'done' && <span style={{ fontSize: '0.75rem', color: 'var(--risk-low)' }}>✅ Uploaded</span>}
+                      {uploadProgress['hospitalRecordsFile'] === 'error' && <span style={{ fontSize: '0.75rem', color: 'var(--risk-high)' }}>❌ Failed</span>}
                     </div>
                     <div className="form-group">
                       <label>Police FIR (if accidental death)</label>
-                      <input type="file" style={{ fontSize: '0.8rem' }} onChange={(e) => handleInputChange('policeFirFile', e.target.files[0]?.name || "")} />
+                      <input type="file" style={{ fontSize: '0.8rem' }} onChange={(e) => uploadFileToServer(e.target.files[0], 'policeFirFile')} />
+                      {uploadProgress['policeFirFile'] === 'uploading' && <span style={{ fontSize: '0.75rem', color: 'var(--primary)' }}>⏳ Uploading...</span>}
+                      {uploadProgress['policeFirFile'] === 'done' && <span style={{ fontSize: '0.75rem', color: 'var(--risk-low)' }}>✅ Uploaded</span>}
+                      {uploadProgress['policeFirFile'] === 'error' && <span style={{ fontSize: '0.75rem', color: 'var(--risk-high)' }}>❌ Failed</span>}
                     </div>
                   </div>
 
                   <div className="form-group-row" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
                     <div className="form-group">
                       <label>Postmortem Report (if applicable)</label>
-                      <input type="file" style={{ fontSize: '0.8rem' }} onChange={(e) => handleInputChange('postmortemReportFile', e.target.files[0]?.name || "")} />
+                      <input type="file" style={{ fontSize: '0.8rem' }} onChange={(e) => uploadFileToServer(e.target.files[0], 'postmortemReportFile')} />
+                      {uploadProgress['postmortemReportFile'] === 'uploading' && <span style={{ fontSize: '0.75rem', color: 'var(--primary)' }}>⏳ Uploading...</span>}
+                      {uploadProgress['postmortemReportFile'] === 'done' && <span style={{ fontSize: '0.75rem', color: 'var(--risk-low)' }}>✅ Uploaded</span>}
+                      {uploadProgress['postmortemReportFile'] === 'error' && <span style={{ fontSize: '0.75rem', color: 'var(--risk-high)' }}>❌ Failed</span>}
                     </div>
                     <div className="form-group">
                       <label>Funeral / Cremation Certificate</label>
-                      <input type="file" style={{ fontSize: '0.8rem' }} onChange={(e) => handleInputChange('funeralCertificateFile', e.target.files[0]?.name || "")} />
+                      <input type="file" style={{ fontSize: '0.8rem' }} onChange={(e) => uploadFileToServer(e.target.files[0], 'funeralCertificateFile')} />
+                      {uploadProgress['funeralCertificateFile'] === 'uploading' && <span style={{ fontSize: '0.75rem', color: 'var(--primary)' }}>⏳ Uploading...</span>}
+                      {uploadProgress['funeralCertificateFile'] === 'done' && <span style={{ fontSize: '0.75rem', color: 'var(--risk-low)' }}>✅ Uploaded</span>}
+                      {uploadProgress['funeralCertificateFile'] === 'error' && <span style={{ fontSize: '0.75rem', color: 'var(--risk-high)' }}>❌ Failed</span>}
                     </div>
                   </div>
                 </>

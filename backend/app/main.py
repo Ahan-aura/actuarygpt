@@ -48,6 +48,45 @@ app.include_router(chatbot.router)
 app.include_router(monitoring.router)
 
 from pydantic import BaseModel
+class FileUploadRequest(BaseModel):
+    file_name: str
+    file_base64: str
+
+@app.post("/upload-file")
+def upload_file(req: FileUploadRequest):
+    try:
+        import base64
+        import uuid
+        base64_data = req.file_base64
+        if "," in base64_data:
+            base64_data = base64_data.split(",")[1]
+            
+        file_bytes = base64.b64decode(base64_data)
+        
+        # Ensure upload directory exists inside STATIC_DIR
+        upload_dir = os.path.join(STATIC_DIR, "uploads")
+        os.makedirs(upload_dir, exist_ok=True)
+        
+        # Safe filename
+        safe_name = "".join([c if c.isalnum() or c in (".", "_", "-") else "_" for c in req.file_name])
+        unique_name = f"{uuid.uuid4().hex}_{safe_name}"
+        file_path = os.path.join(upload_dir, unique_name)
+        
+        with open(file_path, "wb") as f:
+            f.write(file_bytes)
+            
+        file_url = f"/static/uploads/{unique_name}"
+        return {
+            "success": True,
+            "url": file_url,
+            "file_name": req.file_name
+        }
+    except Exception as e:
+        return {
+            "success": False,
+            "error": str(e)
+        }
+
 class DocumentParseRequest(BaseModel):
     type: str
     file_name: str

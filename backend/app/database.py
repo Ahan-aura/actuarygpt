@@ -275,6 +275,12 @@ def init_db():
     """)
     conn.commit()
     
+    try:
+        cursor.execute("ALTER TABLE vehicle_applications ADD COLUMN medical_bill TEXT")
+        conn.commit()
+    except Exception:
+        pass
+    
     # 3b. Create Monitoring Logs Table
     cursor.execute("""
     CREATE TABLE IF NOT EXISTS monitoring_logs (
