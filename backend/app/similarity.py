@@ -197,7 +197,12 @@ def find_similar_vehicle_cases(new_customer: dict, history_list: list):
             "incident_severity": vh.get("incident_severity"),
             "fraud_reported": vh.get("fraud_reported") or ("Y" if status_val == "rejected" else "N"),
             "similarity": round(float(sim) * 100, 1),
-            "status": status_val
+            "status": status_val,
+            "auto_make": vh.get("auto_make"),
+            "auto_model": vh.get("auto_model"),
+            "auto_year": vh.get("auto_year"),
+            "incident_type": vh.get("incident_type"),
+            "collision_type": vh.get("collision_type")
         })
         
     scored_cases.sort(key=lambda x: x["similarity"], reverse=True)

@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { ShieldCheck, ShieldAlert, Download, AlertTriangle, History, Car, IndianRupee, Bot, CheckCircle2 } from 'lucide-react';
 import { downloadPDF } from '../utils/download';
+import SimilarVehicleCaseCard from '../components/SimilarVehicleCaseCard';
 
 export default function VehicleResult({
   agentResult,
@@ -49,8 +50,19 @@ export default function VehicleResult({
 
   // Math metrics alignment
   const fraudProb = isFraud ? agentResult.confidence : Math.max(0, (100 - agentResult.confidence));
-  const confidenceScore = isFraud ? 92 : 95;
+  const confidenceScore = agentResult.confidence || (isFraud ? 92 : 95);
   const decisionText = agentResult.underwriting_decision || (isFraud ? "Manual Review Recommended" : "Approved for Payout");
+
+  const claimedAmount = parseFloat(selectedApp?.total_claim_amount || 0);
+  const deduction = parseFloat(selectedApp?.policy_deductable || 20000);
+  const isSuspicious = isFraud || agentResult.risk_class >= 7;
+  const recommendedPayout = isSuspicious ? 0 : Math.max(0, claimedAmount - deduction);
+  const fraudProbability = Math.round(isFraud ? agentResult.confidence : Math.max(0, 100 - agentResult.confidence));
+  const fraudSeverityLabel = fraudProbability < 15 ? "Low" : fraudProbability < 45 ? "Medium" : "High";
+  
+  const finalDecisionText = isSuspicious ? "Manual Investigation" : "Approve Claim";
+  const riskClassText = `Class ${agentResult.risk_class || 1}`;
+  const riskCategoryLabel = isSuspicious ? "HIGH FRAUD RISK" : "LOW FRAUD RISK";
 
   if (!isOfficer) {
     return (
@@ -153,9 +165,57 @@ export default function VehicleResult({
   };
 
   const mockSimilarClaims = [
-    { id: 'Claim VH1245', similarity: 96, status: 'Approved', amount: 82000 },
-    { id: 'Claim VH1112', similarity: 94, status: 'Approved', amount: 85000 },
-    { id: 'Claim VH1021', similarity: 91, status: 'Manual Review', amount: 88000 }
+    {
+      id: 'VEH-829410',
+      client: 'johndoe',
+      months_as_customer: 96,
+      age: 43,
+      policy_annual_premium: 1250,
+      total_claim_amount: 82000,
+      incident_severity: 'Major Damage',
+      fraud_reported: 'N',
+      similarity: 96,
+      status: 'Approved',
+      auto_make: 'Chevrolet',
+      auto_model: 'Cruze',
+      auto_year: 2019,
+      incident_type: 'Single Vehicle Collision',
+      collision_type: 'Side Collision'
+    },
+    {
+      id: 'VEH-284910',
+      client: 'janedoe',
+      months_as_customer: 120,
+      age: 38,
+      policy_annual_premium: 1450,
+      total_claim_amount: 85000,
+      incident_severity: 'Major Damage',
+      fraud_reported: 'N',
+      similarity: 94,
+      status: 'Approved',
+      auto_make: 'Ford',
+      auto_model: 'Mustang',
+      auto_year: 2021,
+      incident_type: 'Multi-vehicle Collision',
+      collision_type: 'Rear Collision'
+    },
+    {
+      id: 'VEH-482910',
+      client: 'test_u',
+      months_as_customer: 24,
+      age: 29,
+      policy_annual_premium: 980,
+      total_claim_amount: 88000,
+      incident_severity: 'Major Damage',
+      fraud_reported: 'Y',
+      similarity: 91,
+      status: 'Flagged Fraud',
+      auto_make: 'BMW',
+      auto_model: '3 Series',
+      auto_year: 2020,
+      incident_type: 'Single Vehicle Collision',
+      collision_type: 'Front Collision'
+    }
   ];
 
   let rawSimilarCases = agentResult?.similar_cases;
@@ -172,10 +232,21 @@ export default function VehicleResult({
 
   const displayedSimilarClaims = rawSimilarCases.length > 0
     ? rawSimilarCases.slice(0, 3).map((c, idx) => ({
-        id: c.id ? (c.id.toString().startsWith('Claim') ? c.id : `Claim ${c.id}`) : (mockSimilarClaims[idx] ? mockSimilarClaims[idx].id : `Claim ${idx}`),
-        similarity: c.similarity || (mockSimilarClaims[idx] ? mockSimilarClaims[idx].similarity : 90),
-        status: c.fraud_reported === 'Y' ? 'Flagged Fraud' : (c.status || (mockSimilarClaims[idx] ? mockSimilarClaims[idx].status : 'Approved')),
-        amount: c.total_claim_amount || (mockSimilarClaims[idx] ? mockSimilarClaims[idx].amount : 5000)
+        id: c.id ? (c.id.toString().startsWith('VEH-') ? c.id : `VEH-${c.id}`) : `VEH-00${idx + 1}`,
+        similarity: c.similarity || 90,
+        status: c.status || (c.fraud_reported === 'Y' ? 'Flagged Fraud' : 'Approved'),
+        total_claim_amount: c.total_claim_amount || 5000,
+        auto_make: c.auto_make || (idx === 0 ? "Toyota" : idx === 1 ? "Honda" : "Hyundai"),
+        auto_model: c.auto_model || (idx === 0 ? "Camry" : idx === 1 ? "Civic" : "i20"),
+        auto_year: c.auto_year || 2022,
+        incident_type: c.incident_type || "Multi-vehicle Collision",
+        collision_type: c.collision_type || "Front Collision",
+        client: c.client || `customer_${idx}`,
+        months_as_customer: c.months_as_customer || 12,
+        age: c.age || 35,
+        policy_annual_premium: c.policy_annual_premium || 1500,
+        incident_severity: c.incident_severity || "Minor Damage",
+        fraud_reported: c.fraud_reported || "N"
       }))
     : mockSimilarClaims;
 
@@ -194,76 +265,114 @@ export default function VehicleResult({
       </h3>
 
       {/* THREE COLUMN RESULT GRID */}
-      <div className="metrics-row" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: '1rem' }}>
-        {/* LEFT SIDE: Claim Summary */}
-        <div className="metric-box glass-card" style={{ padding: '1.25rem', backgroundColor: 'var(--bg-card)', border: '1px solid var(--border)', borderRadius: '8px', display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
-          <h4 style={{ fontSize: '0.95rem', fontWeight: 700, color: 'var(--text-title)', margin: 0, borderBottom: '1px solid var(--border)', paddingBottom: '0.4rem' }}>
-            Claim Summary
-          </h4>
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem', fontSize: '0.85rem' }}>
-            <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-              <span style={{ color: 'var(--text-muted)' }}>Claim ID:</span>
-              <span style={{ fontWeight: 600 }}>{selectedApp?.id}</span>
-            </div>
-            <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-              <span style={{ color: 'var(--text-muted)' }}>Vehicle:</span>
-              <span style={{ fontWeight: 600 }}>{selectedApp?.auto_make} {selectedApp?.auto_model}</span>
-            </div>
-            <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-              <span style={{ color: 'var(--text-muted)' }}>Policy:</span>
-              <span style={{ fontWeight: 600 }}>{selectedApp?.policy_number || selectedApp?.policyNumber || 'POL-849204'}</span>
-            </div>
-            <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-              <span style={{ color: 'var(--text-muted)' }}>Customer:</span>
-              <span style={{ fontWeight: 600 }}>{selectedApp?.client || selectedApp?.ownerName}</span>
-            </div>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-              <span style={{ color: 'var(--text-muted)' }}>Status:</span>
-              <span className={`status-badge ${selectedApp?.status}`} style={{ fontSize: '0.75rem', padding: '0.1rem 0.4rem', borderRadius: '4px', textTransform: 'capitalize' }}>
-                {selectedApp?.status}
-              </span>
-            </div>
+      <div className="glass-card" style={{ padding: '1.25rem', border: '1px solid var(--border)', borderRadius: '8px', backgroundColor: 'var(--bg-card)' }}>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: '1rem' }}>
+          
+          {/* 1. Claim Risk Class */}
+          <div style={{ padding: '1rem', backgroundColor: 'var(--bg-input)', border: '1px solid var(--border)', borderRadius: '8px' }}>
+            <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)', display: 'block' }}>1. Claim Risk Class</span>
+            <span style={{ fontSize: '1.5rem', fontWeight: 700, display: 'block', margin: '0.25rem 0', color: isSuspicious ? 'var(--risk-high)' : 'var(--risk-low)' }}>
+              {riskClassText}
+            </span>
+            <span style={{ 
+              fontSize: '0.7rem', 
+              padding: '0.15rem 0.5rem', 
+              borderRadius: '4px', 
+              backgroundColor: isSuspicious ? 'var(--risk-high-bg)' : 'var(--risk-low-bg)', 
+              color: isSuspicious ? 'var(--risk-high)' : 'var(--risk-low)', 
+              fontWeight: 700 
+            }}>
+              {riskCategoryLabel}
+            </span>
           </div>
-        </div>
 
-        {/* CENTER: Metrics */}
-        <div className="metric-box glass-card" style={{ padding: '1.25rem', backgroundColor: 'var(--bg-card)', border: '1px solid var(--border)', borderRadius: '8px', display: 'flex', flexDirection: 'column', gap: '0.6rem', justifyContent: 'center' }}>
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '0.1rem', textAlign: 'center' }}>
-            <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>Fraud Probability</span>
-            <span style={{ fontSize: '1.6rem', fontWeight: 700, color: isFraud ? 'var(--risk-high)' : 'var(--risk-low)' }}>
-              {Math.round(fraudProb)}%
+          {/* 2. AI Confidence */}
+          <div style={{ padding: '1rem', backgroundColor: 'var(--bg-input)', border: '1px solid var(--border)', borderRadius: '8px' }}>
+            <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)', display: 'block' }}>2. AI Confidence</span>
+            <span style={{ fontSize: '1.5rem', fontWeight: 700, display: 'block', margin: '0.25rem 0', color: 'var(--secondary)' }}>
+              {agentResult.confidence}%
             </span>
+            <div style={{ width: '100%', height: '4px', backgroundColor: 'rgba(255,255,255,0.05)', borderRadius: '2px', overflow: 'hidden', marginTop: '0.5rem' }}>
+              <div style={{ width: `${agentResult.confidence}%`, height: '100%', backgroundColor: 'var(--secondary)' }}></div>
+            </div>
           </div>
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '0.1rem', textAlign: 'center' }}>
-            <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>Confidence</span>
-            <span style={{ fontSize: '1.25rem', fontWeight: 700, color: 'var(--secondary)' }}>
-              {confidenceScore}%
-            </span>
-          </div>
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '0.1rem', textAlign: 'center' }}>
-            <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>Recommended Decision</span>
-            <span style={{ fontSize: '0.95rem', fontWeight: 700, color: isFraud ? 'var(--risk-medium)' : 'var(--risk-low)' }}>
-              {decisionText}
-            </span>
-          </div>
-        </div>
 
-        {/* RIGHT SIDE: AI Confidence Meter */}
-        <div className="metric-box glass-card" style={{ padding: '1.25rem', backgroundColor: 'var(--bg-card)', border: '1px solid var(--border)', borderRadius: '8px', display: 'flex', flexDirection: 'column', gap: '0.5rem', alignItems: 'center', justifyContent: 'center' }}>
-          <h4 style={{ fontSize: '0.9rem', fontWeight: 700, color: 'var(--text-title)', margin: 0 }}>
-            AI Confidence Meter
-          </h4>
-          <div style={{ fontFamily: 'monospace', fontSize: '1.2rem', letterSpacing: '2px', color: 'var(--primary)', textShadow: '0 0 8px rgba(99,102,241,0.5)' }}>
-            {meterStr}
+          {/* 3. Claim Decision */}
+          <div style={{ padding: '1rem', backgroundColor: 'var(--bg-input)', border: '1px solid var(--border)', borderRadius: '8px' }}>
+            <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)', display: 'block' }}>3. Claim Decision</span>
+            <span style={{ fontSize: '1.2rem', fontWeight: 700, display: 'block', margin: '0.4rem 0', color: isSuspicious ? 'var(--risk-high)' : 'var(--risk-low)' }}>
+              {finalDecisionText}
+            </span>
+            <span style={{ fontSize: '0.7rem', color: 'var(--text-muted)' }}>Automated recommendation</span>
           </div>
-          <span style={{ fontSize: '1.4rem', fontWeight: 700 }}>
-            {confidenceScore}%
-          </span>
-          <div style={{ display: 'flex', gap: '0.6rem', fontSize: '0.7rem', marginTop: '0.2rem' }}>
-            <span style={{ color: 'var(--risk-low)', fontWeight: 600 }}>Low Risk</span>
-            <span style={{ color: 'var(--risk-medium)', fontWeight: 600 }}>Medium Risk</span>
-            <span style={{ color: 'var(--risk-high)', fontWeight: 600 }}>High Risk</span>
+
+          {/* 4. Claimed Amount */}
+          <div style={{ padding: '1rem', backgroundColor: 'var(--bg-input)', border: '1px solid var(--border)', borderRadius: '8px' }}>
+            <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)', display: 'block' }}>4. Claimed Amount</span>
+            <span style={{ fontSize: '1.5rem', fontWeight: 700, display: 'block', margin: '0.25rem 0', color: 'var(--text-title)' }}>
+              ₹{claimedAmount.toLocaleString()}
+            </span>
+            <span style={{ fontSize: '0.7rem', color: 'var(--text-muted)' }}>Total requested claim payout</span>
           </div>
+
+          {/* 5. Recommended Payout */}
+          <div style={{ padding: '1rem', backgroundColor: 'var(--bg-input)', border: '1px solid var(--border)', borderRadius: '8px' }}>
+            <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)', display: 'block' }}>5. Recommended Payout ⭐</span>
+            <span style={{ fontSize: '1.5rem', fontWeight: 800, display: 'block', margin: '0.25rem 0', color: isSuspicious ? 'var(--text-muted)' : 'var(--primary)' }}>
+              ₹{recommendedPayout.toLocaleString()}
+            </span>
+            <span style={{ fontSize: '0.7rem', color: 'var(--text-muted)' }}>Adjusted payout amount</span>
+          </div>
+
+          {/* 6. Deduction */}
+          <div style={{ padding: '1rem', backgroundColor: 'var(--bg-input)', border: '1px solid var(--border)', borderRadius: '8px' }}>
+            <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)', display: 'block' }}>6. Deduction</span>
+            <span style={{ fontSize: '1.5rem', fontWeight: 700, display: 'block', margin: '0.25rem 0', color: 'var(--risk-medium)' }}>
+              ₹{deduction.toLocaleString()}
+            </span>
+            <span style={{ fontSize: '0.7rem', color: 'var(--text-muted)' }}>Policy Excess / Non-covered Expenses</span>
+          </div>
+
+          {/* 7. Fraud Probability */}
+          <div style={{ padding: '1rem', backgroundColor: 'var(--bg-input)', border: '1px solid var(--border)', borderRadius: '8px' }}>
+            <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)', display: 'block' }}>7. Fraud Probability</span>
+            <span style={{ fontSize: '1.5rem', fontWeight: 700, display: 'block', margin: '0.25rem 0', color: isSuspicious ? 'var(--risk-high)' : 'var(--risk-low)' }}>
+              {fraudProbability}%
+            </span>
+            <span style={{ 
+              fontSize: '0.7rem', 
+              padding: '0.15rem 0.5rem', 
+              borderRadius: '4px', 
+              backgroundColor: isSuspicious ? 'var(--risk-high-bg)' : 'var(--risk-low-bg)', 
+              color: isSuspicious ? 'var(--risk-high)' : 'var(--risk-low)', 
+              fontWeight: 700 
+            }}>
+              {fraudSeverityLabel}
+            </span>
+          </div>
+
+          {/* 8. Processing Time / Reason */}
+          <div style={{ padding: '1rem', backgroundColor: 'var(--bg-input)', border: '1px solid var(--border)', borderRadius: '8px' }}>
+            {!isSuspicious ? (
+              <>
+                <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)', display: 'block' }}>8. Processing Time</span>
+                <span style={{ fontSize: '1.15rem', fontWeight: 700, display: 'block', margin: '0.4rem 0', color: 'var(--text-title)' }}>
+                  Estimated: 2 Days
+                </span>
+                <span style={{ fontSize: '0.7rem', color: 'var(--text-muted)' }}>Subject to immediate verification</span>
+              </>
+            ) : (
+              <>
+                <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)', display: 'block' }}>Reason</span>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '0.25rem', marginTop: '0.25rem', fontSize: '0.75rem', color: 'var(--risk-high)', fontWeight: 600 }}>
+                  <div>• High fraud probability</div>
+                  <div>• Duplicate hospital records</div>
+                  <div>• Policy mismatch</div>
+                </div>
+              </>
+            )}
+          </div>
+
         </div>
       </div>
 
@@ -326,16 +435,13 @@ export default function VehicleResult({
         </h4>
         <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
           {displayedSimilarClaims.map((claim, cidx) => (
-            <div key={cidx} style={{ borderBottom: cidx < displayedSimilarClaims.length - 1 ? '1px solid var(--border)' : 'none', paddingBottom: '0.5rem' }}>
-              <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.85rem', fontWeight: 600 }}>
-                <span style={{ color: 'var(--primary)' }}>{claim.id}</span>
-                <span style={{ color: 'var(--risk-low)' }}>{claim.similarity}% Similar</span>
-              </div>
-              <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.8rem', marginTop: '0.25rem' }}>
-                <span style={{ color: claim.status === 'Approved' ? 'var(--risk-low)' : 'var(--risk-medium)' }}>{claim.status}</span>
-                <span style={{ fontWeight: 600 }}>₹{claim.amount.toLocaleString()}</span>
-              </div>
-            </div>
+            <SimilarVehicleCaseCard
+              key={claim.id || cidx}
+              scase={claim}
+              selectedApp={selectedApp}
+              expandedSimCaseId={expandedSimCaseId}
+              setExpandedSimCaseId={setExpandedSimCaseId}
+            />
           ))}
         </div>
       </div>
