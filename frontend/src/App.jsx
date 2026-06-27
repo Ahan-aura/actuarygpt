@@ -605,7 +605,7 @@ function App({ user, handleLogout }) {
             ) : (
               <LifeResult 
                 agentResult={wizardResult} 
-                selectedApp={formData} 
+                selectedApp={wizardResult} 
                 API_BASE={API_BASE} 
                 isOfficer={false}
                 processedApps={customerSubmissions}
