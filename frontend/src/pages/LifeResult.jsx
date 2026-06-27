@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { ShieldCheck, Download, AlertTriangle, History, Bot, CheckCircle2 } from 'lucide-react';
+import { ShieldCheck, Download, AlertTriangle, History, Bot, CheckCircle2, FileText } from 'lucide-react';
 import SimilarCaseCard from '../components/SimilarCaseCard';
 import { downloadPDF } from '../utils/download';
 

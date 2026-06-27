@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { ShieldCheck, ShieldAlert, Download, AlertTriangle, History, Car, IndianRupee, Bot, CheckCircle2 } from 'lucide-react';
+import { ShieldCheck, ShieldAlert, Download, AlertTriangle, History, Car, IndianRupee, Bot, CheckCircle2, FileText } from 'lucide-react';
 import { downloadPDF } from '../utils/download';
 import SimilarVehicleCaseCard from '../components/SimilarVehicleCaseCard';
 
@@ -13,7 +13,9 @@ export default function VehicleResult({
   onManualReview,
   processedVehicleApps = []
 }) {
-  const previousClaims = processedVehicleApps ? processedVehicleApps.filter(app => app.client === selectedApp.client && app.id !== selectedApp.id) : [];
+  const previousClaims = (processedVehicleApps && selectedApp && selectedApp.client)
+    ? processedVehicleApps.filter(app => app && app.client === selectedApp.client && app.id !== selectedApp.id)
+    : [];
   
   const currentYear = new Date().getFullYear();
   const monthsAsCustomer = selectedApp?.months_as_customer !== undefined ? parseInt(selectedApp.months_as_customer) : 0;
