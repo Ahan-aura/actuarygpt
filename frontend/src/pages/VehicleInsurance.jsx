@@ -391,7 +391,13 @@ export default function VehicleInsurance({
       auto_model: formData.auto_model || "Unknown",
       auto_year: parseInt(formData.auto_year) || 2015,
       date: accidentDate,
-      medical_bill: JSON.stringify(attachedFileUrls)
+      medical_bill: (() => {
+        const filtered = {};
+        if (attachedFileUrls.images) filtered.images = attachedFileUrls.images;
+        if (attachedFileUrls.fir) filtered.fir = attachedFileUrls.fir;
+        if (attachedFileUrls.insurance) filtered.insurance = attachedFileUrls.insurance;
+        return JSON.stringify(filtered);
+      })()
     };
     handleVehicleSubmit(finalPayload);
   };

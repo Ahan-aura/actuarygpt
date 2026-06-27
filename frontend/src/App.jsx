@@ -205,18 +205,18 @@ function App({ user, handleLogout }) {
     // Scaling raw inputs to normal distributions in backend automatically
     let medicalBillVal = formData.medicalBill || null;
     if (formData.insurance_type === "Health" || formData.insurance_type === "Life") {
-      const filesObj = {
-        primary: formData.medicalBill || "supporting_id_document.pdf",
-        medicalReports: formData.medicalReportsFile || "medical_diagnosis_report.pdf",
-        dischargeSummary: formData.dischargeSummaryFile || "discharge_summary.pdf",
-        prescription: formData.prescriptionFile || "doctor_prescription.pdf",
-        deathCertificate: formData.deathCertificateFile || "death_certificate.pdf",
-        nomineeIdProof: formData.nomineeIdProofFile || "nominee_id_proof.pdf",
-        hospitalRecords: formData.hospitalRecordsFile || "hospital_records_brief.pdf",
-        policeFir: formData.policeFirFile || "fir_accident_report.pdf",
-        postmortem: formData.postmortemReportFile || "postmortem_report.pdf",
-        funeral: formData.funeralCertificateFile || "funeral_certificate.pdf"
-      };
+      const filesObj = {};
+      if (formData.medicalBill) filesObj.primary = formData.medicalBill;
+      if (formData.medicalReportsFile) filesObj.medicalReports = formData.medicalReportsFile;
+      if (formData.dischargeSummaryFile) filesObj.dischargeSummary = formData.dischargeSummaryFile;
+      if (formData.prescriptionFile) filesObj.prescription = formData.prescriptionFile;
+      if (formData.deathCertificateFile) filesObj.deathCertificate = formData.deathCertificateFile;
+      if (formData.nomineeIdProofFile) filesObj.nomineeIdProof = formData.nomineeIdProofFile;
+      if (formData.hospitalRecordsFile) filesObj.hospitalRecords = formData.hospitalRecordsFile;
+      if (formData.policeFirFile) filesObj.policeFir = formData.policeFirFile;
+      if (formData.postmortemReportFile) filesObj.postmortem = formData.postmortemReportFile;
+      if (formData.funeralCertificateFile) filesObj.funeral = formData.funeralCertificateFile;
+      
       medicalBillVal = JSON.stringify(filesObj);
     }
 
