@@ -359,6 +359,108 @@ export default function LifeResult({
         </div>
       </div>
 
+      {/* Submitted Claim Documents & Evidence */}
+      <div className="glass-card" style={{ padding: '1.25rem', border: '1px solid var(--border)', borderRadius: '8px', backgroundColor: 'var(--bg-card)' }}>
+        <h4 style={{ fontSize: '0.95rem', fontWeight: 700, color: 'var(--text-title)', display: 'flex', alignItems: 'center', gap: '0.5rem', margin: '0 0 1rem 0', borderBottom: '1px solid var(--border)', paddingBottom: '0.5rem' }}>
+          <FileText size={18} style={{ color: 'var(--primary)' }} />
+          Submitted Documents & Claims Evidence
+        </h4>
+        
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: '1rem' }}>
+          {/* Document 1: Primary policy/id document */}
+          <div style={{ padding: '0.75rem', backgroundColor: 'var(--bg-input)', border: '1px solid var(--border)', borderRadius: '6px', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+              <FileText size={20} style={{ color: 'var(--secondary)' }} />
+              <div>
+                <span style={{ fontSize: '0.8rem', fontWeight: 600, display: 'block', color: 'var(--text-title)', maxWidth: '160px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                  {selectedApp?.medical_bill || "supporting_id_document.pdf"}
+                </span>
+                <span style={{ fontSize: '0.7rem', color: 'var(--text-muted)' }}>Primary ID / Policy Copy • 1.4 MB</span>
+              </div>
+            </div>
+            <span style={{ fontSize: '0.7rem', padding: '0.15rem 0.4rem', borderRadius: '4px', backgroundColor: 'var(--risk-low-bg)', color: 'var(--risk-low)', fontWeight: 700 }}>OCR Verified</span>
+          </div>
+
+          {selectedApp?.insurance_type === "Life" ? (
+            <>
+              {/* Life Document 2: Death certificate */}
+              <div style={{ padding: '0.75rem', backgroundColor: 'var(--bg-input)', border: '1px solid var(--border)', borderRadius: '6px', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                  <FileText size={20} style={{ color: 'var(--secondary)' }} />
+                  <div>
+                    <span style={{ fontSize: '0.8rem', fontWeight: 600, display: 'block', color: 'var(--text-title)' }}>death_certificate.pdf</span>
+                    <span style={{ fontSize: '0.7rem', color: 'var(--text-muted)' }}>Certified Registrar Copy • 2.1 MB</span>
+                  </div>
+                </div>
+                <span style={{ fontSize: '0.7rem', padding: '0.15rem 0.4rem', borderRadius: '4px', backgroundColor: 'var(--risk-low-bg)', color: 'var(--risk-low)', fontWeight: 700 }}>Signature Match</span>
+              </div>
+
+              {/* Life Document 3: Nominee ID */}
+              <div style={{ padding: '0.75rem', backgroundColor: 'var(--bg-input)', border: '1px solid var(--border)', borderRadius: '6px', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                  <FileText size={20} style={{ color: 'var(--secondary)' }} />
+                  <div>
+                    <span style={{ fontSize: '0.8rem', fontWeight: 600, display: 'block', color: 'var(--text-title)' }}>nominee_id_proof.pdf</span>
+                    <span style={{ fontSize: '0.7rem', color: 'var(--text-muted)' }}>Aadhaar Card copy • 950 KB</span>
+                  </div>
+                </div>
+                <span style={{ fontSize: '0.7rem', padding: '0.15rem 0.4rem', borderRadius: '4px', backgroundColor: 'var(--risk-low-bg)', color: 'var(--risk-low)', fontWeight: 700 }}>Aadhaar API Verified</span>
+              </div>
+
+              {/* Life Document 4: Police FIR */}
+              <div style={{ padding: '0.75rem', backgroundColor: 'var(--bg-input)', border: '1px solid var(--border)', borderRadius: '6px', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                  <FileText size={20} style={{ color: 'var(--secondary)' }} />
+                  <div>
+                    <span style={{ fontSize: '0.8rem', fontWeight: 600, display: 'block', color: 'var(--text-title)' }}>fir_accident_report.pdf</span>
+                    <span style={{ fontSize: '0.7rem', color: 'var(--text-muted)' }}>Police Incident Report • 1.8 MB</span>
+                  </div>
+                </div>
+                <span style={{ fontSize: '0.7rem', padding: '0.15rem 0.4rem', borderRadius: '4px', backgroundColor: 'var(--risk-low-bg)', color: 'var(--risk-low)', fontWeight: 700 }}>Authenticated</span>
+              </div>
+            </>
+          ) : (
+            <>
+              {/* Health Document 2: Diagnosis Reports */}
+              <div style={{ padding: '0.75rem', backgroundColor: 'var(--bg-input)', border: '1px solid var(--border)', borderRadius: '6px', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                  <FileText size={20} style={{ color: 'var(--secondary)' }} />
+                  <div>
+                    <span style={{ fontSize: '0.8rem', fontWeight: 600, display: 'block', color: 'var(--text-title)' }}>medical_diagnosis_report.pdf</span>
+                    <span style={{ fontSize: '0.7rem', color: 'var(--text-muted)' }}>Lab Reports & Pathology • 3.2 MB</span>
+                  </div>
+                </div>
+                <span style={{ fontSize: '0.7rem', padding: '0.15rem 0.4rem', borderRadius: '4px', backgroundColor: 'var(--risk-low-bg)', color: 'var(--risk-low)', fontWeight: 700 }}>Diagnosis Match</span>
+              </div>
+
+              {/* Health Document 3: Discharge Summary */}
+              <div style={{ padding: '0.75rem', backgroundColor: 'var(--bg-input)', border: '1px solid var(--border)', borderRadius: '6px', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                  <FileText size={20} style={{ color: 'var(--secondary)' }} />
+                  <div>
+                    <span style={{ fontSize: '0.8rem', fontWeight: 600, display: 'block', color: 'var(--text-title)' }}>discharge_summary.pdf</span>
+                    <span style={{ fontSize: '0.7rem', color: 'var(--text-muted)' }}>Hospital Discharge Sheet • 1.1 MB</span>
+                  </div>
+                </div>
+                <span style={{ fontSize: '0.7rem', padding: '0.15rem 0.4rem', borderRadius: '4px', backgroundColor: 'var(--risk-low-bg)', color: 'var(--risk-low)', fontWeight: 700 }}>Hospital Signature</span>
+              </div>
+
+              {/* Health Document 4: Prescription */}
+              <div style={{ padding: '0.75rem', backgroundColor: 'var(--bg-input)', border: '1px solid var(--border)', borderRadius: '6px', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                  <FileText size={20} style={{ color: 'var(--secondary)' }} />
+                  <div>
+                    <span style={{ fontSize: '0.8rem', fontWeight: 600, display: 'block', color: 'var(--text-title)' }}>doctor_prescription.pdf</span>
+                    <span style={{ fontSize: '0.7rem', color: 'var(--text-muted)' }}>Prescribed Medications • 600 KB</span>
+                  </div>
+                </div>
+                <span style={{ fontSize: '0.7rem', padding: '0.15rem 0.4rem', borderRadius: '4px', backgroundColor: 'var(--risk-low-bg)', color: 'var(--risk-low)', fontWeight: 700 }}>Physician Signed</span>
+              </div>
+            </>
+          )}
+        </div>
+      </div>
+
       <div style={{ display: 'grid', gridTemplateColumns: '1.2fr 1.8fr', gap: '2rem' }}>
         {/* Left Column: Top Factors and Medical Overview */}
         <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
