@@ -221,7 +221,7 @@ function App({ user, handleLogout }) {
     }
 
     const payload = {
-      client: user.username || "customer1",
+      client: user.name || "customer1",
       age: parseFloat(formData.age) || 35.0,
       height: parseFloat(formData.height) || 170.0,
       weight: parseFloat(formData.weight) || 70.0,
