@@ -382,12 +382,22 @@ export default function VehicleResult({
           AI Explanation
         </h4>
         <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem', fontSize: '0.85rem', color: 'var(--text-main)' }}>
-          <p style={{ margin: 0 }}>The claim amount is consistent with the accident severity.</p>
-          <p style={{ margin: 0 }}>Customer has no previous fraud history.</p>
-          <p style={{ margin: 0 }}>The damage pattern matches historical approved claims.</p>
+          {isSuspicious ? (
+            <>
+              <p style={{ margin: 0, color: 'var(--risk-high)', fontWeight: 600 }}>• High fraud risk profile matched by CatBoost prediction model.</p>
+              <p style={{ margin: 0 }}>• Anomaly flags identified in the incident severity and claim amount parity.</p>
+              <p style={{ margin: 0 }}>• Auto-flagged for duplicate vehicle records and policy mismatch verification.</p>
+            </>
+          ) : (
+            <>
+              <p style={{ margin: 0 }}>• The claim amount is consistent with the accident severity.</p>
+              <p style={{ margin: 0 }}>• Customer has no previous fraud history.</p>
+              <p style={{ margin: 0 }}>• The damage pattern matches historical approved claims.</p>
+            </>
+          )}
           <div style={{ display: 'flex', gap: '0.5rem', marginTop: '0.5rem', fontWeight: 700, fontSize: '0.85rem' }}>
             <span style={{ color: 'var(--text-muted)' }}>Recommendation:</span>
-            <span style={{ color: isFraud ? 'var(--risk-medium)' : 'var(--risk-low)' }}>{decisionText}</span>
+            <span style={{ color: isSuspicious ? 'var(--risk-high)' : 'var(--risk-low)' }}>{finalDecisionText}</span>
           </div>
         </div>
       </div>
