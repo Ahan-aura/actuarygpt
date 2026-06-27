@@ -133,7 +133,18 @@ Top similar historical cases found:
     }
 
 def evaluate_vehicle_claim(customer):
-    fraud_reported, confidence = predict_vehicle_fraud(customer)
+    # Scale monetary fields from INR to USD for prediction and RAG checks
+    scaled_customer = customer.copy()
+    exchange_rate = 83.0
+    
+    for col in ['total_claim_amount', 'injury_claim', 'property_claim', 'vehicle_claim', 'policy_annual_premium', 'policy_deductable', 'umbrella_limit']:
+        if col in scaled_customer and scaled_customer[col] is not None:
+            try:
+                scaled_customer[col] = float(scaled_customer[col]) / exchange_rate
+            except ValueError:
+                pass
+
+    fraud_reported, confidence = predict_vehicle_fraud(scaled_customer)
     
     # Premium pricing logic for claims (adjusted base or premium)
     premium = float(customer.get('policy_annual_premium') or 0.0)
@@ -145,7 +156,16 @@ def evaluate_vehicle_claim(customer):
     history_list = [dict(row) for row in history_rows]
     conn.close()
     
-    similar_cases = find_similar_vehicle_cases(customer, history_list)
+    similar_cases = find_similar_vehicle_cases(scaled_customer, history_list)
+    
+    # Scale similar cases fields back to INR for frontend and explanation consistency
+    for c in similar_cases:
+        for col in ['total_claim_amount', 'policy_annual_premium']:
+            if col in c and c[col] is not None:
+                try:
+                    c[col] = float(c[col]) * exchange_rate
+                except ValueError:
+                    pass
     
     try:
         report = explain_vehicle(customer, fraud_reported, confidence, similar_cases)
@@ -186,7 +206,7 @@ Top similar historical claims found:
 ---
 
 ### 3. Warning Flags & Anomalies
-*   Automated audit verifies that incident severity ({customer.get('incident_severity')}) and total claim amount (${customer.get('total_claim_amount')}) are aligned with historical records.
+*   Automated audit verifies that incident severity ({customer.get('incident_severity')}) and total claim amount (Rs. {customer.get('total_claim_amount'):,.2f}) are aligned with historical records.
 *   Recommended actions have been flagged based on the classification model output.
 
 ---
@@ -219,12 +239,12 @@ Top similar historical claims found:
             risk_class = 2
             category = "Low Risk"
             
-        # Adjust slightly based on total claim amount
-        total_claim = float(customer.get("total_claim_amount") or 0.0)
-        if total_claim > 60000.0:
+        # Adjust slightly based on total claim amount (using scaled USD value)
+        total_claim_usd = float(scaled_customer.get("total_claim_amount") or 0.0)
+        if total_claim_usd > 60000.0:
             risk_class = min(risk_class + 1, 6)
             category = "High Risk" if risk_class >= 6 else category
-        elif total_claim < 10000.0:
+        elif total_claim_usd < 10000.0:
             risk_class = max(risk_class - 1, 1)
             category = "Low Risk" if risk_class <= 2 else category
         
