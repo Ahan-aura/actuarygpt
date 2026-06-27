@@ -856,12 +856,20 @@ function App({ user, handleLogout }) {
                       <div className="detail-box"><span className="detail-label">Smoker</span><span className="detail-val">{selectedApp?.smoker ? 'Yes' : 'No'}</span></div>
                       <div className="detail-box"><span className="detail-label">Claims History</span><span className="detail-val">{selectedApp?.previous_claims || "0"} claims</span></div>
                       <div className="detail-box"><span className="detail-label">Type / Sum Assured</span><span className="detail-val">{selectedApp?.insurance_type || "Health"} / ₹{selectedApp?.coverage_amount?.toLocaleString() || "1,00,000"}</span></div>
-                      {selectedApp?.medical_bill && (
-                        <div className="detail-box" style={{ gridColumn: 'span 3', display: 'flex', alignItems: 'center', gap: '0.5rem', backgroundColor: 'rgba(99, 102, 241, 0.04)', border: '1px dashed var(--primary)' }}>
-                          <span className="detail-label" style={{ margin: 0 }}>Attached Medical Bill:</span>
-                          <span className="detail-val" style={{ fontWeight: 700, color: 'var(--primary)', fontSize: '0.85rem' }}>📄 {selectedApp?.medical_bill}</span>
-                        </div>
-                      )}
+                      {selectedApp?.medical_bill && (() => {
+                        let billName = selectedApp.medical_bill;
+                        if (billName && typeof billName === 'string' && billName.trim().startsWith('{')) {
+                          try {
+                            billName = JSON.parse(billName).primary || "supporting_id_document.pdf";
+                          } catch (_) {}
+                        }
+                        return (
+                          <div className="detail-box" style={{ gridColumn: 'span 3', display: 'flex', alignItems: 'center', gap: '0.5rem', backgroundColor: 'rgba(99, 102, 241, 0.04)', border: '1px dashed var(--primary)', minWidth: 0, overflow: 'hidden' }}>
+                            <span className="detail-label" style={{ margin: 0, flexShrink: 0 }}>Attached Medical Bill:</span>
+                            <span className="detail-val" style={{ fontWeight: 700, color: 'var(--primary)', fontSize: '0.85rem', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>📄 {billName}</span>
+                          </div>
+                        );
+                      })()}
                     </div>
                   ) : (
                     /* Vehicle workstation details */
