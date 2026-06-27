@@ -62,6 +62,38 @@ export default function LifeResult({
 
   if (!agentResult) return null;
 
+  let primaryDocName = "supporting_id_document.pdf";
+  let medicalReportsName = "medical_diagnosis_report.pdf";
+  let dischargeSummaryName = "discharge_summary.pdf";
+  let prescriptionName = "doctor_prescription.pdf";
+  let deathCertificateName = "death_certificate.pdf";
+  let nomineeIdProofName = "nominee_id_proof.pdf";
+  let hospitalRecordsName = "hospital_records_brief.pdf";
+  let policeFirName = "fir_accident_report.pdf";
+  let postmortemName = "postmortem_report.pdf";
+  let funeralName = "funeral_certificate.pdf";
+
+  const rawBill = selectedApp?.medical_bill || selectedApp?.medicalBill;
+  if (rawBill && typeof rawBill === 'string' && rawBill.trim().startsWith('{')) {
+    try {
+      const files = JSON.parse(rawBill);
+      if (files.primary) primaryDocName = files.primary;
+      if (files.medicalReports) medicalReportsName = files.medicalReports;
+      if (files.dischargeSummary) dischargeSummaryName = files.dischargeSummary;
+      if (files.prescription) prescriptionName = files.prescription;
+      if (files.deathCertificate) deathCertificateName = files.deathCertificate;
+      if (files.nomineeIdProof) nomineeIdProofName = files.nomineeIdProof;
+      if (files.hospitalRecords) hospitalRecordsName = files.hospitalRecords;
+      if (files.policeFir) policeFirName = files.policeFir;
+      if (files.postmortem) postmortemName = files.postmortem;
+      if (files.funeral) funeralName = files.funeral;
+    } catch (_) {
+      primaryDocName = rawBill;
+    }
+  } else if (rawBill) {
+    primaryDocName = rawBill;
+  }
+
   const decisionText = agentResult.underwriting_decision || "Refer for Manual Review";
 
   const coverageAmount = parseFloat(selectedApp?.coverage_amount || 0);
@@ -375,7 +407,7 @@ export default function LifeResult({
               <FileText size={20} style={{ color: 'var(--secondary)' }} />
               <div>
                 <span style={{ fontSize: '0.8rem', fontWeight: 600, display: 'block', color: 'var(--text-title)', maxWidth: '160px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-                  {selectedApp?.medical_bill || "supporting_id_document.pdf"}
+                  {primaryDocName}
                 </span>
                 <span style={{ fontSize: '0.7rem', color: 'var(--text-muted)' }}>Primary ID / Policy Copy • 1.4 MB</span>
               </div>
@@ -390,7 +422,7 @@ export default function LifeResult({
                 <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
                   <FileText size={20} style={{ color: 'var(--secondary)' }} />
                   <div>
-                    <span style={{ fontSize: '0.8rem', fontWeight: 600, display: 'block', color: 'var(--text-title)' }}>death_certificate.pdf</span>
+                    <span style={{ fontSize: '0.8rem', fontWeight: 600, display: 'block', color: 'var(--text-title)', maxWidth: '160px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{deathCertificateName}</span>
                     <span style={{ fontSize: '0.7rem', color: 'var(--text-muted)' }}>Certified Registrar Copy • 2.1 MB</span>
                   </div>
                 </div>
@@ -402,7 +434,7 @@ export default function LifeResult({
                 <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
                   <FileText size={20} style={{ color: 'var(--secondary)' }} />
                   <div>
-                    <span style={{ fontSize: '0.8rem', fontWeight: 600, display: 'block', color: 'var(--text-title)' }}>nominee_id_proof.pdf</span>
+                    <span style={{ fontSize: '0.8rem', fontWeight: 600, display: 'block', color: 'var(--text-title)', maxWidth: '160px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{nomineeIdProofName}</span>
                     <span style={{ fontSize: '0.7rem', color: 'var(--text-muted)' }}>Aadhaar Card copy • 950 KB</span>
                   </div>
                 </div>
@@ -414,7 +446,7 @@ export default function LifeResult({
                 <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
                   <FileText size={20} style={{ color: 'var(--secondary)' }} />
                   <div>
-                    <span style={{ fontSize: '0.8rem', fontWeight: 600, display: 'block', color: 'var(--text-title)' }}>fir_accident_report.pdf</span>
+                    <span style={{ fontSize: '0.8rem', fontWeight: 600, display: 'block', color: 'var(--text-title)', maxWidth: '160px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{policeFirName}</span>
                     <span style={{ fontSize: '0.7rem', color: 'var(--text-muted)' }}>Police Incident Report • 1.8 MB</span>
                   </div>
                 </div>
@@ -428,7 +460,7 @@ export default function LifeResult({
                 <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
                   <FileText size={20} style={{ color: 'var(--secondary)' }} />
                   <div>
-                    <span style={{ fontSize: '0.8rem', fontWeight: 600, display: 'block', color: 'var(--text-title)' }}>medical_diagnosis_report.pdf</span>
+                    <span style={{ fontSize: '0.8rem', fontWeight: 600, display: 'block', color: 'var(--text-title)', maxWidth: '160px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{medicalReportsName}</span>
                     <span style={{ fontSize: '0.7rem', color: 'var(--text-muted)' }}>Lab Reports & Pathology • 3.2 MB</span>
                   </div>
                 </div>
@@ -440,7 +472,7 @@ export default function LifeResult({
                 <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
                   <FileText size={20} style={{ color: 'var(--secondary)' }} />
                   <div>
-                    <span style={{ fontSize: '0.8rem', fontWeight: 600, display: 'block', color: 'var(--text-title)' }}>discharge_summary.pdf</span>
+                    <span style={{ fontSize: '0.8rem', fontWeight: 600, display: 'block', color: 'var(--text-title)', maxWidth: '160px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{dischargeSummaryName}</span>
                     <span style={{ fontSize: '0.7rem', color: 'var(--text-muted)' }}>Hospital Discharge Sheet • 1.1 MB</span>
                   </div>
                 </div>
@@ -452,7 +484,7 @@ export default function LifeResult({
                 <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
                   <FileText size={20} style={{ color: 'var(--secondary)' }} />
                   <div>
-                    <span style={{ fontSize: '0.8rem', fontWeight: 600, display: 'block', color: 'var(--text-title)' }}>doctor_prescription.pdf</span>
+                    <span style={{ fontSize: '0.8rem', fontWeight: 600, display: 'block', color: 'var(--text-title)', maxWidth: '160px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{prescriptionName}</span>
                     <span style={{ fontSize: '0.7rem', color: 'var(--text-muted)' }}>Prescribed Medications • 600 KB</span>
                   </div>
                 </div>

@@ -617,16 +617,16 @@ export default function LifeInsurance({
                   <div className="form-group-row" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
                     <div className="form-group">
                       <label>Medical Diagnosis Reports *</label>
-                      <input type="file" required style={{ fontSize: '0.8rem' }} />
+                      <input type="file" required style={{ fontSize: '0.8rem' }} onChange={(e) => handleInputChange('medicalReportsFile', e.target.files[0]?.name || "")} />
                     </div>
                     <div className="form-group">
                       <label>Discharge Summary *</label>
-                      <input type="file" required style={{ fontSize: '0.8rem' }} />
+                      <input type="file" required style={{ fontSize: '0.8rem' }} onChange={(e) => handleInputChange('dischargeSummaryFile', e.target.files[0]?.name || "")} />
                     </div>
                   </div>
                   <div className="form-group">
                     <label>Doctor's Prescription *</label>
-                    <input type="file" required style={{ fontSize: '0.8rem' }} />
+                    <input type="file" required style={{ fontSize: '0.8rem' }} onChange={(e) => handleInputChange('prescriptionFile', e.target.files[0]?.name || "")} />
                   </div>
                 </>
               ) : (
@@ -635,33 +635,33 @@ export default function LifeInsurance({
                   <div className="form-group-row" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
                     <div className="form-group">
                       <label>Death Certificate Copy *</label>
-                      <input type="file" required style={{ fontSize: '0.8rem' }} />
+                      <input type="file" required style={{ fontSize: '0.8rem' }} onChange={(e) => handleInputChange('deathCertificateFile', e.target.files[0]?.name || "")} />
                     </div>
                     <div className="form-group">
                       <label>Nominee ID Proof *</label>
-                      <input type="file" required style={{ fontSize: '0.8rem' }} />
+                      <input type="file" required style={{ fontSize: '0.8rem' }} onChange={(e) => handleInputChange('nomineeIdProofFile', e.target.files[0]?.name || "")} />
                     </div>
                   </div>
 
                   <div className="form-group-row" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
                     <div className="form-group">
                       <label>Hospital Medical Records (optional)</label>
-                      <input type="file" style={{ fontSize: '0.8rem' }} />
+                      <input type="file" style={{ fontSize: '0.8rem' }} onChange={(e) => handleInputChange('hospitalRecordsFile', e.target.files[0]?.name || "")} />
                     </div>
                     <div className="form-group">
                       <label>Police FIR (if accidental death)</label>
-                      <input type="file" style={{ fontSize: '0.8rem' }} />
+                      <input type="file" style={{ fontSize: '0.8rem' }} onChange={(e) => handleInputChange('policeFirFile', e.target.files[0]?.name || "")} />
                     </div>
                   </div>
 
                   <div className="form-group-row" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
                     <div className="form-group">
                       <label>Postmortem Report (if applicable)</label>
-                      <input type="file" style={{ fontSize: '0.8rem' }} />
+                      <input type="file" style={{ fontSize: '0.8rem' }} onChange={(e) => handleInputChange('postmortemReportFile', e.target.files[0]?.name || "")} />
                     </div>
                     <div className="form-group">
                       <label>Funeral / Cremation Certificate</label>
-                      <input type="file" style={{ fontSize: '0.8rem' }} />
+                      <input type="file" style={{ fontSize: '0.8rem' }} onChange={(e) => handleInputChange('funeralCertificateFile', e.target.files[0]?.name || "")} />
                     </div>
                   </div>
                 </>

@@ -203,6 +203,23 @@ function App({ user, handleLogout }) {
     setWizardStepsProgress(wizardProgressMock);
 
     // Scaling raw inputs to normal distributions in backend automatically
+    let medicalBillVal = formData.medicalBill || null;
+    if (formData.insurance_type === "Health" || formData.insurance_type === "Life") {
+      const filesObj = {
+        primary: formData.medicalBill || "supporting_id_document.pdf",
+        medicalReports: formData.medicalReportsFile || "medical_diagnosis_report.pdf",
+        dischargeSummary: formData.dischargeSummaryFile || "discharge_summary.pdf",
+        prescription: formData.prescriptionFile || "doctor_prescription.pdf",
+        deathCertificate: formData.deathCertificateFile || "death_certificate.pdf",
+        nomineeIdProof: formData.nomineeIdProofFile || "nominee_id_proof.pdf",
+        hospitalRecords: formData.hospitalRecordsFile || "hospital_records_brief.pdf",
+        policeFir: formData.policeFirFile || "fir_accident_report.pdf",
+        postmortem: formData.postmortemReportFile || "postmortem_report.pdf",
+        funeral: formData.funeralCertificateFile || "funeral_certificate.pdf"
+      };
+      medicalBillVal = JSON.stringify(filesObj);
+    }
+
     const payload = {
       client: user.username || "customer1",
       age: parseFloat(formData.age) || 35.0,
@@ -226,7 +243,7 @@ function App({ user, handleLogout }) {
       medical_conditions: formData.medicalConditions,
       policy_duration: parseInt(formData.policyDuration) || 10,
       nominee_age: parseInt(formData.nomineeAge) || 30,
-      medical_bill: formData.medicalBill || null
+      medical_bill: medicalBillVal
     };
 
     try {
