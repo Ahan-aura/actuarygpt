@@ -402,93 +402,93 @@ export default function LifeResult({
         
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: '1rem' }}>
           {/* Document 1: Primary policy/id document */}
-          <div style={{ padding: '0.75rem', backgroundColor: 'var(--bg-input)', border: '1px solid var(--border)', borderRadius: '6px', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-              <FileText size={20} style={{ color: 'var(--secondary)' }} />
-              <div>
-                <span style={{ fontSize: '0.8rem', fontWeight: 600, display: 'block', color: 'var(--text-title)', maxWidth: '160px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+          <div style={{ padding: '0.75rem', backgroundColor: 'var(--bg-input)', border: '1px solid var(--border)', borderRadius: '6px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', minWidth: 0, gap: '0.5rem' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', minWidth: 0 }}>
+              <FileText size={20} style={{ color: 'var(--secondary)', flexShrink: 0 }} />
+              <div style={{ minWidth: 0 }}>
+                <span style={{ fontSize: '0.8rem', fontWeight: 600, display: 'block', color: 'var(--text-title)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
                   {primaryDocName}
                 </span>
                 <span style={{ fontSize: '0.7rem', color: 'var(--text-muted)' }}>Primary ID / Policy Copy • 1.4 MB</span>
               </div>
             </div>
-            <span style={{ fontSize: '0.7rem', padding: '0.15rem 0.4rem', borderRadius: '4px', backgroundColor: 'var(--risk-low-bg)', color: 'var(--risk-low)', fontWeight: 700 }}>OCR Verified</span>
+            <span style={{ fontSize: '0.7rem', padding: '0.15rem 0.4rem', borderRadius: '4px', backgroundColor: 'var(--risk-low-bg)', color: 'var(--risk-low)', fontWeight: 700, flexShrink: 0 }}>OCR Verified</span>
           </div>
 
           {selectedApp?.insurance_type === "Life" ? (
             <>
               {/* Life Document 2: Death certificate */}
-              <div style={{ padding: '0.75rem', backgroundColor: 'var(--bg-input)', border: '1px solid var(--border)', borderRadius: '6px', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                  <FileText size={20} style={{ color: 'var(--secondary)' }} />
-                  <div>
-                    <span style={{ fontSize: '0.8rem', fontWeight: 600, display: 'block', color: 'var(--text-title)', maxWidth: '160px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{deathCertificateName}</span>
+              <div style={{ padding: '0.75rem', backgroundColor: 'var(--bg-input)', border: '1px solid var(--border)', borderRadius: '6px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', minWidth: 0, gap: '0.5rem' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', minWidth: 0 }}>
+                  <FileText size={20} style={{ color: 'var(--secondary)', flexShrink: 0 }} />
+                  <div style={{ minWidth: 0 }}>
+                    <span style={{ fontSize: '0.8rem', fontWeight: 600, display: 'block', color: 'var(--text-title)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{deathCertificateName}</span>
                     <span style={{ fontSize: '0.7rem', color: 'var(--text-muted)' }}>Certified Registrar Copy • 2.1 MB</span>
                   </div>
                 </div>
-                <span style={{ fontSize: '0.7rem', padding: '0.15rem 0.4rem', borderRadius: '4px', backgroundColor: 'var(--risk-low-bg)', color: 'var(--risk-low)', fontWeight: 700 }}>Signature Match</span>
+                <span style={{ fontSize: '0.7rem', padding: '0.15rem 0.4rem', borderRadius: '4px', backgroundColor: 'var(--risk-low-bg)', color: 'var(--risk-low)', fontWeight: 700, flexShrink: 0 }}>Signature Match</span>
               </div>
 
               {/* Life Document 3: Nominee ID */}
-              <div style={{ padding: '0.75rem', backgroundColor: 'var(--bg-input)', border: '1px solid var(--border)', borderRadius: '6px', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                  <FileText size={20} style={{ color: 'var(--secondary)' }} />
-                  <div>
-                    <span style={{ fontSize: '0.8rem', fontWeight: 600, display: 'block', color: 'var(--text-title)', maxWidth: '160px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{nomineeIdProofName}</span>
+              <div style={{ padding: '0.75rem', backgroundColor: 'var(--bg-input)', border: '1px solid var(--border)', borderRadius: '6px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', minWidth: 0, gap: '0.5rem' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', minWidth: 0 }}>
+                  <FileText size={20} style={{ color: 'var(--secondary)', flexShrink: 0 }} />
+                  <div style={{ minWidth: 0 }}>
+                    <span style={{ fontSize: '0.8rem', fontWeight: 600, display: 'block', color: 'var(--text-title)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{nomineeIdProofName}</span>
                     <span style={{ fontSize: '0.7rem', color: 'var(--text-muted)' }}>Aadhaar Card copy • 950 KB</span>
                   </div>
                 </div>
-                <span style={{ fontSize: '0.7rem', padding: '0.15rem 0.4rem', borderRadius: '4px', backgroundColor: 'var(--risk-low-bg)', color: 'var(--risk-low)', fontWeight: 700 }}>Aadhaar API Verified</span>
+                <span style={{ fontSize: '0.7rem', padding: '0.15rem 0.4rem', borderRadius: '4px', backgroundColor: 'var(--risk-low-bg)', color: 'var(--risk-low)', fontWeight: 700, flexShrink: 0 }}>Aadhaar API Verified</span>
               </div>
 
               {/* Life Document 4: Police FIR */}
-              <div style={{ padding: '0.75rem', backgroundColor: 'var(--bg-input)', border: '1px solid var(--border)', borderRadius: '6px', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                  <FileText size={20} style={{ color: 'var(--secondary)' }} />
-                  <div>
-                    <span style={{ fontSize: '0.8rem', fontWeight: 600, display: 'block', color: 'var(--text-title)', maxWidth: '160px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{policeFirName}</span>
+              <div style={{ padding: '0.75rem', backgroundColor: 'var(--bg-input)', border: '1px solid var(--border)', borderRadius: '6px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', minWidth: 0, gap: '0.5rem' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', minWidth: 0 }}>
+                  <FileText size={20} style={{ color: 'var(--secondary)', flexShrink: 0 }} />
+                  <div style={{ minWidth: 0 }}>
+                    <span style={{ fontSize: '0.8rem', fontWeight: 600, display: 'block', color: 'var(--text-title)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{policeFirName}</span>
                     <span style={{ fontSize: '0.7rem', color: 'var(--text-muted)' }}>Police Incident Report • 1.8 MB</span>
                   </div>
                 </div>
-                <span style={{ fontSize: '0.7rem', padding: '0.15rem 0.4rem', borderRadius: '4px', backgroundColor: 'var(--risk-low-bg)', color: 'var(--risk-low)', fontWeight: 700 }}>Authenticated</span>
+                <span style={{ fontSize: '0.7rem', padding: '0.15rem 0.4rem', borderRadius: '4px', backgroundColor: 'var(--risk-low-bg)', color: 'var(--risk-low)', fontWeight: 700, flexShrink: 0 }}>Authenticated</span>
               </div>
             </>
           ) : (
             <>
               {/* Health Document 2: Diagnosis Reports */}
-              <div style={{ padding: '0.75rem', backgroundColor: 'var(--bg-input)', border: '1px solid var(--border)', borderRadius: '6px', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                  <FileText size={20} style={{ color: 'var(--secondary)' }} />
-                  <div>
-                    <span style={{ fontSize: '0.8rem', fontWeight: 600, display: 'block', color: 'var(--text-title)', maxWidth: '160px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{medicalReportsName}</span>
+              <div style={{ padding: '0.75rem', backgroundColor: 'var(--bg-input)', border: '1px solid var(--border)', borderRadius: '6px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', minWidth: 0, gap: '0.5rem' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', minWidth: 0 }}>
+                  <FileText size={20} style={{ color: 'var(--secondary)', flexShrink: 0 }} />
+                  <div style={{ minWidth: 0 }}>
+                    <span style={{ fontSize: '0.8rem', fontWeight: 600, display: 'block', color: 'var(--text-title)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{medicalReportsName}</span>
                     <span style={{ fontSize: '0.7rem', color: 'var(--text-muted)' }}>Lab Reports & Pathology • 3.2 MB</span>
                   </div>
                 </div>
-                <span style={{ fontSize: '0.7rem', padding: '0.15rem 0.4rem', borderRadius: '4px', backgroundColor: 'var(--risk-low-bg)', color: 'var(--risk-low)', fontWeight: 700 }}>Diagnosis Match</span>
+                <span style={{ fontSize: '0.7rem', padding: '0.15rem 0.4rem', borderRadius: '4px', backgroundColor: 'var(--risk-low-bg)', color: 'var(--risk-low)', fontWeight: 700, flexShrink: 0 }}>Diagnosis Match</span>
               </div>
 
               {/* Health Document 3: Discharge Summary */}
-              <div style={{ padding: '0.75rem', backgroundColor: 'var(--bg-input)', border: '1px solid var(--border)', borderRadius: '6px', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                  <FileText size={20} style={{ color: 'var(--secondary)' }} />
-                  <div>
-                    <span style={{ fontSize: '0.8rem', fontWeight: 600, display: 'block', color: 'var(--text-title)', maxWidth: '160px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{dischargeSummaryName}</span>
+              <div style={{ padding: '0.75rem', backgroundColor: 'var(--bg-input)', border: '1px solid var(--border)', borderRadius: '6px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', minWidth: 0, gap: '0.5rem' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', minWidth: 0 }}>
+                  <FileText size={20} style={{ color: 'var(--secondary)', flexShrink: 0 }} />
+                  <div style={{ minWidth: 0 }}>
+                    <span style={{ fontSize: '0.8rem', fontWeight: 600, display: 'block', color: 'var(--text-title)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{dischargeSummaryName}</span>
                     <span style={{ fontSize: '0.7rem', color: 'var(--text-muted)' }}>Hospital Discharge Sheet • 1.1 MB</span>
                   </div>
                 </div>
-                <span style={{ fontSize: '0.7rem', padding: '0.15rem 0.4rem', borderRadius: '4px', backgroundColor: 'var(--risk-low-bg)', color: 'var(--risk-low)', fontWeight: 700 }}>Hospital Signature</span>
+                <span style={{ fontSize: '0.7rem', padding: '0.15rem 0.4rem', borderRadius: '4px', backgroundColor: 'var(--risk-low-bg)', color: 'var(--risk-low)', fontWeight: 700, flexShrink: 0 }}>Hospital Signature</span>
               </div>
 
               {/* Health Document 4: Prescription */}
-              <div style={{ padding: '0.75rem', backgroundColor: 'var(--bg-input)', border: '1px solid var(--border)', borderRadius: '6px', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                  <FileText size={20} style={{ color: 'var(--secondary)' }} />
-                  <div>
-                    <span style={{ fontSize: '0.8rem', fontWeight: 600, display: 'block', color: 'var(--text-title)', maxWidth: '160px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{prescriptionName}</span>
+              <div style={{ padding: '0.75rem', backgroundColor: 'var(--bg-input)', border: '1px solid var(--border)', borderRadius: '6px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', minWidth: 0, gap: '0.5rem' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', minWidth: 0 }}>
+                  <FileText size={20} style={{ color: 'var(--secondary)', flexShrink: 0 }} />
+                  <div style={{ minWidth: 0 }}>
+                    <span style={{ fontSize: '0.8rem', fontWeight: 600, display: 'block', color: 'var(--text-title)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{prescriptionName}</span>
                     <span style={{ fontSize: '0.7rem', color: 'var(--text-muted)' }}>Prescribed Medications • 600 KB</span>
                   </div>
                 </div>
-                <span style={{ fontSize: '0.7rem', padding: '0.15rem 0.4rem', borderRadius: '4px', backgroundColor: 'var(--risk-low-bg)', color: 'var(--risk-low)', fontWeight: 700 }}>Physician Signed</span>
+                <span style={{ fontSize: '0.7rem', padding: '0.15rem 0.4rem', borderRadius: '4px', backgroundColor: 'var(--risk-low-bg)', color: 'var(--risk-low)', fontWeight: 700, flexShrink: 0 }}>Physician Signed</span>
               </div>
             </>
           )}

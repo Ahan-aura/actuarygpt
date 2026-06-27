@@ -413,51 +413,51 @@ export default function VehicleResult({
         
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: '1rem' }}>
           {/* Document 1: Insurance Policy */}
-          <div style={{ padding: '0.75rem', backgroundColor: 'var(--bg-input)', border: '1px solid var(--border)', borderRadius: '6px', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-              <FileText size={20} style={{ color: 'var(--secondary)' }} />
-              <div>
-                <span style={{ fontSize: '0.8rem', fontWeight: 600, display: 'block', color: 'var(--text-title)' }}>insurance_policy_copy.pdf</span>
+          <div style={{ padding: '0.75rem', backgroundColor: 'var(--bg-input)', border: '1px solid var(--border)', borderRadius: '6px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', minWidth: 0, gap: '0.5rem' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', minWidth: 0 }}>
+              <FileText size={20} style={{ color: 'var(--secondary)', flexShrink: 0 }} />
+              <div style={{ minWidth: 0 }}>
+                <span style={{ fontSize: '0.8rem', fontWeight: 600, display: 'block', color: 'var(--text-title)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>insurance_policy_copy.pdf</span>
                 <span style={{ fontSize: '0.7rem', color: 'var(--text-muted)' }}>Original Policy Details • 1.2 MB</span>
               </div>
             </div>
-            <span style={{ fontSize: '0.7rem', padding: '0.15rem 0.4rem', borderRadius: '4px', backgroundColor: 'var(--risk-low-bg)', color: 'var(--risk-low)', fontWeight: 700 }}>Policy Valid</span>
+            <span style={{ fontSize: '0.7rem', padding: '0.15rem 0.4rem', borderRadius: '4px', backgroundColor: 'var(--risk-low-bg)', color: 'var(--risk-low)', fontWeight: 700, flexShrink: 0 }}>Policy Valid</span>
           </div>
 
           {/* Document 2: Police FIR */}
-          <div style={{ padding: '0.75rem', backgroundColor: 'var(--bg-input)', border: '1px solid var(--border)', borderRadius: '6px', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-              <FileText size={20} style={{ color: 'var(--secondary)' }} />
-              <div>
-                <span style={{ fontSize: '0.8rem', fontWeight: 600, display: 'block', color: 'var(--text-title)' }}>accident_fir_report.pdf</span>
+          <div style={{ padding: '0.75rem', backgroundColor: 'var(--bg-input)', border: '1px solid var(--border)', borderRadius: '6px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', minWidth: 0, gap: '0.5rem' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', minWidth: 0 }}>
+              <FileText size={20} style={{ color: 'var(--secondary)', flexShrink: 0 }} />
+              <div style={{ minWidth: 0 }}>
+                <span style={{ fontSize: '0.8rem', fontWeight: 600, display: 'block', color: 'var(--text-title)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>accident_fir_report.pdf</span>
                 <span style={{ fontSize: '0.7rem', color: 'var(--text-muted)' }}>Police Incident Registration • 2.4 MB</span>
               </div>
             </div>
-            <span style={{ fontSize: '0.7rem', padding: '0.15rem 0.4rem', borderRadius: '4px', backgroundColor: 'var(--risk-low-bg)', color: 'var(--risk-low)', fontWeight: 700 }}>FIR Authenticated</span>
+            <span style={{ fontSize: '0.7rem', padding: '0.15rem 0.4rem', borderRadius: '4px', backgroundColor: 'var(--risk-low-bg)', color: 'var(--risk-low)', fontWeight: 700, flexShrink: 0 }}>FIR Authenticated</span>
           </div>
 
           {/* Document 3: Damage photos */}
-          <div style={{ padding: '0.75rem', backgroundColor: 'var(--bg-input)', border: '1px solid var(--border)', borderRadius: '6px', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-              <FileText size={20} style={{ color: 'var(--secondary)' }} />
-              <div>
-                <span style={{ fontSize: '0.8rem', fontWeight: 600, display: 'block', color: 'var(--text-title)' }}>damage_photos_bundle.zip</span>
+          <div style={{ padding: '0.75rem', backgroundColor: 'var(--bg-input)', border: '1px solid var(--border)', borderRadius: '6px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', minWidth: 0, gap: '0.5rem' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', minWidth: 0 }}>
+              <FileText size={20} style={{ color: 'var(--secondary)', flexShrink: 0 }} />
+              <div style={{ minWidth: 0 }}>
+                <span style={{ fontSize: '0.8rem', fontWeight: 600, display: 'block', color: 'var(--text-title)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>damage_photos_bundle.zip</span>
                 <span style={{ fontSize: '0.7rem', color: 'var(--text-muted)' }}>Vehicle Collision Photos • 4.8 MB</span>
               </div>
             </div>
-            <span style={{ fontSize: '0.7rem', padding: '0.15rem 0.4rem', borderRadius: '4px', backgroundColor: 'var(--risk-low-bg)', color: 'var(--risk-low)', fontWeight: 700 }}>AI Scanned</span>
+            <span style={{ fontSize: '0.7rem', padding: '0.15rem 0.4rem', borderRadius: '4px', backgroundColor: 'var(--risk-low-bg)', color: 'var(--risk-low)', fontWeight: 700, flexShrink: 0 }}>AI Scanned</span>
           </div>
 
           {/* Document 4: Repair Estimate */}
-          <div style={{ padding: '0.75rem', backgroundColor: 'var(--bg-input)', border: '1px solid var(--border)', borderRadius: '6px', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-              <FileText size={20} style={{ color: 'var(--secondary)' }} />
-              <div>
-                <span style={{ fontSize: '0.8rem', fontWeight: 600, display: 'block', color: 'var(--text-title)' }}>repair_estimate_invoice.pdf</span>
+          <div style={{ padding: '0.75rem', backgroundColor: 'var(--bg-input)', border: '1px solid var(--border)', borderRadius: '6px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', minWidth: 0, gap: '0.5rem' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', minWidth: 0 }}>
+              <FileText size={20} style={{ color: 'var(--secondary)', flexShrink: 0 }} />
+              <div style={{ minWidth: 0 }}>
+                <span style={{ fontSize: '0.8rem', fontWeight: 600, display: 'block', color: 'var(--text-title)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>repair_estimate_invoice.pdf</span>
                 <span style={{ fontSize: '0.7rem', color: 'var(--text-muted)' }}>Workshop Billing Estimate • 1.7 MB</span>
               </div>
             </div>
-            <span style={{ fontSize: '0.7rem', padding: '0.15rem 0.4rem', borderRadius: '4px', backgroundColor: 'var(--risk-low-bg)', color: 'var(--risk-low)', fontWeight: 700 }}>Estimation OK</span>
+            <span style={{ fontSize: '0.7rem', padding: '0.15rem 0.4rem', borderRadius: '4px', backgroundColor: 'var(--risk-low-bg)', color: 'var(--risk-low)', fontWeight: 700, flexShrink: 0 }}>Estimation OK</span>
           </div>
         </div>
       </div>
