@@ -152,11 +152,8 @@ class PostgresConnectionWrapperCursor:
 
 def get_db_connection():
     if IS_POSTGRES:
-        try:
-            conn = psycopg2.connect(DATABASE_URL)
-            return PostgresConnectionWrapper(conn)
-        except Exception as e:
-            print(f"Failed to connect to PostgreSQL: {e}. Falling back to SQLite.")
+        conn = psycopg2.connect(DATABASE_URL)
+        return PostgresConnectionWrapper(conn)
             
     # Default to SQLite
     conn = sqlite3.connect(DB_PATH)
