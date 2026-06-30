@@ -24,13 +24,32 @@ class PostgresCursorWrapper:
         self.real_cursor = real_cursor
 
     def execute(self, query, params=None):
-        # Translate placeholder syntax ? -> %s
         query = query.replace('?', '%s')
-        # Translate SQLite schema type AUTOINCREMENT -> SERIAL PRIMARY KEY
         query = query.replace('INTEGER PRIMARY KEY AUTOINCREMENT', 'SERIAL PRIMARY KEY')
         query = query.replace('AUTOINCREMENT', '')
-        
+        if 'INSERT OR REPLACE INTO' in query:
+            query = query.replace('INSERT OR REPLACE INTO', 'INSERT INTO')
+            if 'ON CONFLICT' not in query:
+                query += ' ON CONFLICT (id) DO NOTHING'
+        if 'INSERT OR IGNORE INTO' in query:
+            query = query.replace('INSERT OR IGNORE INTO', 'INSERT INTO')
+            if 'ON CONFLICT' not in query:
+                query += ' ON CONFLICT (id) DO NOTHING'
         self.real_cursor.execute(query, params)
+
+    def executemany(self, query, seq_of_parameters):
+        query = query.replace('?', '%s')
+        query = query.replace('INTEGER PRIMARY KEY AUTOINCREMENT', 'SERIAL PRIMARY KEY')
+        query = query.replace('AUTOINCREMENT', '')
+        if 'INSERT OR REPLACE INTO' in query:
+            query = query.replace('INSERT OR REPLACE INTO', 'INSERT INTO')
+            if 'ON CONFLICT' not in query:
+                query += ' ON CONFLICT (id) DO NOTHING'
+        if 'INSERT OR IGNORE INTO' in query:
+            query = query.replace('INSERT OR IGNORE INTO', 'INSERT INTO')
+            if 'ON CONFLICT' not in query:
+                query += ' ON CONFLICT (id) DO NOTHING'
+        self.real_cursor.executemany(query, seq_of_parameters)
 
     def fetchone(self):
         return self.real_cursor.fetchone()
@@ -85,7 +104,29 @@ class PostgresConnectionWrapperCursor:
         query = query.replace('?', '%s')
         query = query.replace('INTEGER PRIMARY KEY AUTOINCREMENT', 'SERIAL PRIMARY KEY')
         query = query.replace('AUTOINCREMENT', '')
+        if 'INSERT OR REPLACE INTO' in query:
+            query = query.replace('INSERT OR REPLACE INTO', 'INSERT INTO')
+            if 'ON CONFLICT' not in query:
+                query += ' ON CONFLICT (id) DO NOTHING'
+        if 'INSERT OR IGNORE INTO' in query:
+            query = query.replace('INSERT OR IGNORE INTO', 'INSERT INTO')
+            if 'ON CONFLICT' not in query:
+                query += ' ON CONFLICT (id) DO NOTHING'
         self.real_cursor.execute(query, params)
+
+    def executemany(self, query, seq_of_parameters):
+        query = query.replace('?', '%s')
+        query = query.replace('INTEGER PRIMARY KEY AUTOINCREMENT', 'SERIAL PRIMARY KEY')
+        query = query.replace('AUTOINCREMENT', '')
+        if 'INSERT OR REPLACE INTO' in query:
+            query = query.replace('INSERT OR REPLACE INTO', 'INSERT INTO')
+            if 'ON CONFLICT' not in query:
+                query += ' ON CONFLICT (id) DO NOTHING'
+        if 'INSERT OR IGNORE INTO' in query:
+            query = query.replace('INSERT OR IGNORE INTO', 'INSERT INTO')
+            if 'ON CONFLICT' not in query:
+                query += ' ON CONFLICT (id) DO NOTHING'
+        self.real_cursor.executemany(query, seq_of_parameters)
 
     def fetchone(self):
         return self.real_cursor.fetchone()
