@@ -2,8 +2,19 @@ import sys
 import os
 import uuid
 import json
+from datetime import datetime
 
 sys.path.append(os.path.dirname(os.path.abspath(__file__)))
+
+def parse_date_safe(date_str):
+    if not date_str:
+        return None
+    for fmt in ("%Y-%m-%d", "%d-%m-%Y", "%d/%m/%Y", "%Y/%m/%d"):
+        try:
+            return datetime.strptime(date_str, fmt)
+        except ValueError:
+            continue
+    return None
 
 from predict_life import predict_risk_with_confidence
 from predict_vehicle import predict_vehicle_fraud
@@ -107,6 +118,24 @@ def evaluate_life_application(customer):
     # Correction Check C: High Similarity Duplicate claim Check
     if similar_cases and similar_cases[0]['similarity'] >= 90.0:
         reflections.append(f"Flagged identical profile match in historical database ({similar_cases[0]['id']} - {similar_cases[0]['similarity']}% match)")
+        
+    # Correction Check D: Hospital Claim Date Chronology (Health Insurance only)
+    if customer.get('insurance_type') == 'Health':
+        admission_str = customer.get('admission_date')
+        discharge_str = customer.get('discharge_date')
+        submission_str = customer.get('date') # submission date
+        
+        adm_dt = parse_date_safe(admission_str)
+        dis_dt = parse_date_safe(discharge_str) if discharge_str else None
+        sub_dt = parse_date_safe(submission_str) if submission_str else None
+        
+        if adm_dt and dis_dt and adm_dt > dis_dt:
+            risk = 8
+            reflections.append(f"Detected chronological date anomaly: Admission Date ({admission_str}) is after Discharge Date ({discharge_str}). Flagged as Suspected Claims Payout Fraud")
+            
+        if adm_dt and sub_dt and adm_dt > sub_dt:
+            risk = 8
+            reflections.append(f"Detected future date anomaly: Admission Date ({admission_str}) is in the future relative to submission date ({submission_str}). Flagged as Suspected Claims Payout Fraud")
         
     if reflections:
         reflection_findings = ". ".join(reflections) + "."
@@ -215,8 +244,14 @@ Top similar historical cases found:
         category = "High Risk"
         decision = "Approve with Adjusted Premium (Load Premium)"
     else:
-        category = "High Risk"
-        decision = "High Risk - Refer to Manual Underwriting"
+        # Check if this was a date anomaly fraud trigger
+        is_date_fraud = any("Suspected Claims Payout Fraud" in r for r in reflections)
+        if is_date_fraud:
+            category = "Flagged Fraud"
+            decision = "Flagged Fraud - Refuse Claim / Invalid Dates"
+        else:
+            category = "High Risk"
+            decision = "High Risk - Refer to Manual Underwriting"
         
     BASE_DIR = os.path.dirname(os.path.abspath(__file__))
     REPORTS_DIR = os.path.join(BASE_DIR, "static", "reports")

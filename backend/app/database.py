@@ -221,6 +221,18 @@ def init_db():
         conn.commit()
     except Exception:
         pass
+
+    try:
+        cursor.execute("ALTER TABLE applications ADD COLUMN admission_date TEXT")
+        conn.commit()
+    except Exception:
+        pass
+
+    try:
+        cursor.execute("ALTER TABLE applications ADD COLUMN discharge_date TEXT")
+        conn.commit()
+    except Exception:
+        pass
     
     # 3. Create Vehicle Applications Table
     cursor.execute("""

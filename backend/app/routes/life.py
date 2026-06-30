@@ -34,6 +34,8 @@ class ApplicationCreate(BaseModel):
     policy_duration: Optional[int] = None
     nominee_age: Optional[int] = None
     medical_bill: Optional[str] = None
+    admission_date: Optional[str] = None
+    discharge_date: Optional[str] = None
 
 def parse_application_row(row):
     if not row:
@@ -77,14 +79,15 @@ def create_application(req: ApplicationCreate):
         INSERT INTO applications (
             id, client, age, height, weight, bmi, product_info_2, occupation, income, smoker,
             previous_claims, family_history, insurance_type, coverage_amount, exercise, alcohol, gender,
-            date, status, full_name, email, phone, medical_conditions, policy_duration, nominee_age, medical_bill
-        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+            date, status, full_name, email, phone, medical_conditions, policy_duration, nominee_age, medical_bill,
+            admission_date, discharge_date
+        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
         """, (
             app_id, req.client, req.age, req.height, req.weight, req.bmi, req.product_info_2,
             req.occupation, req.income, req.smoker, req.previous_claims, req.family_history,
             req.insurance_type, req.coverage_amount, req.exercise, req.alcohol, req.gender,
             date_str, 'pending', req.full_name, req.email, req.phone, req.medical_conditions,
-            req.policy_duration, req.nominee_age, req.medical_bill
+            req.policy_duration, req.nominee_age, req.medical_bill, req.admission_date, req.discharge_date
         ))
         conn.commit()
         cursor.execute("SELECT * FROM applications WHERE id = ?", (app_id,))
@@ -129,7 +132,10 @@ def evaluate_application(id: str):
         "coverage_amount": app_row["coverage_amount"],
         "exercise": app_row["exercise"],
         "alcohol": app_row["alcohol"],
-        "gender": app_row["gender"]
+        "gender": app_row["gender"],
+        "admission_date": app_row["admission_date"],
+        "discharge_date": app_row["discharge_date"],
+        "date": app_row["date"]
     }
     
     try:

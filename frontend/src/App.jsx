@@ -243,7 +243,9 @@ function App({ user, handleLogout }) {
       medical_conditions: formData.medicalConditions,
       policy_duration: parseInt(formData.policyDuration) || 10,
       nominee_age: parseInt(formData.nomineeAge) || 30,
-      medical_bill: medicalBillVal
+      medical_bill: medicalBillVal,
+      admission_date: formData.admissionDate || null,
+      discharge_date: formData.dischargeDate || null
     };
 
     try {
