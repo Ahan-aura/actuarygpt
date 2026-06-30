@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { ShieldCheck, ShieldAlert, Download, AlertTriangle, History, Car, IndianRupee, Bot, CheckCircle2, FileText } from 'lucide-react';
 import { downloadPDF } from '../utils/download';
 import SimilarVehicleCaseCard from '../components/SimilarVehicleCaseCard';
+import { renderMarkdown } from '../utils/markdown';
 
 export default function VehicleResult({
   agentResult,
@@ -79,6 +80,10 @@ export default function VehicleResult({
   } else if (rawBill) {
     files = { primary: rawBill };
   }
+
+  const validFiles = Object.entries(files).filter(([_, val]) => {
+    return val && (val.startsWith('http') || val.startsWith('/static'));
+  });
 
   if (!isOfficer) {
     return (
@@ -425,19 +430,14 @@ export default function VehicleResult({
           Submitted Documents & Claims Evidence
         </h4>
         
-        {Object.keys(files).length === 0 ? (
+        {validFiles.length === 0 ? (
           <div style={{ color: 'var(--text-muted)', fontSize: '0.85rem', padding: '1.5rem', textAlign: 'center', border: '1px dashed var(--border)', borderRadius: '6px' }}>
             No files submitted with this claim.
           </div>
         ) : (
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: '1rem' }}>
-            {Object.entries(files).map(([key, val]) => {
-              if (!val) return null;
-              
-              const isUrl = val.startsWith('http') || val.startsWith('/static');
-              if (!isUrl) return null;
-              
-              const downloadUrl = isUrl ? (val.startsWith('/') ? `${API_BASE}${val}` : val) : null;
+            {validFiles.map(([key, val]) => {
+              const downloadUrl = val.startsWith('/') ? `${API_BASE}${val}` : val;
               const displayName = val.split('/').pop() || val;
               
               const labelMap = {
@@ -453,62 +453,50 @@ export default function VehicleResult({
                     <FileText size={20} style={{ color: 'var(--secondary)', flexShrink: 0 }} />
                     <div style={{ minWidth: 0, flex: 1 }}>
                       <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)', display: 'block', fontWeight: 500 }}>{fileLabel}</span>
-                      {downloadUrl ? (
-                        <a 
-                          href={downloadUrl} 
-                          download 
-                          target="_blank" 
-                          rel="noreferrer" 
-                          style={{ 
-                            fontSize: '0.85rem', 
-                            fontWeight: 700, 
-                            color: 'var(--primary)', 
-                            textDecoration: 'underline',
-                            display: 'block',
-                            overflow: 'hidden', 
-                            textOverflow: 'ellipsis', 
-                            whiteSpace: 'nowrap' 
-                          }}
-                        >
-                          📄 {displayName}
-                        </a>
-                      ) : (
-                        <span style={{ fontSize: '0.85rem', fontWeight: 600, display: 'block', color: 'var(--text-title)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-                          📄 {displayName}
-                        </span>
-                      )}
+                      <a 
+                        href={downloadUrl} 
+                        download 
+                        target="_blank" 
+                        rel="noreferrer" 
+                        style={{ 
+                          fontSize: '0.85rem', 
+                          fontWeight: 700, 
+                          color: 'var(--primary)', 
+                          textDecoration: 'underline',
+                          display: 'block',
+                          overflow: 'hidden', 
+                          textOverflow: 'ellipsis', 
+                          whiteSpace: 'nowrap' 
+                        }}
+                      >
+                        📄 {displayName}
+                      </a>
                     </div>
                   </div>
-                  {downloadUrl ? (
-                    <a 
-                      href={downloadUrl} 
-                      download 
-                      target="_blank" 
-                      rel="noreferrer" 
-                      style={{ 
-                        fontSize: '0.7rem', 
-                        padding: '0.2rem 0.5rem', 
-                        borderRadius: '4px', 
-                        backgroundColor: 'rgba(99, 102, 241, 0.08)', 
-                        color: 'var(--primary)', 
-                        fontWeight: 700, 
-                        flexShrink: 0,
-                        border: '1px solid var(--primary)',
-                        cursor: 'pointer',
-                        display: 'inline-flex',
-                        alignItems: 'center',
-                        gap: '0.25rem',
-                        textDecoration: 'none'
-                      }}
-                    >
-                      <Download size={12} />
-                      Download
-                    </a>
-                  ) : (
-                    <span style={{ fontSize: '0.7rem', padding: '0.15rem 0.4rem', borderRadius: '4px', backgroundColor: 'var(--risk-medium-bg)', color: 'var(--risk-medium)', fontWeight: 700, flexShrink: 0 }}>
-                      Local File
-                    </span>
-                  )}
+                  <a 
+                    href={downloadUrl} 
+                    download 
+                    target="_blank" 
+                    rel="noreferrer" 
+                    style={{ 
+                      fontSize: '0.7rem', 
+                      padding: '0.2rem 0.5rem', 
+                      borderRadius: '4px', 
+                      backgroundColor: 'rgba(99, 102, 241, 0.08)', 
+                      color: 'var(--primary)', 
+                      fontWeight: 700, 
+                      flexShrink: 0,
+                      border: '1px solid var(--primary)',
+                      cursor: 'pointer',
+                      display: 'inline-flex',
+                      alignItems: 'center',
+                      gap: '0.25rem',
+                      textDecoration: 'none'
+                    }}
+                  >
+                    <Download size={12} />
+                    Download
+                  </a>
                 </div>
               );
             })}
@@ -605,8 +593,8 @@ export default function VehicleResult({
           <h4 style={{ fontSize: '0.95rem', fontWeight: 700, color: 'var(--text-title)', borderBottom: '1px solid var(--border)', paddingBottom: '0.5rem', marginBottom: '0.75rem' }}>
             Detailed Underwriting Dossier
           </h4>
-          <div className="report-content" style={{ fontSize: '0.85rem', lineHeight: '1.6', color: 'var(--text-main)', maxHeight: '300px', overflowY: 'auto', paddingRight: '0.5rem', whiteSpace: 'pre-line' }}>
-            {agentResult.report}
+          <div className="report-content" style={{ fontSize: '0.85rem', lineHeight: '1.6', color: 'var(--text-main)', maxHeight: '300px', overflowY: 'auto', paddingRight: '0.5rem', whiteSpace: 'normal' }}>
+            {renderMarkdown(agentResult.report)}
           </div>
         </div>
       )}

@@ -49,14 +49,18 @@ export default function Login({ API_BASE, onLoginSuccess }) {
       }
 
       if (isRegisterMode) {
-        setIsRegisterMode(false);
         // Auto-login after registration
         const loginResponse = await fetch(`${API_BASE}/auth/login`, {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ username: usernameInput, password: passwordInput, passkey: passkeyInput })
         });
+        if (!loginResponse.ok) {
+          const errorData = await loginResponse.json();
+          throw new Error(errorData.detail || "Auto-login failed after registration.");
+        }
         const loginData = await loginResponse.json();
+        setIsRegisterMode(false);
         saveLogin(loginData);
       } else {
         const loginData = await response.json();

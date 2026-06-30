@@ -10,7 +10,7 @@ if api_key:
 
 model = genai.GenerativeModel("gemini-2.5-flash")
 
-def explain(customer: dict, risk: int, premium: float, confidence: float, similar_cases: list):
+def explain(customer: dict, risk: int, premium: float, confidence: float, similar_cases: list, agent_logs: str = ""):
     similar_cases_str = ""
     if similar_cases:
         similar_cases_str = "\n".join([
@@ -21,7 +21,7 @@ def explain(customer: dict, risk: int, premium: float, confidence: float, simila
         similar_cases_str = "No similar cases found."
 
     prompt = f"""
-You are an expert insurance actuarial AI agent for an Indian insurance company.
+You are the final Report Writer Agent in a multi-agent insurance underwriting system.
 All policies are based in India and all values are in Indian Rupees (INR / Rs.).
 Evaluate the following insurance application:
 
@@ -36,19 +36,23 @@ Machine Learning Classifier Output:
 Top Similar Historical Approved Cases (RAG Context):
 {similar_cases_str}
 
+Agent Audit Trail Logs:
+{agent_logs}
+
 Please generate a professional actuarial report that includes:
-1. Risk Assessment: Evaluate the applicant's key risk factors (Age, BMI, Smoking status, occupation, previous claims, etc.).
-2. Comparative Analysis: Compare the current application with the top similar historical cases. Detail why the current case matches or differs from them.
-3. Anomaly & Fraud Detection: Note any potential anomalies, such as high claims history, unusual BMI, high coverage amount vs income, or inconsistent smoking/lifestyle indicators.
-4. Premium Recommendation: Justify the calculated premium of Rs. {premium:.2f} based on the risk class, prediction confidence, and historical comparison.
-5. Underwriting Decision Recommendation: Recommend whether to approve, reject, or refer for manual review.
+1. Risk Assessment: Evaluate the applicant's key risk factors (Age, BMI, Smoking status, occupation, previous claims, etc.). Incorporate the findings and reflections from the Risk Predictor and Reflection agents.
+2. Comparative Analysis: Compare the current application with the top similar historical approved cases. Detail why the current case matches or differs from them.
+3. Anomaly & Fraud Detection: Note any potential anomalies, such as high claims history, unusual BMI, high coverage amount vs income, or inconsistent smoking/lifestyle indicators. Explicitly mention any compliance warnings or corrections flagged by the Reflection & Quality Critic.
+4. Premium Pricing Recommendation: Justify the calculated premium of Rs. {premium:.2f} based on the risk class, prediction confidence, and historical comparison.
+5. Underwriting Decision Recommendation: Recommend whether to approve, reject, or refer for manual review, matching the quality auditor's verified conclusion.
 
 Keep the tone professional, concise, and structured. Use Markdown formatting.
+Do not include the Agent Audit Trail table in your response (that will be displayed separately), but do reference the agents' specific findings and corrections in your text.
 """
     response = model.generate_content(prompt)
     return response.text
 
-def explain_vehicle(customer: dict, fraud_reported: str, confidence: float, similar_cases: list):
+def explain_vehicle(customer: dict, fraud_reported: str, confidence: float, similar_cases: list, agent_logs: str = ""):
     similar_cases_str = ""
     if similar_cases:
         similar_cases_str = "\n".join([
@@ -59,7 +63,7 @@ def explain_vehicle(customer: dict, fraud_reported: str, confidence: float, simi
         similar_cases_str = "No similar cases found."
 
     prompt = f"""
-You are an expert vehicle claims auditor and insurance fraud investigator AI agent for an Indian insurance company.
+You are the final Claim Audit Report Writer Agent in a multi-agent insurance fraud detection system.
 All policies and claims are based in India and all monetary values are strictly in Indian Rupees (INR / Rs.).
 Evaluate the following vehicle claim application:
 
@@ -73,13 +77,17 @@ Machine Learning Classifier Output:
 Top Similar Historical Claims (RAG Context):
 {similar_cases_str}
 
+Agent Audit Trail Logs:
+{agent_logs}
+
 Please generate a professional claim auditing report that includes:
-1. Incident Risk Assessment: Evaluate the incident details (severity, collision type, hour, etc.) and check for warning signs.
+1. Incident Risk Assessment: Evaluate the incident details (severity, collision type, hour, etc.) and check for warning signs. Incorporate the findings and reflections from the Risk Predictor and Reflection agents.
 2. Comparative Analysis: Compare this claim with the similar historical cases. Detail why it aligns or differs.
-3. Anomaly & Fraud Detection: Highlight potential warning signs like high claim amount vs auto year/make, incident hour anomaly, or lack of police report.
-4. Auditing Recommendation: Recommend whether to approve payout or flag for manual claims investigation.
+3. Anomaly & Fraud Detection: Highlight potential warning signs like high claim amount vs auto year/make, incident hour anomaly, or lack of police report. Explicitly mention any compliance warnings or duplicate-claim overrides flagged by the Reflection & Quality Critic.
+4. Auditing Recommendation: Recommend whether to approve payout or flag for manual claims investigation, matching the quality auditor's verified conclusion.
 
 Keep the tone professional, concise, and structured. Use Markdown formatting.
+Do not include the Agent Audit Trail table in your response (that will be displayed separately), but do reference the agents' specific findings and corrections in your text.
 """
     response = model.generate_content(prompt)
     return response.text

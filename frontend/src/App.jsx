@@ -868,27 +868,25 @@ function App({ user, handleLogout }) {
                           files = { primary: selectedApp.medical_bill };
                         }
                         
+                        const validFiles = Object.entries(files).filter(([_, val]) => {
+                          return val && (val.startsWith('http') || val.startsWith('/static'));
+                        });
+                        
+                        if (validFiles.length === 0) return null;
+                        
                         return (
                           <div className="detail-box" style={{ gridColumn: 'span 3', display: 'flex', flexDirection: 'column', gap: '0.5rem', backgroundColor: 'rgba(99, 102, 241, 0.04)', border: '1px dashed var(--primary)', padding: '0.75rem', borderRadius: '8px', minWidth: 0 }}>
                             <span className="detail-label" style={{ margin: 0, fontWeight: 'bold' }}>Attached Documents:</span>
                             <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.5rem', marginTop: '0.25rem' }}>
-                              {Object.entries(files).map(([key, val]) => {
-                                if (!val) return null;
-                                const isUrl = val.startsWith('http') || val.startsWith('/static');
-                                if (!isUrl) return null;
-                                const downloadUrl = isUrl ? (val.startsWith('/') ? `${API_BASE}${val}` : val) : null;
+                              {validFiles.map(([key, val]) => {
+                                const downloadUrl = val.startsWith('/') ? `${API_BASE}${val}` : val;
                                 const displayName = val.split('/').pop() || val;
-                                
                                 return (
                                   <div key={key} style={{ display: 'flex', alignItems: 'center', gap: '0.25rem', backgroundColor: 'var(--bg-card)', padding: '0.25rem 0.5rem', borderRadius: '4px', border: '1px solid var(--border)', fontSize: '0.8rem' }}>
                                     <span style={{ fontWeight: 600, color: 'var(--text-muted)' }}>{key.replace(/([A-Z])/g, ' $1').replace(/^./, str => str.toUpperCase())}:</span>
-                                    {downloadUrl ? (
-                                      <a href={downloadUrl} download target="_blank" rel="noreferrer" style={{ color: 'var(--primary)', fontWeight: 600, textDecoration: 'underline' }}>
-                                        {displayName}
-                                      </a>
-                                    ) : (
-                                      <span style={{ color: 'var(--text-muted)' }}>{val}</span>
-                                    )}
+                                    <a href={downloadUrl} download target="_blank" rel="noreferrer" style={{ color: 'var(--primary)', fontWeight: 600, textDecoration: 'underline' }}>
+                                      {displayName}
+                                    </a>
                                   </div>
                                 );
                               })}
@@ -924,27 +922,25 @@ function App({ user, handleLogout }) {
                           files = { primary: selectedApp.medical_bill };
                         }
                         
+                        const validFiles = Object.entries(files).filter(([_, val]) => {
+                          return val && (val.startsWith('http') || val.startsWith('/static'));
+                        });
+                        
+                        if (validFiles.length === 0) return null;
+                        
                         return (
                           <div className="detail-box" style={{ gridColumn: 'span 3', display: 'flex', flexDirection: 'column', gap: '0.5rem', backgroundColor: 'rgba(99, 102, 241, 0.04)', border: '1px dashed var(--secondary)', padding: '0.75rem', borderRadius: '8px', minWidth: 0 }}>
                             <span className="detail-label" style={{ margin: 0, fontWeight: 'bold' }}>Attached Documents:</span>
                             <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.5rem', marginTop: '0.25rem' }}>
-                              {Object.entries(files).map(([key, val]) => {
-                                if (!val) return null;
-                                const isUrl = val.startsWith('http') || val.startsWith('/static');
-                                if (!isUrl) return null;
-                                const downloadUrl = isUrl ? (val.startsWith('/') ? `${API_BASE}${val}` : val) : null;
+                              {validFiles.map(([key, val]) => {
+                                const downloadUrl = val.startsWith('/') ? `${API_BASE}${val}` : val;
                                 const displayName = val.split('/').pop() || val;
-                                
                                 return (
                                   <div key={key} style={{ display: 'flex', alignItems: 'center', gap: '0.25rem', backgroundColor: 'var(--bg-card)', padding: '0.25rem 0.5rem', borderRadius: '4px', border: '1px solid var(--border)', fontSize: '0.8rem' }}>
                                     <span style={{ fontWeight: 600, color: 'var(--text-muted)' }}>{key.replace(/([A-Z])/g, ' $1').replace(/^./, str => str.toUpperCase())}:</span>
-                                    {downloadUrl ? (
-                                      <a href={downloadUrl} download target="_blank" rel="noreferrer" style={{ color: 'var(--secondary)', fontWeight: 600, textDecoration: 'underline' }}>
-                                        {displayName}
-                                      </a>
-                                    ) : (
-                                      <span style={{ color: 'var(--text-muted)' }}>{val}</span>
-                                    )}
+                                    <a href={downloadUrl} download target="_blank" rel="noreferrer" style={{ color: 'var(--secondary)', fontWeight: 600, textDecoration: 'underline' }}>
+                                      {displayName}
+                                    </a>
                                   </div>
                                 );
                               })}
