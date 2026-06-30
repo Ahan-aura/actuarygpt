@@ -83,23 +83,10 @@ def evaluate_life_application(customer):
         "status": "COMPLETED"
     })
 
-    # 4. Actuarial Pricing Agent
-    premium = calculate_premium(risk)
-    exercise_factor = customer.get('exercise', 1)
-    premium_finding = f"Computed premium pricing: Rs. {premium:,.2f}."
-    if exercise_factor == 2:
-        premium_finding += " Applied 5% premium discount for daily exercise."
-    elif customer.get('smoker') == 1:
-        premium_finding += " Loaded premium for active smoking status."
-    logs.append({
-        "step": 4,
-        "agent": "Actuarial Pricing Agent",
-        "action": "Determined policy premium using standard rating tables.",
-        "findings": premium_finding,
-        "status": "COMPLETED"
-    })
+    # Set premium to None since we are removing premium price prediction entirely
+    premium = None
 
-    # 5. Reflection & Quality Critic Agent (Self-Correction & Reflection Loop)
+    # 4. Reflection & Quality Critic Agent (Self-Correction & Reflection Loop)
     original_risk = risk
     reflections = []
     
@@ -141,20 +128,20 @@ def evaluate_life_application(customer):
         reflection_findings = ". ".join(reflections) + "."
         reflection_status = "WARNING_CORRECTED"
     else:
-        reflection_findings = "Audited outputs against compliance guidelines. Risk class and premium pricing matched expectations."
+        reflection_findings = "Audited outputs against compliance guidelines. Risk class matched expectations."
         reflection_status = "PASSED"
 
     logs.append({
-        "step": 5,
+        "step": 4,
         "agent": "Reflection & Quality Critic",
         "action": "Self-corrected classification and validated safety constraints.",
         "findings": reflection_findings,
         "status": reflection_status
     })
 
-    # 6. Report Compiler Agent
+    # 5. Report Compiler Agent
     logs.append({
-        "step": 6,
+        "step": 5,
         "agent": "Report Compiler Agent",
         "action": "Synthesized actuarial analysis using Gemini LLM.",
         "findings": "Actuarial Brief and PDF compiled successfully.",
@@ -223,26 +210,20 @@ Top similar historical cases found:
 
 ---
 
-### 4. Premium Recommendation
-*   **Calculated Annual Premium:** Rs. {premium:,.2f}
-*   This premium pricing is set according to standard underwriting tables for Risk Class {risk}.
-
----
-
-### 5. Underwriting Decision Recommendation
+### 4. Underwriting Decision Recommendation
 *   **Recommended Action:** Refer for Manual Review and Data Verification.
 *   *Note: This report was compiled using the rule-backed fallback system due to temporary AI model rate limits.*
 """
 
     if risk <= 2:
         category = "Low Risk"
-        decision = "Preferred Issue - Standard Approval"
+        decision = "Approve Claim Payout (Fast-Tracked)"
     elif risk <= 5:
         category = "Medium Risk"
-        decision = "Standard Issue - Standard Approval"
+        decision = "Approve Claim Payout (Standard)"
     elif risk <= 7:
         category = "High Risk"
-        decision = "Approve with Adjusted Premium (Load Premium)"
+        decision = "Approve Claim Payout with Auditor Verification"
     else:
         # Check if this was a date anomaly fraud trigger
         is_date_fraud = any("Suspected Claims Payout Fraud" in r for r in reflections)

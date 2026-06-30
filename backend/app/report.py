@@ -65,7 +65,7 @@ def generate_pdf_report(customer: dict, risk_class: int, premium: float, report_
 
     # Title Banner / Header
     story.append(Paragraph("ActuaryGPT — Underwriting Report", title_style))
-    story.append(Paragraph("Confidential actuarial risk assessment & premium recommendation report.", body_style))
+    story.append(Paragraph("Confidential actuarial risk assessment and verification report.", body_style))
     story.append(Spacer(1, 10))
     
     # Section 1: Customer Details
@@ -96,7 +96,7 @@ def generate_pdf_report(customer: dict, risk_class: int, premium: float, report_
     story.append(Spacer(1, 15))
     
     # Section 2: Risk Assessment & Recommendation
-    story.append(Paragraph("2. Risk Analysis & Premium Pricing", h2_style))
+    story.append(Paragraph("2. Risk Analysis & Assessment", h2_style))
     
     risk_category = get_risk_category(risk_class)
     
@@ -117,8 +117,7 @@ def generate_pdf_report(customer: dict, risk_class: int, premium: float, report_
     
     analysis_data = [
         [Paragraph("Predicted Risk Class", bold_label_style), Paragraph(f"Class {risk_class} of 8", body_style)],
-        [Paragraph("Risk Category", bold_label_style), Paragraph(risk_category, risk_style)],
-        [Paragraph("Recommended Annual Premium", bold_label_style), Paragraph(f"Rs. {premium:,.2f}", risk_style)]
+        [Paragraph("Risk Category", bold_label_style), Paragraph(risk_category, risk_style)]
     ]
     t_analysis = Table(analysis_data, colWidths=[180, 320])
     t_analysis.setStyle(TableStyle([
@@ -138,10 +137,9 @@ def generate_pdf_report(customer: dict, risk_class: int, premium: float, report_
     story.append(Spacer(1, 15))
     
     # Section 4: Sign-off & Recommendation
-    story.append(Paragraph("4. Sign-off & Recommendation", h2_style))
+    story.append(Paragraph("4. Sign-off & Underwriting Conclusion", h2_style))
     rec_text = (
-        "Based on the predictive model output and AI underwriting guidelines, the premium recommendation is "
-        f"formally calculated at <b>Rs. {premium:,.2f}</b> per annum. "
+        "Based on the predictive model output and AI underwriting guidelines, the claim evaluation is complete. "
         "The underwriting team should perform secondary manual verification if the risk class exceeds Class 5."
     )
     story.append(Paragraph(rec_text, body_style))

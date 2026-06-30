@@ -29,9 +29,8 @@ Current Applicant details:
 {customer}
 
 Machine Learning Classifier Output:
-- Predicted Risk Class: {risk} (out of 8, lower is better)
+- Predicted Audited Risk Class: {risk} (out of 8, lower is better)
 - Prediction Probability/Confidence: {confidence}%
-- Calculated Annual Premium: Rs. {premium:.2f}
 
 Top Similar Historical Approved Cases (RAG Context):
 {similar_cases_str}
@@ -40,11 +39,10 @@ Agent Audit Trail Logs:
 {agent_logs}
 
 Please generate a professional actuarial report that includes:
-1. Risk Assessment: Evaluate the applicant's key risk factors (Age, BMI, Smoking status, occupation, previous claims, etc.). Incorporate the findings and reflections from the Risk Predictor and Reflection agents.
+1. Risk Assessment: Evaluate the applicant's key risk factors (Age, BMI, Smoking status, occupation, previous claims, etc.). Incorporate the findings and reflections from the Risk Predictor and Reflection agents. IMPORTANT: Always refer to the final audited Risk Class ({risk}) as the true risk class. If the Quality Critic overrode the original prediction (e.g. from Class 1 to Class 8 due to a chronological date anomaly or smoking status), explicitly state this override and detail the reason for the correction.
 2. Comparative Analysis: Compare the current application with the top similar historical approved cases. Detail why the current case matches or differs from them.
-3. Anomaly & Fraud Detection: Note any potential anomalies, such as high claims history, unusual BMI, high coverage amount vs income, or inconsistent smoking/lifestyle indicators. Explicitly mention any compliance warnings or corrections flagged by the Reflection & Quality Critic.
-4. Premium Pricing Recommendation: Justify the calculated premium of Rs. {premium:.2f} based on the risk class, prediction confidence, and historical comparison.
-5. Underwriting Decision Recommendation: Recommend whether to approve, reject, or refer for manual review, matching the quality auditor's verified conclusion.
+3. Anomaly & Fraud Detection: Note any potential anomalies, such as high claims history, unusual BMI, high coverage amount vs income, or inconsistent smoking/lifestyle indicators. Explicitly mention any compliance warnings or corrections (such as chronological date errors or future-date claims) flagged by the Reflection & Quality Critic.
+4. Underwriting Decision Recommendation: Recommend whether to approve, reject, or refer for manual review, matching the quality auditor's verified conclusion.
 
 Keep the tone professional, concise, and structured. Use Markdown formatting.
 Do not include the Agent Audit Trail table in your response (that will be displayed separately), but do reference the agents' specific findings and corrections in your text.
