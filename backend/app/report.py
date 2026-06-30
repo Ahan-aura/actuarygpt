@@ -132,7 +132,7 @@ def generate_pdf_report(customer: dict, risk_class: int, premium: float, report_
     # Section 3: AI Actuarial Explanation
     story.append(Paragraph("3. AI Actuarial Analysis", h2_style))
     
-    formatted_report = report_text.replace('\n', '<br/>')
+    formatted_report = (report_text or "").replace('\n', '<br/>')
     story.append(Paragraph(formatted_report, body_style))
     story.append(Spacer(1, 15))
     
@@ -287,7 +287,7 @@ def generate_vehicle_pdf_report(customer: dict, fraud_reported: str, confidence:
     
     # Detailed text
     story.append(Paragraph("<b>Detailed Forensic Log:</b>", bold_label_style))
-    formatted_report = report_text.replace('\n', '<br/>')
+    formatted_report = (report_text or "").replace('\n', '<br/>')
     story.append(Paragraph(formatted_report, body_style))
     story.append(Spacer(1, 10))
     

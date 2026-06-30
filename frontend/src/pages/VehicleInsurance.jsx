@@ -615,6 +615,32 @@ export default function VehicleInsurance({
               </div>
             </div>
 
+            <div className="form-group-row" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '1rem', marginTop: '1rem' }}>
+              <div className="form-group">
+                <label>Months as Customer</label>
+                <input type="number" className="form-input" value={formData.months_as_customer} onChange={(e) => handleInputChange('months_as_customer', parseInt(e.target.value) || 0)} required />
+              </div>
+              <div className="form-group">
+                <label>Policy Deductible (INR)</label>
+                <input type="number" className="form-input" value={formData.policy_deductable} onChange={(e) => handleInputChange('policy_deductable', parseFloat(e.target.value) || 0)} required />
+              </div>
+              <div className="form-group">
+                <label>Umbrella Limit (INR)</label>
+                <input type="number" className="form-input" value={formData.umbrella_limit} onChange={(e) => handleInputChange('umbrella_limit', parseFloat(e.target.value) || 0)} required />
+              </div>
+            </div>
+
+            <div className="form-group-row" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem', marginTop: '1rem' }}>
+              <div className="form-group">
+                <label>Capital Gains (INR)</label>
+                <input type="number" className="form-input" value={formData.capital_gains} onChange={(e) => handleInputChange('capital_gains', parseFloat(e.target.value) || 0)} required />
+              </div>
+              <div className="form-group">
+                <label>Capital Loss (INR)</label>
+                <input type="number" className="form-input" value={formData.capital_loss} onChange={(e) => handleInputChange('capital_loss', parseFloat(e.target.value) || 0)} required />
+              </div>
+            </div>
+
             <div style={{ marginTop: '1.5rem', display: 'flex', justifyContent: 'flex-end' }}>
               <button className="btn-primary" onClick={() => setWizardStep(2)}>Next step →</button>
             </div>
