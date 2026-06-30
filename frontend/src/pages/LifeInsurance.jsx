@@ -398,6 +398,126 @@ export default function LifeInsurance({
                 </div>
               </div>
 
+              {claimType === "Health" && (
+                <>
+                  {/* Demographics & Lifestyle Details */}
+                  <h4 style={{ fontSize: '0.95rem', fontWeight: 700, marginTop: '1.5rem', marginBottom: '0.75rem', color: 'var(--text-title)', borderBottom: '1px solid rgba(255,255,255,0.05)', paddingBottom: '0.25rem' }}>
+                    Demographics & Lifestyle Details
+                  </h4>
+
+                  <div className="form-group-row" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '1rem', marginBottom: '1rem' }}>
+                    <div className="form-group">
+                      <label>Age (Years) *</label>
+                      <input 
+                        type="number" 
+                        className="form-input" 
+                        placeholder="Age" 
+                        value={formData.age || ""} 
+                        onChange={(e) => handleInputChange('age', parseInt(e.target.value) || "")} 
+                        required 
+                      />
+                    </div>
+                    <div className="form-group">
+                      <label>Gender *</label>
+                      <select 
+                        className="form-select" 
+                        value={formData.gender || "Male"} 
+                        onChange={(e) => handleInputChange('gender', e.target.value)}
+                      >
+                        <option value="Male">Male</option>
+                        <option value="Female">Female</option>
+                        <option value="Other">Other</option>
+                      </select>
+                    </div>
+                    <div className="form-group">
+                      <label>Annual Income (INR) *</label>
+                      <input 
+                        type="number" 
+                        className="form-input" 
+                        placeholder="Annual Income" 
+                        value={formData.income || ""} 
+                        onChange={(e) => handleInputChange('income', parseFloat(e.target.value) || "")} 
+                        required 
+                      />
+                    </div>
+                  </div>
+
+                  <div className="form-group-row" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '1rem', marginBottom: '1rem' }}>
+                    <div className="form-group">
+                      <label>Height (cm) *</label>
+                      <input 
+                        type="number" 
+                        className="form-input" 
+                        placeholder="Height in cm" 
+                        value={formData.height || ""} 
+                        onChange={(e) => handleInputChange('height', parseFloat(e.target.value) || "")} 
+                        required 
+                      />
+                    </div>
+                    <div className="form-group">
+                      <label>Weight (kg) *</label>
+                      <input 
+                        type="number" 
+                        className="form-input" 
+                        placeholder="Weight in kg" 
+                        value={formData.weight || ""} 
+                        onChange={(e) => handleInputChange('weight', parseFloat(e.target.value) || "")} 
+                        required 
+                      />
+                    </div>
+                    <div className="form-group">
+                      <label>Occupation *</label>
+                      <input 
+                        type="text" 
+                        className="form-input" 
+                        placeholder="e.g. Software Engineer" 
+                        value={formData.occupation || ""} 
+                        onChange={(e) => handleInputChange('occupation', e.target.value)} 
+                        required 
+                      />
+                    </div>
+                  </div>
+
+                  <div className="form-group-row" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '1rem', marginBottom: '1.25rem' }}>
+                    <div className="form-group">
+                      <label>Smoking Status *</label>
+                      <select 
+                        className="form-select" 
+                        value={formData.smoker === undefined ? 0 : formData.smoker} 
+                        onChange={(e) => handleInputChange('smoker', parseInt(e.target.value))}
+                      >
+                        <option value={0}>Non-smoker</option>
+                        <option value={1}>Active Smoker</option>
+                      </select>
+                    </div>
+                    <div className="form-group">
+                      <label>Alcohol Consumption *</label>
+                      <select 
+                        className="form-select" 
+                        value={formData.alcohol === undefined ? 1 : formData.alcohol} 
+                        onChange={(e) => handleInputChange('alcohol', parseInt(e.target.value))}
+                      >
+                        <option value={1}>None</option>
+                        <option value={2}>Occasional</option>
+                        <option value={3}>Daily</option>
+                      </select>
+                    </div>
+                    <div className="form-group">
+                      <label>Exercise Frequency *</label>
+                      <select 
+                        className="form-select" 
+                        value={formData.exercise === undefined ? 1 : formData.exercise} 
+                        onChange={(e) => handleInputChange('exercise', parseInt(e.target.value))}
+                      >
+                        <option value={1}>None / Low</option>
+                        <option value={2}>Regular</option>
+                        <option value={3}>Daily</option>
+                      </select>
+                    </div>
+                  </div>
+                </>
+              )}
+
               <div className="form-group">
                 <label>Bank Account Details (IFSC & Account No) *</label>
                 <input 
@@ -415,9 +535,18 @@ export default function LifeInsurance({
                   type="button" 
                   className="btn-primary" 
                   onClick={() => {
-                    if (!formData.product_info_2 || !formData.fullName || !formData.phone || !formData.email || !formData.coverage_amount) {
+                    const basicValid = formData.product_info_2 && formData.fullName && formData.phone && formData.email && formData.coverage_amount;
+                    if (!basicValid) {
                       alert("Please complete all required fields (*).");
                       return;
+                    }
+                    
+                    if (claimType === "Health") {
+                      const demoValid = formData.age && formData.income && formData.height && formData.weight && formData.occupation;
+                      if (!demoValid) {
+                        alert("Please complete all required Demographic and Lifestyle details for Health Insurance evaluation.");
+                        return;
+                      }
                     }
                     setWizardStep(2);
                   }}
