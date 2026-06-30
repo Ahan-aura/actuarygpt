@@ -83,8 +83,12 @@ Agent Audit Trail Logs:
 Please generate a professional claim auditing report that includes:
 1. Incident Risk Assessment: Evaluate the incident details (severity, collision type, hour, etc.) and check for warning signs. Incorporate the findings and reflections from the Risk Predictor and Reflection agents.
 2. Comparative Analysis: Compare this claim with the similar historical cases. Detail why it aligns or differs.
-3. Anomaly & Fraud Detection: Highlight potential warning signs like high claim amount vs auto year/make, incident hour anomaly, or lack of police report. Explicitly mention any compliance warnings or duplicate-claim overrides flagged by the Reflection & Quality Critic.
-4. Auditing Recommendation: Recommend whether to approve payout or flag for manual claims investigation, matching the quality auditor's verified conclusion.
+3. Anomaly & Fraud Detection: Highlight potential warning signs like high claim amount vs auto year/make, incident hour anomaly, or lack of police report. Explicitly explain WHY this claim is flagged as suspected fraud (if Fraud Predicted is 'Y') or why it is cleared (if 'N'). Refer to any compliance warnings or duplicate-claim overrides flagged by the Reflection & Quality Critic.
+4. Auditing Recommendation: Recommend whether to approve the claim payout or flag the claim for manual fraud investigation, matching the quality auditor's verified conclusion.
+
+CRITICAL INSTRUCTIONS:
+- This is a CLAIM payout audit, NOT a new policy quote. Do NOT calculate, justify, or recommend any new premium prices or premium ratings.
+- Clearly state the concrete reasons why the claim is suspicious (e.g. major crash without a police report, high claim similarity indicating duplicate claim rings, or odd hour collision).
 
 Keep the tone professional, concise, and structured. Use Markdown formatting.
 Do not include the Agent Audit Trail table in your response (that will be displayed separately), but do reference the agents' specific findings and corrections in your text.
