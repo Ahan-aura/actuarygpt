@@ -148,14 +148,20 @@ def init_db():
         cursor.execute("ALTER TABLE users ADD COLUMN recovery_hint TEXT")
         conn.commit()
     except Exception:
-        pass
+        try:
+            conn.rollback()
+        except Exception:
+            pass
 
     # Run column migration for recovery_answer if it doesn't exist
     try:
         cursor.execute("ALTER TABLE users ADD COLUMN recovery_answer TEXT")
         conn.commit()
     except Exception:
-        pass
+        try:
+            conn.rollback()
+        except Exception:
+            pass
     
     # Run casing consistency migration for existing usernames
     try:
@@ -167,12 +173,27 @@ def init_db():
             if u_name and u_name != u_name.lower():
                 try:
                     cursor.execute("UPDATE users SET username = ? WHERE id = ?", (u_name.lower(), u_id))
+                    conn.commit()
                 except Exception:
-                    # Handle duplicate constraint violation by deleting the duplicate uppercase user
-                    cursor.execute("DELETE FROM users WHERE id = ?", (u_id,))
+                    try:
+                        conn.rollback()
+                    except Exception:
+                        pass
+                    try:
+                        cursor.execute("DELETE FROM users WHERE id = ?", (u_id,))
+                        conn.commit()
+                    except Exception:
+                        try:
+                            conn.rollback()
+                        except Exception:
+                            pass
         conn.commit()
     except Exception as migration_err:
         print(f"Username migration failed or skipped: {migration_err}")
+        try:
+            conn.rollback()
+        except Exception:
+            pass
 
     
     # 2. Create Applications Table (Life & Health)
@@ -220,19 +241,28 @@ def init_db():
         cursor.execute("ALTER TABLE applications ADD COLUMN medical_bill TEXT")
         conn.commit()
     except Exception:
-        pass
+        try:
+            conn.rollback()
+        except Exception:
+            pass
 
     try:
         cursor.execute("ALTER TABLE applications ADD COLUMN admission_date TEXT")
         conn.commit()
     except Exception:
-        pass
+        try:
+            conn.rollback()
+        except Exception:
+            pass
 
     try:
         cursor.execute("ALTER TABLE applications ADD COLUMN discharge_date TEXT")
         conn.commit()
     except Exception:
-        pass
+        try:
+            conn.rollback()
+        except Exception:
+            pass
     
     # 3. Create Vehicle Applications Table
     cursor.execute("""
@@ -291,7 +321,10 @@ def init_db():
         cursor.execute("ALTER TABLE vehicle_applications ADD COLUMN medical_bill TEXT")
         conn.commit()
     except Exception:
-        pass
+        try:
+            conn.rollback()
+        except Exception:
+            pass
     
     # 3b. Create Monitoring Logs Table
     cursor.execute("""
