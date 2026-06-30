@@ -259,7 +259,10 @@ function App({ user, handleLogout }) {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(payload)
       });
-      if (!res.ok) throw new Error("Failed to create claim application");
+      if (!res.ok) {
+        const errData = await res.json().catch(() => ({}));
+        throw new Error(errData.detail || "Failed to create claim application");
+      }
       const newApp = await res.json();
 
       // Step 2 complete -> Step 3 active
@@ -314,13 +317,19 @@ function App({ user, handleLogout }) {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(vehicleFormData)
       });
-      if (!res.ok) throw new Error("Failed to file claim");
+      if (!res.ok) {
+        const errData = await res.json().catch(() => ({}));
+        throw new Error(errData.detail || "Failed to file claim");
+      }
       const newApp = await res.json();
 
       const evalRes = await fetch(`${API_BASE}/applications/vehicle/${newApp.id}/evaluate`, {
         method: "POST"
       });
-      if (!evalRes.ok) throw new Error("Automated forensic engine failed.");
+      if (!evalRes.ok) {
+        const errData = await evalRes.json().catch(() => ({}));
+        throw new Error(errData.detail || "Automated forensic engine failed.");
+      }
       const evalResult = await evalRes.json();
 
       setPendingWizardResult({
