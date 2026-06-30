@@ -5,7 +5,7 @@
   "type": "module",
   "scripts": {
     "dev": "vite --host 0.0.0.0",
-    "build": "vite build && rm -rf dist && cp -r build dist && rm -rf ../dist ../build && mkdir -p ../dist ../build && cp -r build/. ../dist/ && cp -r build/. ../build/",
+    "build": "vite build",
     "lint": "eslint .",
     "preview": "vite preview"
   },
