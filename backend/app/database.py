@@ -236,6 +236,7 @@ def init_db():
         FOREIGN KEY(client) REFERENCES users(username)
     )
     """)
+    conn.commit()
     
     try:
         cursor.execute("ALTER TABLE applications ADD COLUMN medical_bill TEXT")
