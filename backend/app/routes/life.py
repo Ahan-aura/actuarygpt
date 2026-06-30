@@ -105,6 +105,14 @@ def evaluate_application(id: str):
         conn.close()
         raise HTTPException(status_code=404, detail="Application not found")
         
+    # Count actual previous claims for this client in the database
+    cursor.execute("SELECT COUNT(*) FROM applications WHERE client = ? AND id != ?", (app_row["client"], id))
+    real_previous_claims = cursor.fetchone()[0]
+    
+    # Update current database record to persist this count
+    cursor.execute("UPDATE applications SET previous_claims = ? WHERE id = ?", (real_previous_claims, id))
+    conn.commit()
+
     customer_data = {
         "client": app_row["client"],
         "age": app_row["age"],
@@ -115,7 +123,7 @@ def evaluate_application(id: str):
         "occupation": app_row["occupation"],
         "income": app_row["income"],
         "smoker": app_row["smoker"],
-        "previous_claims": app_row["previous_claims"],
+        "previous_claims": real_previous_claims,
         "family_history": app_row["family_history"],
         "insurance_type": app_row["insurance_type"],
         "coverage_amount": app_row["coverage_amount"],
