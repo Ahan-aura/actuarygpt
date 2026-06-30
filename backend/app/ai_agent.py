@@ -124,6 +124,15 @@ def evaluate_life_application(customer):
             risk = 8
             reflections.append(f"Detected future date anomaly: Admission Date ({admission_str}) is in the future relative to submission date ({submission_str}). Flagged as Suspected Claims Payout Fraud")
         
+    # Correction Check E: Physically impossible measurements check (Suspected Data Falsification / Fraud)
+    h = customer.get('height', 170.0)
+    w = customer.get('weight', 70.0)
+    a = customer.get('age', 35.0)
+    b = customer.get('bmi', 24.2)
+    if h < 50 or h > 250 or w < 10 or w > 300 or a <= 0 or a > 120 or b < 5.0 or b > 90.0:
+        risk = 8
+        reflections.append(f"Flagged physically impossible measurements (Height: {h}cm, Weight: {w}kg, Age: {a}yrs, BMI: {b:.1f}). Suspected data falsification / claims fraud")
+        
     if reflections:
         reflection_findings = ". ".join(reflections) + "."
         reflection_status = "WARNING_CORRECTED"

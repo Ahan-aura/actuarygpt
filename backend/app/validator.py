@@ -14,28 +14,22 @@ def validate_life_input(data: dict):
     # Age validation
     try:
         age = float(data.get("age", 35))
-        if age <= 0 or age > 120:
-            errors.append(f"Age must be between 1 and 120. Received: {age}")
     except (ValueError, TypeError):
-        errors.append("Age must be a valid number.")
+        age = 35.0
     cleaned["age"] = age
         
     # Height validation
     try:
         height = float(data.get("height", 170))
-        if height < 50 or height > 250:
-            errors.append(f"Height must be between 50 cm and 250 cm. Received: {height}")
     except (ValueError, TypeError):
-        errors.append("Height must be a valid number.")
+        height = 170.0
     cleaned["height"] = height
         
     # Weight validation
     try:
         weight = float(data.get("weight", 70))
-        if weight < 10 or weight > 300:
-            errors.append(f"Weight must be between 10 kg and 300 kg. Received: {weight}")
     except (ValueError, TypeError):
-        errors.append("Weight must be a valid number.")
+        weight = 70.0
     cleaned["weight"] = weight
         
     # BMI validation / auto-calculation
@@ -48,11 +42,7 @@ def validate_life_input(data: dict):
             if not bmi_input or float(bmi_input) == 0.0:
                 cleaned["bmi"] = calculated_bmi
             else:
-                bmi_val = float(bmi_input)
-                cleaned["bmi"] = bmi_val
-                # Check for extreme or physically impossible BMI entries
-                if bmi_val < 5.0 or bmi_val > 90.0:
-                    errors.append(f"Calculated or provided BMI must be between 5.0 and 90.0. Received: {bmi_val}")
+                cleaned["bmi"] = float(bmi_input)
         else:
             cleaned["bmi"] = 24.2
     except (ValueError, TypeError):
@@ -68,10 +58,8 @@ def validate_life_input(data: dict):
     # Income validation
     try:
         income = float(data.get("income", 50000.0))
-        if income < 0:
-            errors.append(f"Annual Income cannot be negative. Received: {income}")
     except (ValueError, TypeError):
-        errors.append("Annual Income must be a valid number.")
+        income = 50000.0
     cleaned["income"] = income
         
     # Smoker validation
