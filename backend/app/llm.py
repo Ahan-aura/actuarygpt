@@ -14,7 +14,9 @@ def explain(customer: dict, risk: int, premium: float, confidence: float, simila
     similar_cases_str = ""
     if similar_cases:
         similar_cases_str = "\n".join([
-            f"- Application {c['id']}: Client: {c['client']}, Similarity: {c['similarity']}%, Risk Class: {c['risk_class']}, Premium: Rs. {c['premium']:.2f}, Status: {c['status']}"
+            f"- Application {c['id']}: Client: {c['client']}, Similarity: {c['similarity']}%, Risk Class: {c['risk_class']}, Premium: " +
+            (f"Rs. {c['premium']:.2f}" if c.get('premium') is not None else "N/A") +
+            f", Status: {c['status']}"
             for c in similar_cases
         ])
     else:
