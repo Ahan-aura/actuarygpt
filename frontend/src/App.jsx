@@ -391,8 +391,11 @@ function App({ user, handleLogout }) {
     const endpoint = isVehicle ? `/applications/vehicle/${app.id}/evaluate` : `/applications/${app.id}/evaluate`;
     
     fetch(`${API_BASE}${endpoint}`, { method: "POST" })
-      .then(res => {
-        if (!res.ok) throw new Error("Actuarial server endpoint evaluation error.");
+      .then(async res => {
+        if (!res.ok) {
+          const errData = await res.json().catch(() => ({}));
+          throw new Error(errData.detail || "Actuarial server endpoint evaluation error.");
+        }
         return res.json();
       })
       .then(data => {
