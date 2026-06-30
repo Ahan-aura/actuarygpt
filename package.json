@@ -3,6 +3,6 @@
   "version": "1.0.0",
   "private": true,
   "scripts": {
-    "build": "cd frontend && npm install --legacy-peer-deps && npm run build && rm -rf ../dist ../build && cp -r dist ../dist && cp -r dist ../build"
+    "build": "cd frontend && npm install --legacy-peer-deps && npm run build && rm -rf dist && cp -r build dist && rm -rf ../dist ../build && mkdir ../dist ../build && cp -r build/. ../dist/ && cp -r build/. ../build/"
   }
 }
